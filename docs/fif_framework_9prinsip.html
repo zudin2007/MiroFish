@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="id">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIT Fithrah Insani — Framework READY & 10 Prinsip Kepemimpinan</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4ExGrtFLACTUC6bUtGTdvkutRx/vBrRVuRVLT9FA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          'jakarta': ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        },
+        colors: {
+          fi: {
+            green: '#0e5c3f',
+            deep: '#0a422d',
+            cream: '#faf8f3',
+            gold: '#c99a2b',
+            goldLight: '#f1e1b8',
+            ink: '#1b2430',
+            muted: '#67717d',
+            line: '#e6ddd0',
+            paper: '#ffffff',
+          }
+        }
+      }
+    }
+  }
+</script>
+<style type="text/tailwindcss">
+  body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: #e9e5dc; color: #1b2430; }
+  .page-shell {
+    width: 100%;
+    max-width: 920px;
+    margin-left: auto;
+    margin-right: auto;
+    background: #faf8f3;
+    box-shadow: 0 24px 80px rgba(16, 40, 28, .12);
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+  }
+  .fi-hr { height: 1px; background: linear-gradient(90deg, rgba(201,154,43,0), rgba(201,154,43,.55), rgba(201,154,43,0)); }
+  .ready-card { border: 1px solid #e6ddd0; background: #fff; border-radius: 16px; }
+  .chip { border: 1px solid #e3d7c2; background:#fffdf7; border-radius: 9999px; }
+  .alur-step { position:relative; }
+  .alur-step:not(:last-child):after{
+    content:''; position:absolute; right:-18px; top:50%; transform:translateY(-50%);
+    width: 28px; height: 2px; background: #d7c9b1;
+  }
+  .alur-step:not(:last-child):before{
+    content:'›'; position:absolute; right:-22px; top:50%; transform:translateY(-50%);
+    color:#c99a2b; font-weight:700; font-size:20px;
+  }
+  @media (max-width: 900px){
+    .alur-step:not(:last-child):after, .alur-step:not(:last-child):before{ display:none;}
+  }
+  .prinsip-card { border: 1px solid #e6ddd0; background: #fff; border-radius: 16px; transition: border-color .18s ease, box-shadow .18s ease; }
+  .prinsip-card:hover { border-color: #dccec2; box-shadow: 0 6px 20px rgba(16,40,28,.04); }
+  /* WA Mode - optimized for 1080x1920 phone screenshot */
+  .wa-mode { background:#ced6c8 !important; }
+  .wa-mode .page-shell { max-width: 430px !important; border-radius: 18px; box-shadow: 0 12px 40px rgba(16,40,28,.13);}
+  .wa-mode .pg-inner { padding: 28px 22px !important; }
+  .wa-mode .ready-grid, .wa-mode .hasil-grid, .wa-mode .prinsip-grid { grid-template-columns: 1fr !important; }
+  .wa-mode .alur-track { flex-direction: column; gap:10px; }
+  .wa-mode .alur-step { width:100% !important; }
+  .wa-mode .alur-step:not(:last-child):after, .wa-mode .alur-step:not(:last-child):before{ display:none; }
+  .wa-mode .muwashofat-grid { grid-template-columns: 1fr !important; }
+  .wa-mode .fi-big-title { font-size: 30px !important; line-height:1.18 !important;}
+  .wa-mode .fi-sub { font-size: 15px !important; }
+  .wa-mode .ready-card, .wa-mode .prinsip-card { padding: 18px !important; }
+
+  /* Print */
+  @media print {
+    body { background: #fff !important; }
+    #topnav, #toast, #wa-banner { display:none !important; }
+    .page-shell {
+      box-shadow: none !important;
+      border-radius:0 !important;
+      max-width: none !important;
+      margin:0 !important;
+      page-break-after: always;
+    }
+    .page-shell:last-of-type{ page-break-after: avoid; }
+    .pg-inner { padding: 26px 30px !important; }
+    a, button { text-decoration: none !important; }
+    .prinsip-card { break-inside: avoid; }
+  }
+</style>
+</head>
+<body class="font-jakarta text-fi-ink antialiased">
+  <!-- TOP NAV -->
+  <div id="topnav" class="sticky top-0 z-50 border-b border-zinc-200 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/75">
+    <div class="max-w-[920px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center gap-2.5">
+      <div class="flex items-center gap-2 mr-auto pr-2">
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFoAAABQCAIAAAAWUfUzAAABTGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8kZOcW8wkwMCQm1dSFOTupBARGaXA/oiBmUGEgZOBj0E2Mbm4wDfYLYQBCIoTy4uTS4pyGFDAt2sMjCD6sm5GYl7K3IkMtg4NG2wdSnQa5y1V6mPADzhTUouTgfQHIJZJLigqYWBg5AGyecpLCkBsCSBbpAjoKCBbB8ROh7AdQOwkCDsErCYkyBnIzgCyE9KR2ElIbKhdIMBaCvQsskNKUitKQLSzswEDKAwgop9DwH5jFDuJEMtfwMBg8YmBgbkfIZY0jYFheycDg8QthJgKUB1/KwPDtiPJpUVlUGu0gLiG4QfjHKZS5maWk2x+HEJcEjxJfF8Ez4t8k8iS0VNwVlmjmaVXZ/zacrP9NbdwX7OQshjxFNmcttKwut4OnUlmc1Yv79l0e9/MU8evpz4p//jz/38A9Ylkoq8RzkUAABlVSURBVHic3XxZcxxJjiYAP+LIgyIllWrbbB/K9qXW+nHX5ieN2TzOL57qmp7uLlHikUccfgD7gAxnMJipElU129YNo4UlMyMj3D+HAx+OSPz3f/tXEYFJEFFfyExGggPw//rjH3/88cf1ep1SAgAiAoCcM7yQTMBkGAEFAECvaBgAAJiJCLMwM7Icj8f/+vOF//qfP0E8GjlzqRBCGZiODREBk8WQeazr+t27d1dXVwAQY0wpiQgRIaK1tq5rRLy/v//46WG3l6pZe0sxxhQCGTAMmeO7m+uYAmVpV/XVZm3LxOZSgHjCSOB3kZyziCgcBhARjTHW2hQvfuUJhRdHRCSixfgLcCLCzDHGcRxDAOMSCoYQJGfrHAHExIfDYQwDJs4ca+/sM9SfK4XCcTrhd4LDOQcAICwiwsLMzDxXz4XoVOfzBwAkISAQcs4556y1ehFmNsboF/VffQEA3nv9unMOrbWWKIv3nplzzpAyMyPiEo7yfYVj8dFvl9OlTguL1lqnnPe+H34Fjmd6QUJAhKfvue9DCCKSUrLWImJZzqI+zrmUM7B47w1i5iiZjTGSEyKSMValjLLM+Xec/EtJKSEisiCiNaaqqrZt27btd1+CY4kIMgIikW40Y4xCwMx6/mKnG2NShhACAVtriWgcR0zsKwvMipoxhoisatRiuESkSOk99DZXV1fOuRCCKnyMUS/xcg5CwC/fBQCApmlSSiLZGGORmHm1Wn348OH2Lz9JTsYYVeAQAiJWVdX3vZob1SMiSinF1G9a0/c9Il5dXVlrj8djjLGqKmOMjnmOjoLStq0zuvGlqio0LJCbpgEUHmNKKaVkF8Odq8nsHYBzxkPX5MLEz0uMMecMmUUEkFJKOWcddwpZvYOuCgDoUhGRLuBCfxU755z+S0TeeyJSK6CI5En2+z2Q85aM6hKJYYBpV9EkSzhegnLWDf/GDTXXfGOMc2673R4lqy4YY9Qizm9XdoH+u9lsWKrNZrNer3ESVQ09QbXJGBNCaNs4jBHIWYKTH0I2CAIwDEOMkbLknL+kHcXR6Bt4+mTp516rHae10WEJAEBVVUba7XbLYVCWodtbp1c8Qrk7M7OEt29vWMJ6vd5sNuM4zjdI2ext23rvjTEMtmltFiL9ds4sCRML5DgOSGAYVLPOaMc5sypzLH6Lu5ms/ekquozk/Xa7TUMXQmBm9Z1qJjebTWEWM/8fy+bVN3iSxSzodCd0zhkwqEyPGZANAyDDqk05GoamrTbr1RntgBebBRH19i/NymvhiDEiIgAhIrMoqSWi77//vrZU17UaUQBwzlVV1XVdoRJqBQAAKT8+7jOP6ln1CnO7ruxLN8J+v3983A1jx2AsgTHGGWMdWbLG2hQyERlEVduvNaW6WeA3a8fpCqerTR4O3bapjWQi6rpuHEd1W9ba3W6nmqK04gSfYYshxA4Rt9ttVVXOuRNSk8dV6Jl5HMdxHEOQLBSBicgSGYuRrLE4dEdAqY1DEme+2pQygCAAoeiL8u8ljwqngKWIIKAAGmONISICZMOGRUQs0JhDFEkAI6ddfxy73lrbxjYLE2SDKMIsKXNSi1XVFXNCMITWGm+NN5RB6ERxhRCR0BqyzlbWeLtqkkBKiWMKaYQoAwqh5JwtItVUgYCZMTEVVebiogDAGKUINiMNKTOzZQGAcRyNMVVVXUBDFsrDCASAhFEY8glFBACEDEAgUFdutZKxS4QBJeSY+n21rsPYj90RESvv6qYSEebUdQORs7YehpRSPwwpJciZq6oKIaQk3jtEx4yIrmlWv9zfkTXGGFMhyclOW2v6vq99FVMaAcxmbc+GpMuZAXjvXV25umJma62IMIIx5qJynHM4jFN4W0QVTQAI0XnbVNVq3YxjyjnFEDhLFgFAe7IfOZ9CPQYiIVj8ARJahIwg5R1hZGbvncJRVpozZ8kMklASSgSOwPYrPSU/l7lL+5qv/6ogIjpbw2rDnHPMOR/2aRxHYXBknHMAIiyJM01WjHH5hwgZJIMwghAKoQBkEIZT8FKsMsxCM52OvrALi/ir6MzDgRLjnT3tVXAwszXovQfYcM7jOHZdxwzCbCpDxiEoTCIIs0ktRVmv3l2XSkldjFHw5IDUNgMAIirTKR7cLpZ3EcIU8ZOUzaJ3unT+ayWLICMZY7yr6rZt1119GMOQ4yn9IwjZJIMafRdHMopxZTS+fldQOrS+fldQOrS+yyAZACAc4o55ZTQUNU2/+f//svPf/qPv/3Xn1OOzrqcY8oZEJA5C4fHh/3xoHGaDjjmVNf1Zr1pmoaIQghXCHXb7Ha74j5Od2QehmEcx2EYnHN1XR+PxyUrnSeRcGLyYm3Bb+6ffi87erovEgAAGQAkEYMgmayvV+vtanvV7Xf9MKQYnHNN24zDQRBJQAgBIINA5iT8brOxla+qipzVT3XYm82mwDFPev7hD3/o+34YBkRMKdm5XYVZirRwCiKCUyLRanIFJq3LOb/WlF5ywCyIKIhIgGSMoFAmoRRjXK1WH77/w65p7u4+HXcsgEQkmjO1xldVVVXWOQTIzEk4h5Bzhr4T5jGEMI4ppcZXc4oBkxMIIRhjrq6u6rr23j95Fpxl0vWd4rdl8tXGGLVDRTvMFzjAa2FiRCIwRAKCCCTIZr978NbfvPtuu92u1+tPnz52+0NI6fr6WoQBYL5OBLA/HMosNKOj3jDWEfkMHLvdrqqq9Xqt1uRrHS0+l6c5fMO0zwkDEJIgCqAgEiJIRhDrnbXWGWsdvTXGV9XD/f1ud3/9dhPCqLHv2AedeUqpaZqyVCIiIGjIEuWckZ/ZDpwyjMMwHA6H29vb1Wpli1LMp30a4vTNnJ8gwykx+W0M/SwcAqQcQe8gIkkABUBgu3mTOYZhyDE5Q2/e3FTet239eP9xDF3f9zHG+XiUU8xVQKPnnBKc2yzFAip1sIulLnDM022J4OWF1D99g4KcFUQENAK6osLMwBkkgzU61SxMQHVVtbhhyF3/GCVAIE4AANad8uzDMAiIgMCpngOna16Qvu+1uOG9B2Wl87Pn6Oj2Q8ScQESQhYRIgNAAsqC1SJlFNf3F8bxc3CtIgIIiumTASTKz5P3+2DRVVdVEhgAQTOKYIv/4v//4uLu/vb29u7vr+z4z5zEBQFU1xfc9GUEQa+GsdhjvRGSI4dB3zGzLGSpt26r5QcS2bREx59xJXq2v3r95h0kq8ojUdcdVu4oxGEEAAlgekeQsKCxcDNA8XshZWFgzooAAhsAQgOWUJUPKjGAEIGWwrr5++31IkUyzWt+wOGP3mkPLSkmQpkIUp5RijJJT4wEkzW3CyW8aQkCy1tcOAGzBSY9qkBQOlZxzksyRObEYFiEkQUECJCAWnnIY8+MyFVbE4InjISCwAIJoFlbkrIuatHXxIY5hROPX2+u63ay3/X6/3+/3allFJCRm1rgW0XhjDFlBoSdfC8CCABDGWG6Emitd+IuzojBpwFPg+4b4bV5ShslafwPfJyIyoOk4DbXbtg0h7Pf7EIIyK60oGmOQTEwBJM93yimP7yuYKcQSjnmJWGeOiFawhLOLSt9r4ZhXj+b79BIcF26BdV1njilyyoEzOOe8q5GkqVdj6A/77nDcDX3IHEEIMY9DROAyNY1mEZHIzBH4TUv9/0EuwYGIhJYoG3GEgAhEBhG2WxtjU1er9Xo9DGMIY84MzIPzcxNZ5juOIwCoESOi0/oXG1OY3MJ2NMaUsOW30LDCZeaBwxeucwEOE8bRWGyaRp299rTEmIjI+8o537btPEeT43fMzCmFlDilxAzMWWSVkiAaRCCyCgfMsmOXdMTOwpb5V14LRwlz5nsTLiN7aTwiAmJACMEggiGwRoSx2CbvnhWDeIqyYkqcc2Z+SpYCGCIkMgrH3Btrs8JL22FnQe1vgUPzAwWLmaP99YT+XLyvmdMwBJEe0RCBtd57L4LMiRlEsqJNZIkoxkiEYMF5mfv4/X5frMkp/VM+Q8SUkn6Qc9ZSMBEZb5WPrFYrrRJWVTWOo7W2pAif2yBJOcz6fHB+gnbqaNpVizVt2/Z9r9pX9o5Cr70euk4pJe0u2Ww2u90OEY2xiBaARHKMWSRb6wHUaYAI6n4ByPxU9kEQyNOe9VXzpHElVzpTnCeZz3AO2WKG3yAllCrl6EUTT1E9RfzUYDdxp5SSFtuns/jE8vGU3EMENQiIBhFBKKTECCTw5eMz23F26POFXWAE5/a2iJwvOj19enqBJb00ZW5xauvSPSUi1lqtFRT4YGo84vwUgE3tKqSqhHhyFkgEgECI1hAQChDC/MgpK33W45NyLvz/XAU0CTavNhUCsoBjmu2X4CgLoBcXES21l1618r7epfyru5iZY8zeOUQW0TuiiGYFEJEABACZGZGYEwAKAjmrTHhixNORcP7Os82idy0zLAZPJnM7R6S8uDTzS3DMM4wiotnKvu+bplmtVtrfxcyaqS8uX7+u381ZIwOcBY2gx6pqAFgN6tNRMiHKucBhkd88rUYhi/PsSNkOc8MBz/dLGehz6/Mlj1PSvACQcz4cDg8PD7vd7s2bN6XdR+n2MAx1Xa/Xaw0m55HojEwprSRVbmsNgFHQVX9FRMBeGtBiOZckvTQ9z0FBxNKOUzwuAGh/Kzy3wSfbcVlpdJMr2UspHY/HT58+ff78mZnX6/VqtQKA4/F4e3v7+Ph4dXVljFmtVsYYzdrr8uSctWdmHgSpNywbHEtPMuIgUc4t0kJlbBligUprv9okIQBECIho0VqjfxMcYq0JQflCMZ9fsqNzOHCiG8MwHI/H3W63Xq+1GYqZ+75/eHj49OmT9rqV1Sr+hXNGfKqBlI388HBXamvaVGWtBUJCYWAQAnx2RHj2js0xwdSMwQjGGiDMIpk5cUZEBgLgxDHlEOIQ4mB4yiEjIwmcovpnAT6zzJsXiudi5oeHB83013XddR0irlart2/famF5GIb9fv/zzz8/PDw0TYOIqkE5Z+Um2+22aRql2s5bZu66rmmaqvb39/e+Mj/99FMI4Ycffri++R8ppZTGxjdpjARsjDOEgJgzI6KzNoTEWSl7ylksaZKypNKm7nNt7gHEjECExmi7HyCqS0IAnjzUK6Qw3Zzzbrf7+PHj3d1d13Xv379PKXVd9/DwoH60ruuqqt6/f6891mpcS+cYER0Oe/XTfd/nHLfbbdvWd3ed99YYNAZzjilFZmZOlbNzXpdzNkbQmqbyMWKMkcg486I3DGZeBuSpzF36AApx+jaSTkTaG6stC/v9XkTW6/XNzc3Hjx8/f/4cQtAUhppV7/1ut7u7u1NOoanN6+vr9Xr9yy+/AEBVVcfj0Tn34cOHzWbjnLu6ukLEuq5TSuM4TsTsKd7T/VgYcGHhWAL8J+0QgZmjLTapADFPiLwWCwDouq5tW631DsOgk3/z5o21NoSw2+0AQBvvdcQhhE+fPnVdt1qtEHG/35cOnvv7eyJarVa73a6kprTCqDlk9U0i4pzr+/7du3fX19ciorpWiEJVVRpzhBDOFCVl5kpp0g2ZyZyqvVZBhmFQfPu+77ouhFDXdXluoa7ruq41PNGScNu2elMto+qtdeU12NlsNgprCGEcx7/+9a+r1Uq1r+/7wnf/8pe/6B5BxFNWFUA7EG5ubtq2HcfxcDi80A5mKLRipiCaHCzRRNGU10aim81GtdQY0zTNer3WxoDNZvPhw4ftdtu2LRE9PDzknInIOaekQwvuykqqqrq7u9PWbaVtOsL9fn84HLR/WJnuarXSQtTxeNSPcs5qgLRkrd/abDbH4/FMyXou880SQphnleGZ/3+FtG2r8Zj3/t27dzrVpmk2m43uAu+9psWVbqxWq5zz4+NjzjnG2DSNoqnbp21bANDQxhijQXZVVUqIELFt2/V6HWPcbrfe+xhj13Uislqt6ro2xvzpT38iosPhoGmxpXbA846vMvPS+l8s6LeZD52qiFRV1TRNVVW68s65oimIuF6viejm5kZNLwDc399r935VVao4q9Vqu92q9bHWrtfqorZqmDQhoLvm+vpa82Nqkq6urjabTc758+fPmuLRHhtrjAHEwjuOfdesVkpvXeW7rjv2/Rv/7ocfftD4SnVPlU3V7+y06XJmXJd0fppuQ33RdR0AvH//Hiai6b3//vvvv/vuu3nc9OOPPwKAPuHw/v17bU7KOT88PFxfX9/c3DDz7e3tp0+f7u/vdahXV1dN0xyPx67rjsejiBwOB62E7/f7+/v7pmnsabUJAUCmJwpgxvNKRPNSvs25XJKXVlmDA5j14b/UzZTSMAyaSVJNqapKmb6umZqV7XZb17VuRvUA+/3+7u5O7ZHmkx4fHy0zA6KwgLLSySxlZmKjC7hIkZax/o5wPI8An3zWPGjU8ESmtFCBQ42iqpKu9nq9ruu6KLJ28ocQDodD0zR1XTOz2t26rtu23W63GiictEM3SwYp5KT0BNBUalpM/r8DjjkWenEt0BdQyh1LkqF0iutTszq9whhPAQ6zWpPy5Evf9yEE771i1zTNOI7ee/tsQPgUXy3UssT4MoXW8EUD8c1wzNVhPu05RrrgMO1oNatFF9SbagLt9FiGtWpZ9ZrqEBSFDx8+rFYr7/3bt2/rurZExCIl+C0QzONOmLLei3GXRM7vBcdizlCeuz2HmkwZ5tKZRETqLwvvLIvnvX/z5o0WLjV3rRSuPD6n7smittqAMtbzcMjzJ/PKgL6Blf4qKHMscJaXmgvM+ltoVp2QKbeqOqW2RndTVVVqMlRNlJ4o01GSqrTYEgGD4DRfPsFJiKKNzAAorGk4/VPI6ATjRXldU6G8qHiVf4shmztaDUzKghXSrF5cuYxm4RWdruvUs2iJX/Wo7/v1eq0GRd2FZU6CAKeeIYghoskpMSBZW+eMiSElCCPbSsQiZ0gpcwaFVku+Z6b3SkQWm6JIYb0lepxLyaTD1IpfqvaaaitAl2SaEiV9U7Gr61qvEGO0gPOunVOLU04oCCAkjACIYBBp+pPyWnPWF9H4B5RlzDJFsMjTs4CETz3KNOVj6UVJ4Z9DlupXHgZRUS+lkcVCzmrvP7os56Mx69yGa1bq7zG2v4Nc7EmX6ZkxM1GghfAXf3fjH1SWcGgmPgmklDVAFjIl3z/PqeHzkt0/h5yHg/OpRBZjBGPVV5+VfzY4rLWAhkGEDSIYS33fCxtrbWa4urp68/bd9fW1clianmFQOlvyFC9EnLcAT/H4nIMvoiENK+Y/eQQzDlZV1dllWHQgFtGQ72kc06eXnspaZPNO2YTpeVZBPHVKsEhKOefcdZ07HN5+JbzPh7KYvIhUVVU2XZm/RqJz9lnyshfgfpI5eYUX3VXzUPBrxryMaJ9SPojGPOVdvh6FMkqd72La5YSCSOmQmJ9WSOpcj+YvihacjaRejufSFBYn2/ldRSTlzAjWoHVW+bfmS74ShSIyCwXLKBFR4+7FfsFZsmchpWi0AEUjV3yeJYLne21+/MoU9zPtOFvj/jbR+BinJIC6bRHR4FrPodkzed77siRzL75gemXaC5TLzMtvCCwQucQYF6bnSTsUDmttEhaRGGNMLCLkvGu+RTsUDhHR4qAWPu7v78t8SqqisH71a6XyrtODF1ozh2bxftEmlXmF7BVwlM+ICFmEhaenN74A7ZfhEDk9a9l13ePj4+PjY9d1+sRiQaSkbfSZNO+9JiZKmbZEqIsi8ekHt6bhvdxcJarC1yRlNDP6DKcToaBTi4tWbl4LB3AGBBCTUxj7Yb97uL/9vN8/WutFsggCZ0aTUYgsEeQsEXkUeoSMQoKsx+36Cg04411lK1dbb5zxaMBaD8DaUVqOiNI0K30fhYksStL3RfDsczdEdv6OTSkJkCAQGUDQukaKQNZ4ssfjse/7/7le6y+oaNdWMYRwwYYRAoqkNOx3D7effrn92+1+/wiMtaXQ9WTAozOECAgilFgkjykDCYEBEgJAAygAiP3nO+tNFAppRCHrDQqFNAJZQUY01lJdt01T1XXrnNkbV2AissYgkUWUq6vr0y8aSNbSgPe1tdRU1TB0Iuy9FTlV8E+Nc4iA+OS3cdLnS7kZAJjXQWBmgwzmFGMYutAPkhMBGgSjTXxADgQFSVhEkFMG8QAaGwEDIkMCfW2ELRsAtgwAp9eGQSAziEhOCbsQx6Mx5mHeMGVmQkQ/p//Q0Hz+DDIzX19fl+r38qdd9CRkTImB0Yi2I37JdpRLz+mJIqItBcfjUe9n5HQ+KuyI+juMwpyFnXOCT/4efo045Zxloo6nYKLc+nlyW6XrOjXSmlXUbzGz1ui0Iumc+3+6wPoenqv/vwAAAABJRU5ErkJggg==" class="w-9 h-9 rounded-full object-contain bg-white ring-1 ring-black/5" alt="FI Logo" />
+        <div class="text-[11px] leading-tight text-zinc-500 hidden sm:block">SIT Fithrah Insani<br><span class="font-semibold text-zinc-700">Infografik Resmi</span></div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+        <button onclick="scrollToPage('page1')" class="px-3 py-1.5 rounded-full text-[12.5px] font-semibold bg-fi-cream text-fi-deep border border-fi-line hover:bg-white transition">Hal. 1 Framework</button>
+        <button onclick="scrollToPage('page2')" class="px-3 py-1.5 rounded-full text-[12.5px] font-semibold bg-fi-cream text-fi-deep border border-fi-line hover:bg-white transition">Hal. 2 10 Prinsip</button>
+        <span class="hidden md:inline w-px h-5 bg-zinc-200 mx-1"></span>
+        <button onclick="window.print()" class="px-3 py-1.5 rounded-full text-[12.5px] font-semibold bg-fi-green text-white hover:bg-fi-deep transition">Print / PDF</button>
+        <button onclick="saveJpg('page1','fi-framework-ready.jpg')" class="px-3 py-1.5 rounded-full text-[12.5px] font-semibold bg-white text-fi-deep border border-fi-line hover:border-fi-gold transition">Simpan JPG Hal.1</button>
+        <button onclick="saveJpg('page2','fi-10-prinsip.jpg')" class="px-3 py-1.5 rounded-full text-[12.5px] font-semibold bg-white text-fi-deep border border-fi-line hover:border-fi-gold transition">Simpan JPG Hal.2</button>
+        <button id="waToggleBtn" onclick="toggleWa()" class="px-3 py-1.5 rounded-full text-[12.5px] font-bold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition">Versi WA</button>
+      </div>
+    </div>
+    <div id="wa-banner" class="hidden bg-amber-50 border-t border-amber-200 text-amber-900 text-[12.5px]">
+      <div class="max-w-[920px] mx-auto px-4 sm:px-6 py-2 flex items-center justify-between gap-4">
+        <span><strong>Mode Versi WA aktif.</strong> Tampilan diperbesar, 1 kolom, cocok untuk screenshot/story. Simpan JPG lalu bagikan.</span>
+        <button onclick="toggleWa()" class="text-amber-800 underline font-semibold">Matikan</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="px-3 sm:px-6 md:px-8 py-8 sm:py-12 space-y-10 sm:space-y-14 print:px-0 print:py-0 print:space-y-0">
+
+    <!-- ================= PAGE 1 ================= -->
+    <section id="page1" class="page-shell">
+      <div class="pg-inner px-6 sm:px-10 md:px-14 pt-10 sm:pt-12 pb-10 sm:pb-14">
+        <!-- Header P1 -->
+        <header class="text-center">
+          <div class="flex justify-center mb-5">
+            <img src="data:image/png;base64,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" class="h-16 w-16 md:h-20 md:w-20 object-contain" alt="Logo SIT Fithrah Insani" />
+          </div>
+          <div class="text-[11px] tracking-[0.22em] text-fi-gold font-[700] mb-1.5">FITHRAH INSANI EDUCATION</div>
+          <h1 class="fi-big-title text-[30px] sm:text-[40px] md:text-[46px] font-[800] leading-[1.15] tracking-tight text-fi-deep">
+            READY TO LEAD,<br>READY TO INSPIRE,<br>READY TO SERVE
+          </h1>
+          <p class="fi-sub mt-3 text-[15.5px] sm:text-[17px] text-fi-muted">Menjaga Fitrah, Membina Insan Kamil</p>
+        </header>
+
+        <!-- VISI -->
+        <div class="mt-8 sm:mt-10 rounded-[18px] border border-[#e5d9c5] bg-[#fffdf7] px-5 sm:px-7 py-5 sm:py-6 text-center">
+          <div class="text-[11px] font-bold tracking-wider text-fi-gold">VISI SEKOLAH</div>
+          <p class="mt-1.5 text-[17px] sm:text-[19px] font-[700] text-fi-deep leading-relaxed">“Mendidik siswa agar memiliki aqidah yang benar, berakhlak Islami, berilmu, dan mandiri.”</p>
+        </div>
+
+        <!-- READY Core Values -->
+        <div class="mt-10">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="h-px bg-fi-line flex-1"></div>
+            <div class="text-[11px] font-[800] tracking-widest text-fi-gold">CORE VALUES</div>
+            <div class="h-px bg-fi-line flex-1"></div>
+          </div>
+          <div class="ready-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+            <!-- R -->
+            <div class="ready-card p-5">
+              <div class="text-[11px] font-[800] text-fi-gold">R</div>
+              <div class="text-[18px] font-[800] text-fi-deep">Religius</div>
+              <p class="text-[13.5px] text-fi-muted mt-2 leading-relaxed">Aqidah lurus, ibadah tertib, akhlak Qur'ani sebagai fondasi hidup.</p>
+            </div>
+            <!-- E -->
+            <div class="ready-card p-5">
+              <div class="text-[11px] font-[800] text-fi-gold">E</div>
+              <div class="text-[18px] font-[800] text-fi-deep">Excellent</div>
+              <p class="text-[13.5px] text-fi-muted mt-2 leading-relaxed">Berusaha menjadi yang terbaik: ilmu, adab, karya, dan prestasi.</p>
+            </div>
+            <!-- A -->
+            <div class="ready-card p-5">
+              <div class="text-[11px] font-[800] text-fi-gold">A</div>
+              <div class="text-[18px] font-[800] text-fi-deep">Aware</div>
+              <p class="text-[13.5px] text-fi-muted mt-2 leading-relaxed">Peka diri, peduli sesama, tanggap terhadap isu umat & lingkungan.</p>
+            </div>
+            <!-- D -->
+            <div class="ready-card p-5">
+              <div class="text-[11px] font-[800] text-fi-gold">D</div>
+              <div class="text-[18px] font-[800] text-fi-deep">Dynamic</div>
+              <p class="text-[13.5px] text-fi-muted mt-2 leading-relaxed">Adaptif, inovatif, kolaboratif, siap menghadapi perubahan zaman.</p>
+            </div>
+            <!-- Y -->
+            <div class="ready-card p-5">
+              <div class="text-[11px] font-[800] text-fi-gold">Y</div>
+              <div class="text-[18px] font-[800] text-fi-deep">Youthful</div>
+              <p class="text-[13.5px] text-fi-muted mt-2 leading-relaxed">Semangat muda, positif, kreatif, dan menebar energi kebaikan.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ALUR FRAMEWORK -->
+        <div class="mt-10 sm:mt-12">
+          <div class="text-center text-[11px] font-[800] tracking-widest text-fi-gold mb-4">ALUR PENDIDIKAN FI</div>
+          <div class="alur-track flex flex-wrap lg:flex-nowrap items-stretch justify-between gap-3 text-center">
+            <div class="alur-step flex-1 bg-white border border-fi-line rounded-xl px-3 py-3">
+              <div class="text-[11px] font-bold text-fi-gold">1</div>
+              <div class="text-[12.5px] font-[700] text-fi-deep">VISI</div>
+            </div>
+            <div class="alur-step flex-1 bg-white border border-fi-line rounded-xl px-3 py-3">
+              <div class="text-[11px] font-bold text-fi-gold">2</div>
+              <div class="text-[12.5px] font-[700] text-fi-deep">READY</div>
+            </div>
+            <div class="alur-step flex-1 bg-white border border-fi-line rounded-xl px-3 py-3">
+              <div class="text-[11px] font-bold text-fi-gold">3</div>
+              <div class="text-[12.5px] font-[700] text-fi-deep">QUALITY<br>ASSURANCE</div>
+            </div>
+            <div class="alur-step flex-1 bg-white border border-fi-line rounded-xl px-3 py-3">
+              <div class="text-[11px] font-bold text-fi-gold">4</div>
+              <div class="text-[12.5px] font-[700] text-fi-deep">PROFIL<br>LULUSAN</div>
+            </div>
+            <div class="alur-step flex-1 bg-white border border-fi-line rounded-xl px-3 py-3">
+              <div class="text-[11px] font-bold text-fi-gold">5</div>
+              <div class="text-[12.5px] font-[700] text-fi-deep">PROGRAM<br>SEKOLAH</div>
+            </div>
+            <div class="alur-step flex-1 bg-white border border-fi-line rounded-xl px-3 py-3">
+              <div class="text-[11px] font-bold text-fi-gold">6</div>
+              <div class="text-[12.5px] font-[700] text-fi-deep">BUDAYA<br>SEKOLAH</div>
+            </div>
+            <div class="alur-step flex-1 bg-white border border-fi-line rounded-xl px-3 py-3">
+              <div class="text-[11px] font-bold text-fi-gold">7</div>
+              <div class="text-[12.5px] font-[700] text-fi-deep">DAMPAK<br>PERADABAN</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 10 Muwashofat x READY -->
+        <div class="mt-11">
+          <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+            <h3 class="text-[16.5px] sm:text-[18px] font-[800] text-fi-deep">10 Muwashofat × READY</h3>
+            <span class="text-[11px] text-fi-muted">Pemetaan karakter tarbiyah ke Core Values FI</span>
+          </div>
+          <div class="muwashofat-grid grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-[13.3px]">
+            <div class="chip px-4 py-[10px] flex items-center justify-between gap-3">
+              <span><strong>1. Salimul Aqidah</strong> – Aqidah yang bersih</span>
+              <span class="text-[11px] font-[800] text-fi-gold">R</span>
+            </div>
+            <div class="chip px-4 py-[10px] flex items-center justify-between gap-3">
+              <span><strong>2. Shahihul Ibadah</strong> – Ibadah yang benar</span>
+              <span class="text-[11px] font-[800] text-fi-gold">R</span>
+            </div>
+            <div class="chip px-4 py-[10px] flex items-center justify-between gap-3">
+              <span><strong>3. Matinul Khuluq</strong> – Akhlak yang kokoh</span>
+              <span class="text-[11px] font-[800] text-fi-gold">R • A</span>
+            </div>
+            <div class="chip px-4 py-[10px] flex items-center justify-between gap-3">
+              <span><strong>4. Qawiyyul Jism</strong> – Fisik yang kuat</span>
+              <span class="text-[11px] font-[800] text-fi-gold">E • Y</span>
+            </div>
+            <div class="chip px-4 py-[10px] flex items-center justify-between gap-3">
+              <span><strong>5. Mutsaqqaful Fikri</strong> – Wawasan luas</span>
+              <span class="text-[11px] font-[800] text-fi-gold">E</span>
+            </div>
+            <div class="chip px-4 py-[10px] flex items-center justify-between gap-3">
+              <span><strong>6. Mujahidun linafsihi</strong> – Bersungguh-sungguh</span>
+              <span class="text-[11px] font-[800] text-fi-gold">D • Y</span>
+            </div>
+            <div class="chip px-4 py-[10px] flex items-center justify-between gap-3">
+              <span><strong>7. Qadirun ‘alal Kasbi</strong> – Mandiri</span>
+              <span class="text-[11px] font-[800] text-fi-gold">E • D</span>
+            </div>
+            <div class="chip px-4 py-[10px] flex items-center justify-between gap-3">
+              <span><strong>8. Munazhzhamun fi Syu’unihi</strong> – Teratur</span>
+              <span class="text-[11px] font-[800] text-fi-gold">E • D</span>
+            </div>
+            <div class="chip px-4 py-[10px] flex items-center justify-between gap-3">
+              <span><strong>9. Harishun ‘ala Waqtihi</strong> – Pandai jaga waktu</span>
+              <span class="text-[11px] font-[800] text-fi-gold">A • D</span>
+            </div>
+            <div class="chip px-4 py-[10px] flex items-center justify-between gap-3">
+              <span><strong>10. Nafi’un li Ghairihi</strong> – Bermanfaat</span>
+              <span class="text-[11px] font-[800] text-fi-gold">A • Y</span>
+            </div>
+          </div>
+          <p class="text-[12px] text-fi-muted mt-2.5">Muwashofat menjadi quality assurance karakter untuk mewujudkan profil lulusan READY.</p>
+        </div>
+
+        <!-- Hasil Akhir -->
+        <div class="mt-11">
+          <div class="text-center text-[11px] font-[800] tracking-widest text-fi-gold mb-4">HASIL AKHIR / PROFIL LULUSAN</div>
+          <div class="hasil-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div class="rounded-[16px] bg-white border border-fi-line p-5">
+              <div class="text-[12px] font-[700] text-fi-gold">Aqidah Lurus</div>
+              <div class="text-[15.5px] font-[700] text-fi-deep mt-1">Beraqidah Benar</div>
+              <p class="text-[13px] text-fi-muted mt-2">Berpegang pada Al-Qur'an & As-Sunnah sesuai pemahaman salaf.</p>
+            </div>
+            <div class="rounded-[16px] bg-white border border-fi-line p-5">
+              <div class="text-[12px] font-[700] text-fi-gold">Akhlak Mulia</div>
+              <div class="text-[15.5px] font-[700] text-fi-deep mt-1">Berakhlak Islami</div>
+              <p class="text-[13px] text-fi-muted mt-2">Adab kepada Allah, orang tua, guru, dan sesama.</p>
+            </div>
+            <div class="rounded-[16px] bg-white border border-fi-line p-5">
+              <div class="text-[12px] font-[700] text-fi-gold">Cakap Berilmu</div>
+              <div class="text-[15.5px] font-[700] text-fi-deep mt-1">Berilmu & Kompeten</div>
+              <p class="text-[13px] text-fi-muted mt-2">Literat, berpikir kritis, unggul akademik dan life skills.</p>
+            </div>
+            <div class="rounded-[16px] bg-white border border-fi-line p-5">
+              <div class="text-[12px] font-[700] text-fi-gold">Mandiri & Bermanfaat</div>
+              <div class="text-[15.5px] font-[700] text-fi-deep mt-1">Mandiri</div>
+              <p class="text-[13px] text-fi-muted mt-2">Tangguh, inisiatif, dan memberi dampak bagi umat.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-10 fi-hr"></div>
+        <div class="pt-5 flex flex-wrap items-center justify-between gap-3 text-[12px] text-fi-muted">
+          <div>SIT Fithrah Insani • Menjaga Fitrah, Membina Insan Kamil</div>
+          <div class="font-[700] text-fi-deep">FI EDUCATION FRAMEWORK — READY</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PAGE 2 ================= -->
+    <section id="page2" class="page-shell">
+      <div class="pg-inner px-6 sm:px-10 md:px-14 pt-10 sm:pt-12 pb-10 sm:pb-14">
+        <!-- Header P2 -->
+        <header class="text-center">
+          <div class="flex justify-center mb-4">
+            <img src="data:image/png;base64,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" class="h-14 w-14 object-contain" alt="FI" />
+          </div>
+          <div class="text-[11px] tracking-wider text-fi-muted">BADAN PENGELOLA PENDIDIKAN (BPP) FITHRAH INSANI</div>
+          <div class="text-[11px] text-fi-muted">Pelantikan Pimpinan SIT Fithrah Insani</div>
+          <h2 class="mt-3 text-[28px] sm:text-[36px] font-[800] text-fi-deep tracking-tight">10 Prinsip Kepemimpinan SIT Fithrah Insani <span class="text-fi-gold">2026</span></h2>
+          <p class="mt-1.5 text-[14.5px] text-fi-muted">Amanah • Murid-Oriented • Leadership Multiplication</p>
+        </header>
+
+        <!-- 10 Prinsip Grid -->
+        <div class="prinsip-grid mt-8 grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
+          
+          <!-- 1 -->
+          <div class="prinsip-card p-[18px] sm:p-5">
+            <div class="flex items-start gap-3">
+              <div class="shrink-0 w-9 h-9 rounded-full bg-[#f6f0e2] text-fi-gold font-[800] flex items-center justify-center text-[14px]">1</div>
+              <div>
+                <div class="font-[800] text-fi-deep">LANDASAN HUKUM & NILAI</div>
+                <p class="text-[13.5px] text-fi-muted mt-1.5 leading-relaxed">Menjadikan Al-Qur'an dan As-Sunnah, serta peraturan perundang-undangan NKRI dan peraturan BPP Fithrah Insani, sebagai landasan dalam berpikir, bersikap, dan memimpin.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2 -->
+          <div class="prinsip-card p-[18px] sm:p-5">
+            <div class="flex items-start gap-3">
+              <div class="shrink-0 w-9 h-9 rounded-full bg-[#f6f0e2] text-fi-gold font-[800] flex items-center justify-center text-[14px]">2</div>
+              <div>
+                <div class="font-[800] text-fi-deep">NIAT & ORIENTASI</div>
+                <p class="text-[13.5px] text-fi-muted mt-1.5 leading-relaxed">Menjalankan amanah kepemimpinan dengan ikhlas, bertanggung jawab, dan berorientasi pada ridha Allah.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3 -->
+          <div class="prinsip-card p-[18px] sm:p-5">
+            <div class="flex items-start gap-3">
+              <div class="shrink-0 w-9 h-9 rounded-full bg-[#f6f0e2] text-fi-gold font-[800] flex items-center justify-center text-[14px]">3</div>
+              <div>
+                <div class="font-[800] text-fi-deep">KETELADANAN</div>
+                <p class="text-[13.5px] text-fi-muted mt-1.5 leading-relaxed">Menjadi teladan dalam akhlak, adab, kedisiplinan, dan profesionalisme kerja.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4 -->
+          <div class="prinsip-card p-[18px] sm:p-5">
+            <div class="flex items-start gap-3">
+              <div class="shrink-0 w-9 h-9 rounded-full bg-[#f6f0e2] text-fi-gold font-[800] flex items-center justify-center text-[14px]">4</div>
+              <div>
+                <div class="font-[800] text-fi-deep">VISI PENDIDIKAN</div>
+                <p class="text-[13.5px] text-fi-muted mt-1.5 leading-relaxed">Berkomitmen mewujudkan visi SIT FI dalam mendidik siswa yang beraqidah benar, berakhlak islami, berilmu, dan mandiri.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5 -->
+          <div class="prinsip-card p-[18px] sm:p-5">
+            <div class="flex items-start gap-3">
+              <div class="shrink-0 w-9 h-9 rounded-full bg-[#f6f0e2] text-fi-gold font-[800] flex items-center justify-center text-[14px]">5</div>
+              <div>
+                <div class="font-[800] text-fi-deep">NILAI READY</div>
+                <p class="text-[13.5px] text-fi-muted mt-1.5 leading-relaxed">Menginternalisasi dan mengamalkan Core Values READY (Religius, Excellent, Aware, Dynamic, dan Youthful) serta 10 Quality Assurance.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6 -->
+          <div class="prinsip-card p-[18px] sm:p-5">
+            <div class="flex items-start gap-3">
+              <div class="shrink-0 w-9 h-9 rounded-full bg-[#f6f0e2] text-fi-gold font-[800] flex items-center justify-center text-[14px]">6</div>
+              <div>
+                <div class="font-[800] text-fi-deep">INTEGRITAS PENGELOLAAN</div>
+                <p class="text-[13.5px] text-fi-muted mt-1.5 leading-relaxed">Menjunjung tinggi kejujuran, integritas, dan amanah, terutama dalam pengelolaan keuangan dan aset lembaga, serta tidak menyalahgunakan jabatan untuk kepentingan pribadi maupun golongan.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 7 -->
+          <div class="prinsip-card p-[18px] sm:p-5">
+            <div class="flex items-start gap-3">
+              <div class="shrink-0 w-9 h-9 rounded-full bg-[#f6f0e2] text-fi-gold font-[800] flex items-center justify-center text-[14px]">7</div>
+              <div>
+                <div class="font-[800] text-fi-deep">KOLABORASI & MUSYAWARAH</div>
+                <p class="text-[13.5px] text-fi-muted mt-1.5 leading-relaxed">Mengembangkan budaya musyawarah, sinergi, dan kolaborasi dalam seluruh proses kepemimpinan.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 8 -->
+          <div class="prinsip-card p-[18px] sm:p-5">
+            <div class="flex items-start gap-3">
+              <div class="shrink-0 w-9 h-9 rounded-full bg-[#f6f0e2] text-fi-gold font-[800] flex items-center justify-center text-[14px]">8</div>
+              <div>
+                <div class="font-[800] text-fi-deep">INOVASI & MUTU</div>
+                <p class="text-[13.5px] text-fi-muted mt-1.5 leading-relaxed">Mendorong perbaikan berkelanjutan (continuous improvement), inovasi, dan peningkatan mutu pendidikan.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 9 -->
+          <div class="prinsip-card p-[18px] sm:p-5">
+            <div class="flex items-start gap-3">
+              <div class="shrink-0 w-9 h-9 rounded-full bg-[#f6f0e2] text-fi-gold font-[800] flex items-center justify-center text-[14px]">9</div>
+              <div>
+                <div class="font-[800] text-fi-deep">HARMONI & UKHUWAH</div>
+                <p class="text-[13.5px] text-fi-muted mt-1.5 leading-relaxed">Menjaga ukhuwah, harmoni, dan budaya saling menghormati di lingkungan lembaga.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 10 -->
+          <div class="prinsip-card p-[18px] sm:p-5">
+            <div class="flex items-start gap-3">
+              <div class="shrink-0 w-9 h-9 rounded-full bg-[#f6f0e2] text-fi-gold font-[800] flex items-center justify-center text-[14px]">10</div>
+              <div>
+                <div class="font-[800] text-fi-deep">AKUNTABILITAS</div>
+                <p class="text-[13.5px] text-fi-muted mt-1.5 leading-relaxed">Siap menerima evaluasi, pembinaan, dan pertanggungjawaban atas amanah yang diemban.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Note + Footer -->
+        <div class="mt-7 rounded-[14px] bg-[#fffdf7] border border-[#e7d9bf] px-4 py-3 text-[12.5px] text-fi-muted">
+          <strong class="text-fi-deep">Catatan:</strong> 10 Prinsip Kepemimpinan SIT Fithrah Insani 2026 – Pelantikan Pimpinan.
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-fi-line text-center">
+          <p class="text-[15.5px] sm:text-[17px] font-[700] text-fi-deep">Semoga Allah mudahkan amanah ini menjadi jalan keberkahan</p>
+          <p class="text-[12.5px] text-fi-muted mt-1">— BPP Fithrah Insani —</p>
+        </div>
+
+        <div class="mt-8 fi-hr"></div>
+        <div class="pt-5 flex flex-wrap items-center justify-between gap-3 text-[12px] text-fi-muted">
+          <div>SIT Fithrah Insani • 2026</div>
+          <div class="font-[700] text-fi-deep">10 PRINSIP KEPEMIMPINAN</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-[#0f2b20] text-white text-[13px] font-semibold px-4 py-2.5 rounded-full shadow-xl opacity-0 pointer-events-none transition-all duration-300 z-[60]">Disimpan</div>
+
+  <script>
+    const toastEl = document.getElementById('toast');
+    let toastTimer;
+    function showToast(msg){
+      toastEl.textContent = msg;
+      toastEl.classList.remove('opacity-0','translate-y-2');
+      toastEl.classList.add('opacity-100','translate-y-0');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(()=>{
+        toastEl.classList.add('opacity-0','translate-y-2');
+        toastEl.classList.remove('opacity-100','translate-y-0');
+      }, 2300);
+    }
+
+    function scrollToPage(id){
+      document.getElementById(id)?.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+
+    let waMode = false;
+    function toggleWa(){
+      waMode = !waMode;
+      document.body.classList.toggle('wa-mode', waMode);
+      const btn = document.getElementById('waToggleBtn');
+      const banner = document.getElementById('wa-banner');
+      if(waMode){
+        btn.textContent = 'Matikan WA Mode';
+        btn.classList.remove('bg-amber-50','text-amber-800','border-amber-200');
+        btn.classList.add('bg-fi-green','text-white','border-fi-green');
+        banner.classList.remove('hidden');
+        showToast('WA Mode aktif – cocok untuk screenshot');
+        setTimeout(()=>scrollToPage('page1'), 60);
+      } else {
+        btn.textContent = 'Versi WA';
+        btn.classList.add('bg-amber-50','text-amber-800','border-amber-200');
+        btn.classList.remove('bg-fi-green','text-white','border-fi-green');
+        banner.classList.add('hidden');
+        showToast('WA Mode dimatikan');
+      }
+    }
+
+    async function saveJpg(pageId, filename){
+      const el = document.getElementById(pageId);
+      if(!el){ showToast('Halaman tidak ditemukan'); return; }
+      showToast('Mempersiapkan gambar…');
+      try{
+        const canvas = await html2canvas(el, {
+          scale: 2.4,
+          backgroundColor: '#faf8f3',
+          useCORS: true,
+          logging: false,
+          windowWidth: el.scrollWidth
+        });
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.click();
+        showToast('Berhasil disimpan: ' + filename);
+      } catch(e){
+        console.error(e);
+        showToast('Gagal menyimpan JPG');
+      }
+    }
+  </script>
+<script>(function(){document.addEventListener("click",function(e){var a=e.target.closest("[data-product-id]");if(!a)return;e.preventDefault();var pid=a.getAttribute("data-product-id");if(pid)parent.postMessage({type:"ecto-artifact-link-click",productId:pid},"*")})})();</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;var a=target.closest?target.closest("a[href]"):null;if(!a||!a.href||!/^https?:\/\//.test(a.href))return;if(a.href.replace(/#.*$/,"")===loc)return;var productId=extractProductId(target)||extractProductId(a);if(!productId)return;e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*")},true)})();</script></body>
+</html>

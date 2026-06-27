@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="id">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jurnal Sehat - Diabetes & Asam Urat</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@450;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: { sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
+        colors: {
+          brand: {
+            DEFAULT: '#0ea5b7',
+            50: '#ecfeff',
+            100: '#cffafe',
+            600: '#0891a6',
+            700: '#0e7490'
+          },
+          ink: '#161d29',
+          soft: '#f4f6f8'
+        },
+        boxShadow: {
+          'card': '0 8px 30px rgba(18, 33, 55, 0.06)',
+          'card-sm': '0 4px 18px rgba(18, 33, 55, 0.055)'
+        },
+        borderRadius: {
+          '2xl': '1.25rem'
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body { background: #f6f7f9; color: #1a2332; }
+  .card { background:#fff; border-radius: 1.25rem; box-shadow: 0 8px 30px rgba(18,33,55,0.06); border: 1px solid #e9edf2; }
+  .field-label { font-size: 12.5px; font-weight: 600; color: #4b5568; margin-bottom: 6px; display:block; }
+  .field-input {
+    width:100%; background:#f5f7fa; border:1.5px solid #e3e8ef; border-radius: 12px;
+    padding: 11px 14px; font-size:14.5px; outline:none; transition: all .15s;
+    color:#1a2332;
+  }
+  .field-input:focus { background:#fff; border-color:#0ea5b7; box-shadow: 0 0 0 3px rgba(14,165,183,0.14); }
+  .field-input::placeholder { color:#9aa3af; }
+  .soft-pill { font-size: 11px; font-weight: 700; padding:4px 10px; border-radius:999px; display:inline-block; }
+  .pill-ok { background:#e8f9f0; color:#0b7c52; }
+  .pill-high { background:#fff0e8; color:#b84a1a; }
+  .pill-low { background:#eef3ff; color:#3558b8; }
+  .pill-neutral { background:#eef6f7; color:#0b7285; }
+  .badge-obat { font-size:11px; font-weight:600; background:#e6f9fb; color:#0b7285; border-radius:999px; padding:3px 9px; display:inline-block; }
+  .badge-activity { font-size:11.5px; font-weight:600; background:#f2f7f4; color:#2b7a5a; border-radius:999px; padding:3px 9px; display:inline-block; white-space:nowrap; }
+  .table-wrap { overflow-x:auto; -webkit-overflow-scrolling: touch; }
+  table.jurnal th { font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:#6b7586; font-weight:700; text-align:left; padding:14px 16px; background:#f8fafb; white-space:nowrap; }
+  table.jurnal td { padding:14px 16px; font-size:13.8px; border-top:1px solid #eef1f5; vertical-align:top; }
+  table.jurnal tr:hover td { background:#fafcfd; }
+  .icon-btn { width:34px; height:34px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; color:#7a8494; transition:.15s; }
+  .icon-btn:hover { background:#f1f4f7; color:#d13b3b; }
+  input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { opacity:.55; }
+  .toast-enter { transform: translateY(10px); opacity:0; }
+  .toast-show { transform: translateY(0); opacity:1; }
+  ::-webkit-scrollbar { width:8px; height:8px; }
+  ::-webkit-scrollbar-thumb { background:#d6dbe3; border-radius:8px; }
+</style>
+</head>
+<body class="antialiased font-sans min-h-screen">
+  <!-- Top Bar -->
+  <header class="bg-white border-b border-[#e7ebf0] sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-[68px] flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand flex items-center justify-center shadow-card-sm">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"/>
+          </svg>
+        </div>
+        <div>
+          <div class="text-[14.5px] sm:text-[16px] font-extrabold text-ink tracking-tight">Jurnal Sehat</div>
+          <div class="text-[11.5px] text-slate-500 -mt-[1px]">Diabetes &amp; Asam Urat</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="hidden sm:block text-right mr-1">
+          <div class="text-[13px] font-semibold text-slate-800 leading-tight">Izzuddin Edi Siswanto</div>
+          <div class="text-[11.5px] text-slate-500">Pemantauan mandiri</div>
+        </div>
+        <div class="w-10 h-10 rounded-full bg-[#d7f5f6] text-[#0b7285] font-bold flex items-center justify-center text-[13px]">IE</div>
+        <button id="mobileUserBtn" class="sm:hidden w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500" aria-label="Profil">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-7 sm:py-10">
+    <!-- Page Title / Date -->
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-5">
+      <div>
+        <h1 class="text-[28px] sm:text-[34px] font-extrabold tracking-tight text-ink">Ringkasan Hari Ini</h1>
+        <p class="text-slate-500 text-[14px] mt-1" id="headerDateText">Kamis, 25 Juni 2026</p>
+      </div>
+      <div class="flex items-center gap-2 text-[12.5px] text-slate-500">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        Sinkron lokal • <span class="font-medium text-slate-600">localStorage aktif</span>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <section class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-5 mb-7 sm:mb-9" id="summaryCards">
+      <!-- Card 1 - Glukosa -->
+      <div class="card p-[18px] sm:p-5">
+        <div class="flex items-start justify-between">
+          <div class="text-[11.5px] font-semibold text-slate-500">Glukosa Terakhir</div>
+          <span class="w-8 h-8 rounded-full bg-[#fff1ec] flex items-center justify-center text-[#d55a2a]">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M5 12h14"/></svg>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-1.5">
+          <span id="sc-glucose" class="text-[30px] font-extrabold tracking-tight text-ink">–</span>
+          <span class="text-[12px] text-slate-500 font-medium">mg/dL</span>
+        </div>
+        <div id="sc-glucose-meta" class="text-[11.8px] text-slate-500 mt-1">Belum ada data</div>
+        <div id="sc-glucose-badge" class="mt-2 hidden"><span class="soft-pill pill-neutral">–</span></div>
+      </div>
+      <!-- Card 2 - Asam Urat -->
+      <div class="card p-[18px] sm:p-5">
+        <div class="flex items-start justify-between">
+          <div class="text-[11.5px] font-semibold text-slate-500">Asam Urat Terakhir</div>
+          <span class="w-8 h-8 rounded-full bg-[#eefdf5] flex items-center justify-center text-[#19946a]">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-1.5">
+          <span id="sc-ua" class="text-[30px] font-extrabold tracking-tight text-ink">–</span>
+          <span class="text-[12px] text-slate-500 font-medium">mg/dL</span>
+        </div>
+        <div id="sc-ua-meta" class="text-[11.8px] text-slate-500 mt-1">Belum ada data</div>
+      </div>
+      <!-- Card 3 - Rata-rata Glukosa -->
+      <div class="card p-[18px] sm:p-5">
+        <div class="flex items-start justify-between">
+          <div class="text-[11.5px] font-semibold text-slate-500">Rata-rata Glukosa 7 hari</div>
+          <span class="w-8 h-8 rounded-full bg-[#eefcfd] flex items-center justify-center text-[#0b8f9f]">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 17 9 11 13 15 21 7"/><path d="M 21 7 L 21 12 L 16 12"/></svg>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-1.5">
+          <span id="sc-glucose-avg" class="text-[30px] font-extrabold tracking-tight text-ink">–</span>
+          <span class="text-[12px] text-slate-500 font-medium">mg/dL</span>
+        </div>
+        <div class="text-[11.8px] text-slate-500 mt-1" id="sc-glucose-avg-hint">Target puasa 80–130</div>
+      </div>
+      <!-- Card 4 - Berat -->
+      <div class="card p-[18px] sm:p-5">
+        <div class="flex items-start justify-between">
+          <div class="text-[11.5px] font-semibold text-slate-500">Berat Badan Terakhir</div>
+          <span class="w-8 h-8 rounded-full bg-[#f4f1ff] flex items-center justify-center text-[#6b5bb7]">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v4M8 7h8M6 17a6 6 0 0 12 0c0-2-3-3-6-3s-6 1-6 3z"/></svg>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-1.5">
+          <span id="sc-weight" class="text-[30px] font-extrabold tracking-tight text-ink">–</span>
+          <span class="text-[12px] text-slate-500 font-medium">kg</span>
+        </div>
+        <div id="sc-weight-meta" class="text-[11.8px] text-slate-500 mt-1">Belum ada data</div>
+      </div>
+      <!-- Card 5 - HbA1c -->
+      <div class="card p-[18px] sm:p-5">
+        <div class="flex items-start justify-between">
+          <div class="text-[11.5px] font-semibold text-slate-500">HbA1c Terakhir</div>
+          <span class="w-8 h-8 rounded-full bg-[#fff7eb] flex items-center justify-center text-[#c2711a]">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-1.5">
+          <span id="sc-hba1c" class="text-[30px] font-extrabold tracking-tight text-ink">–</span>
+          <span class="text-[12px] text-slate-500 font-medium">%</span>
+        </div>
+        <div id="sc-hba1c-meta" class="text-[11.8px] text-slate-500 mt-1">Belum ada data</div>
+      </div>
+    </section>
+
+    <!-- Catat Baru -->
+    <section class="card mb-6 sm:mb-7" id="formCard">
+      <button type="button" id="toggleFormBtn" class="w-full flex items-center justify-between px-5 sm:px-7 py-[18px] sm:py-5" aria-expanded="true">
+        <div class="flex items-center gap-3">
+          <span class="w-9 h-9 rounded-full bg-brand-50 text-brand flex items-center justify-center">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          </span>
+          <div class="text-left">
+            <div class="text-[17.5px] font-extrabold text-ink">Catat Baru</div>
+            <div class="text-[12.5px] text-slate-500">Tambahkan pembacaan glukosa, asam urat, HbA1c, aktivitas, dan data harian</div>
+          </div>
+        </div>
+        <svg id="formChevron" class="text-slate-400 transition-transform duration-200" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div id="formBody" class="px-5 sm:px-7 pb-6 sm:pb-7 border-t border-slate-100 pt-5">
+        <form id="entryForm" class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4">
+          <div>
+            <label class="field-label" for="f_date">Tanggal</label>
+            <input class="field-input" type="date" id="f_date" required>
+          </div>
+          <div>
+            <label class="field-label" for="f_time">Waktu</label>
+            <input class="field-input" type="time" id="f_time" required>
+          </div>
+          <div class="md:col-span-2">
+            <label class="field-label" for="f_kategori">Kategori</label>
+            <select class="field-input" id="f_kategori">
+              <option value="Pagi">Pagi</option>
+              <option value="Siang">Siang</option>
+              <option value="Malam">Malam</option>
+              <option value="Sebelum Makan">Sebelum Makan</option>
+              <option value="Setelah Makan">Setelah Makan</option>
+              <option value="Sebelum Tidur">Sebelum Tidur</option>
+              <option value="Sebelum Olahraga">Sebelum Olahraga</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="field-label" for="f_glukosa">Glukosa (mg/dL)</label>
+            <input class="field-input" type="number" id="f_glukosa" min="20" max="600" placeholder="cth. 142">
+          </div>
+          <div>
+            <label class="field-label" for="f_au">Asam Urat (mg/dL)</label>
+            <input class="field-input" type="number" step="0.1" id="f_au" min="1" max="20" placeholder="cth. 6.8">
+          </div>
+
+          <div>
+            <label class="field-label" for="f_kolesterol">Kolesterol Total (mg/dL)</label>
+            <input class="field-input" type="number" id="f_kolesterol" placeholder="opsional">
+          </div>
+          <div>
+            <label class="field-label" for="f_hba1c">HbA1c (%)</label>
+            <input class="field-input" type="number" step="0.1" min="0" max="20" id="f_hba1c" placeholder="cth. 6.9">
+          </div>
+
+          <div>
+            <label class="field-label" for="f_trig">Trigliserida (mg/dL)</label>
+            <input class="field-input" type="number" min="0" max="2000" id="f_trig" placeholder="opsional">
+          </div>
+          <div>
+            <label class="field-label">Tensi Sistolik / Diastolik</label>
+            <div class="flex gap-2">
+              <input class="field-input" type="number" id="f_tensi_sis" placeholder="120">
+              <span class="text-slate-400 pt-2">/</span>
+              <input class="field-input" type="number" id="f_tensi_dia" placeholder="80">
+            </div>
+          </div>
+
+          <div>
+            <label class="field-label" for="f_berat">Berat Badan (kg)</label>
+            <input class="field-input" type="number" step="0.1" id="f_berat" placeholder="cth. 86.6">
+          </div>
+          <div>
+            <label class="field-label" for="f_karbo">Karbohidrat (gram)</label>
+            <input class="field-input" type="number" id="f_karbo" placeholder="opsional">
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="field-label" for="f_aktivitas">Aktivitas Fisik</label>
+            <input class="field-input" type="text" id="f_aktivitas" placeholder="mis. Walking 30 min">
+          </div>
+
+          <div class="md:col-span-2">
+            <div class="field-label">Obat yang dikonsumsi</div>
+            <div class="flex flex-wrap gap-4 pt-1 text-[14px] text-slate-700">
+              <label class="inline-flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="ob_metformin" value="Metformin" class="w-[17px] h-[17px] accent-brand rounded">
+                <span>Metformin 500mg</span>
+              </label>
+              <label class="inline-flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="ob_vilda" value="Vildagliptin" class="w-[17px] h-[17px] accent-brand rounded">
+                <span>Vildagliptin 50mg</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="field-label" for="f_catatan">Catatan</label>
+            <textarea id="f_catatan" rows="3" class="field-input resize-none" placeholder="Gejala, makanan, aktivitas…"></textarea>
+          </div>
+
+          <div class="md:col-span-2 flex flex-col sm:flex-row gap-3 pt-2">
+            <button type="submit" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-brand text-white font-semibold shadow-sm hover:bg-brand-600 transition text-[14.5px]">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Simpan Catatan
+            </button>
+            <button type="button" id="resetBtn" class="px-5 py-3 rounded-xl bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 transition text-[14.5px]">Reset</button>
+            <span class="text-[12.5px] text-slate-500 sm:ml-2 self-center">Data tersimpan otomatis di perangkat Anda.</span>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Target Pribadi -->
+    <section class="card mb-7 sm:mb-9" id="targetCard">
+      <button type="button" id="toggleTargetBtn" class="w-full flex items-center justify-between px-5 sm:px-7 py-[17px] sm:py-[18px]" aria-expanded="false">
+        <div class="flex items-center gap-3">
+          <span class="w-9 h-9 rounded-full bg-[#f1f8f6] text-[#138a6b] flex items-center justify-center">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 2"/><path d="M12 16h.01"/></svg>
+          </span>
+          <div class="text-left">
+            <div class="text-[16.5px] sm:text-[17.5px] font-extrabold text-ink">Target Pribadi</div>
+            <div class="text-[12.5px] text-slate-500">Atur rentang glukosa, HbA1c, dan asam urat Anda</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span id="targetSummaryPill" class="hidden sm:inline-block text-[11.5px] font-semibold bg-slate-100 text-slate-600 rounded-full px-3 py-1.5">GD 80–130 • HbA1c ≤7.0%</span>
+          <svg id="targetChevron" class="text-slate-400 transition-transform duration-200" style="transform: rotate(-90deg);" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </button>
+      <div id="targetBody" class="px-5 sm:px-7 pb-6 sm:pb-7 border-t border-slate-100 pt-5" style="display:none;">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          <div>
+            <label class="field-label" for="t_glukosa_min">Glukosa Puasa Min (mg/dL)</label>
+            <input class="field-input" type="number" id="t_glukosa_min" value="80">
+          </div>
+          <div>
+            <label class="field-label" for="t_glukosa_max">Glukosa Puasa Max (mg/dL)</label>
+            <input class="field-input" type="number" id="t_glukosa_max" value="130">
+          </div>
+          <div>
+            <label class="field-label" for="t_glukosa_post">Glukosa Setelah Makan Max (mg/dL)</label>
+            <input class="field-input" type="number" id="t_glukosa_post" value="180">
+          </div>
+          <div>
+            <label class="field-label" for="t_hba1c">HbA1c Target (%)</label>
+            <input class="field-input" type="number" step="0.1" id="t_hba1c" value="7.0">
+          </div>
+          <div>
+            <label class="field-label" for="t_ua_max">Asam Urat Target Max (mg/dL)</label>
+            <input class="field-input" type="number" step="0.1" id="t_ua_max" value="7.0">
+          </div>
+        <div class="flex flex-wrap items-center gap-3 mt-4">
+          <button id="targetSaveBtn" class="px-4 py-2.5 rounded-xl bg-brand text-white font-semibold text-[13.5px] hover:bg-brand-600 transition">Simpan Target</button>
+          <button id="targetResetBtn" type="button" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-semibold text-[13.5px] hover:bg-slate-200 transition">Reset ke default</button>
+          <span class="text-[12.5px] text-slate-500">Target dipakai untuk badge, grafik, dan % TIR.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Grafik -->
+    <section class="mb-7 sm:mb-9">
+      <h2 class="text-[20px] sm:text-[22px] font-extrabold text-ink mb-3 px-1">Grafik / Raport</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div class="card p-5 sm:p-6">
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-bold text-slate-800">Tren Glukosa</div>
+            <span class="text-[11.5px] text-slate-500">Mei – Juni 2026</span>
+          </div>
+          <div class="relative h-[240px] sm:h-[260px]">
+            <canvas id="glucoseChart"></canvas>
+          </div>
+          <div class="text-[11.5px] text-slate-500 mt-3">Area hijau = rentang target puasa pribadi. Drag untuk zoom / double-click untuk reset.</div>
+        </div>
+        <div class="card p-5 sm:p-6">
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-bold text-slate-800">Tren Asam Urat</div>
+            <span class="text-[11.5px] text-slate-500" id="ua-chart-limit">Batas rujukan 7.0 mg/dL</span>
+          </div>
+          <div class="relative h-[240px] sm:h-[260px]">
+            <canvas id="uaChart"></canvas>
+          </div>
+          <div class="text-[11.5px] text-slate-500 mt-3">Garis putus-putus = target pribadi Anda. Termasuk UA 6.9 pada 27 Mei.</div>
+        </div>
+        <div class="card p-5 sm:p-6">
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-bold text-slate-800">Tren HbA1c</div>
+            <span class="text-[11.5px] text-slate-500" id="hba1c-chart-limit">Target ≤ 7.0%</span>
+          </div>
+          <div class="relative h-[240px] sm:h-[260px]">
+            <canvas id="hba1cChart"></canvas>
+          </div>
+          <div class="text-[11.5px] text-slate-500 mt-3">HbA1c mencerminkan rata-rata 2–3 bulan.</div>
+        </div>
+        <div class="card p-5 sm:p-6">
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-bold text-slate-800">Aktivitas Mingguan</div>
+            <span class="text-[11.5px] text-slate-500">Total menit olahraga</span>
+          </div>
+          <div class="relative h-[240px] sm:h-[260px]">
+            <canvas id="activityChart"></canvas>
+          </div>
+          <div class="text-[11.5px] text-slate-500 mt-3" id="activityChartNote">Diurai otomatis dari kolom Aktivitas, mis. "Walking 30 min".</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Logbook -->
+    <section class="card mb-7 sm:mb-9 overflow-hidden">
+      <div class="px-5 sm:px-6 py-5 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <div class="text-[18px] font-extrabold text-ink">Logbook</div>
+          <div class="text-[12.5px] text-slate-500">Semua entri tersimpan lokal</div>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-2.5 w-full lg:w-auto">
+          <div class="relative flex-1 sm:w-[280px]">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3"/></svg>
+            <input id="searchInput" type="text" placeholder="Cari di logbook… (glukosa, aktivitas, catatan)" class="field-input pl-9 !bg-white" />
+          </div>
+          <button id="exportCsvBtn" class="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-[13.5px] font-semibold text-slate-700 hover:bg-slate-50">Export CSV</button>
+          <button id="exportJsonBtn" class="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-[13.5px] font-semibold text-slate-700 hover:bg-slate-50">Export JSON</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="jurnal w-full min-w-[1320px]">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Waktu</th>
+              <th>Kategori</th>
+              <th>Glukosa</th>
+              <th>Asam Urat</th>
+              <th>HbA1c</th>
+              <th>Trigliserida</th>
+              <th>Tensi</th>
+              <th>Berat</th>
+              <th>Aktivitas</th>
+              <th>Obat</th>
+              <th style="min-width:180px;">Catatan</th>
+              <th class="text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="logTbody">
+          </tbody>
+        </table>
+      </div>
+      <div id="emptyLog" class="hidden px-6 py-14 text-center text-slate-500 text-[14px]">Belum ada data. Tambahkan catatan pertama Anda di atas.</div>
+      <div class="px-5 sm:px-6 py-3 border-t border-slate-100 text-[12px] text-slate-500 bg-slate-50/70">
+        Data diimpor dari 14 screenshot Logbook Diabetes:M, 2 Mei – 25 Juni 2026. Total 34 entri.
+      </div>
+    </section>
+
+    <!-- Ringkasan Raport -->
+    <section class="mb-6">
+      <h3 class="text-[18px] font-extrabold text-ink mb-3 px-1">Ringkasan Raport</h3>
+      <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div class="card p-5">
+          <div class="text-[11.5px] font-semibold text-slate-500 uppercase tracking-wide">Jumlah Entri</div>
+          <div id="rp_count" class="text-[28px] font-extrabold mt-2">0</div>
+          <div class="text-[12px] text-slate-500 mt-1">total catatan tersimpan</div>
+        </div>
+        <div class="card p-5">
+          <div class="text-[11.5px] font-semibold text-slate-500 uppercase tracking-wide">Glukosa</div>
+          <div id="rp_glucose" class="text-[20px] font-extrabold mt-2 leading-snug text-ink">–</div>
+          <div class="text-[12px] text-slate-500">min / max / rata</div>
+        </div>
+        <div class="card p-5">
+          <div class="text-[11.5px] font-semibold text-slate-500 uppercase tracking-wide">Asam Urat</div>
+          <div id="rp_ua" class="text-[20px] font-extrabold mt-2 leading-snug text-ink">–</div>
+          <div class="text-[12px] text-slate-500">min / max / rata</div>
+        </div>
+        <div class="card p-5">
+          <div class="text-[11.5px] font-semibold text-slate-500 uppercase tracking-wide">HbA1c</div>
+          <div id="rp_hba1c" class="text-[20px] font-extrabold mt-2 leading-snug text-ink">–</div>
+          <div class="text-[12px] text-slate-500">min / max / rata (%)</div>
+        </div>
+        <div class="card p-5">
+          <div class="text-[11.5px] font-semibold text-slate-500 uppercase tracking-wide">Trigliserida</div>
+          <div id="rp_trig" class="text-[20px] font-extrabold mt-2 leading-snug text-ink">–</div>
+          <div class="text-[12px] text-slate-500">min / max / rata mg/dL</div>
+        </div>
+        <div class="card p-5">
+          <div class="text-[11.5px] font-semibold text-slate-500 uppercase tracking-wide">Glukosa dalam Target</div>
+          <div id="rp_tir" class="text-[28px] font-extrabold mt-2 text-emerald-600">0%</div>
+          <div class="text-[12px] text-slate-500">% waktu sesuai target pribadi</div>
+        </div>
+        <div class="card p-5">
+          <div class="text-[11.5px] font-semibold text-slate-500 uppercase tracking-wide">Kepatuhan Obat</div>
+          <div id="rp_adherence" class="text-[28px] font-extrabold mt-2 text-emerald-600">0%</div>
+          <div class="text-[12px] text-slate-500">entri dengan obat tercatat</div>
+        </div>
+        <div class="card p-5">
+          <div class="text-[11.5px] font-semibold text-slate-500 uppercase tracking-wide">Aktivitas Tercatat</div>
+          <div id="rp_activity" class="text-[28px] font-extrabold mt-2 text-brand-700">0</div>
+          <div class="text-[12px] text-slate-500" id="rp_activity_sub">0 menit total</div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="pt-6 pb-12 text-center text-[12.5px] text-slate-500">
+      Catatan: Dashboard ini untuk pemantauan pribadi, bukan pengganti saran dokter.<br>
+      <span class="text-slate-400">Jurnal Sehat • Diabetes &amp; Asam Urat • v3.0</span>
+    </footer>
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 bg-[#132230] text-white px-4 py-3 rounded-xl shadow-2xl text-[13.5px] font-medium transition-all duration-200 toast-enter pointer-events-none" style="display:none;">
+    Catatan berhasil disimpan.
+  </div>
+
+  <!-- Confirm Modal -->
+  <div id="confirmModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-slate-900/40" id="confirmBackdrop"></div>
+    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl w-[92%] max-w-sm p-5">
+      <div class="font-bold text-ink text-[16px] mb-1.5">Hapus entri?</div>
+      <div class="text-[13.5px] text-slate-600 mb-4">Tindakan ini tidak bisa dibatalkan. Data akan dihapus dari penyimpanan lokal Anda.</div>
+      <div class="flex justify-end gap-2">
+        <button id="confirmCancel" class="px-4 py-2 text-[13.5px] font-semibold text-slate-600 rounded-lg hover:bg-slate-100">Batal</button>
+        <button id="confirmOk" class="px-4 py-2 text-[13.5px] font-semibold bg-rose-600 text-white rounded-lg hover:bg-rose-700">Hapus</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+const LS_KEY = 'jurnal_sehat_v3';
+const LS_KEY_OLD = 'jurnal_sehat_v1';
+const LS_TARGET_KEY = 'jurnal_sehat_target_v1';
+
+const defaultTargets = {
+  glucose_fasting_min: 80,
+  glucose_fasting_max: 130,
+  glucose_post_max: 180,
+  hba1c_target: 7.0,
+  ua_max: 7.0
+};
+
+function loadTargets(){
+  try {
+    const raw = localStorage.getItem(LS_TARGET_KEY);
+    if(raw) return { ...defaultTargets, ...JSON.parse(raw) };
+  } catch(e){}
+  return {...defaultTargets};
+}
+let targets = loadTargets();
+
+function saveTargets(){
+  localStorage.setItem(LS_TARGET_KEY, JSON.stringify(targets));
+  updateTargetSummaryPill();
+}
+
+function updateTargetSummaryPill(){
+  const el = document.getElementById('targetSummaryPill');
+  if(el){
+    el.textContent = `GD ${targets.glucose_fasting_min}–${targets.glucose_fasting_max} • HbA1c ≤${Number(targets.hba1c_target).toFixed(1)}%`;
+  }
+  const avgHint = document.getElementById('sc-glucose-avg-hint');
+  if(avgHint){
+    avgHint.textContent = `Target puasa ${targets.glucose_fasting_min}–${targets.glucose_fasting_max}`;
+  }
+  const uaLimitEl = document.getElementById('ua-chart-limit');
+  if(uaLimitEl) uaLimitEl.textContent = `Batas rujukan ${Number(targets.ua_max).toFixed(1)} mg/dL`;
+  const hbaLimitEl = document.getElementById('hba1c-chart-limit');
+  if(hbaLimitEl) hbaLimitEl.textContent = `Target ≤ ${Number(targets.hba1c_target).toFixed(1)}%`;
+}
+
+// v3 full imported logbook: 2 Mei – 25 Juni 2026, 34 entri
+const seedData = [
+  {date:"2026-06-25", time:"04:14", kategori:"Malam", glukosa:154, asam_urat:8.1},
+  {date:"2026-06-18", time:"23:15", kategori:"Sebelum Tidur", glukosa:141, asam_urat:6.2, obat:["Metformin","Vildagliptin"]},
+  {date:"2026-06-17", time:"14:23", kategori:"Lainnya", tensi_sis:110, tensi_dia:70, berat:86.6},
+  {date:"2026-06-16", time:"23:59", kategori:"Sebelum Tidur", glukosa:141, asam_urat:7.2, obat:["Metformin","Vildagliptin"]},
+  {date:"2026-06-08", time:"23:03", kategori:"Sebelum Tidur", glukosa:151, asam_urat:7.2, kolesterol:176, obat:["Metformin","Vildagliptin"]},
+  {date:"2026-06-05", time:"10:51", kategori:"Setelah Makan", glukosa:145},
+  {date:"2026-05-29", time:"16:06", kategori:"Setelah Makan", glukosa:147},
+  {date:"2026-05-28", time:"05:46", kategori:"Malam", glukosa:124},
+  {date:"2026-05-27", time:"12:40", kategori:"Lainnya", kolesterol:150, asam_urat:6.9},
+  {date:"2026-05-26", time:"05:45", kategori:"Malam", glukosa:139},
+  {date:"2026-05-25", time:"05:55", kategori:"Sebelum Olahraga", aktivitas:"Walking 99 min"},
+  {date:"2026-05-25", time:"04:29", kategori:"Malam", glukosa:131, kolesterol:256},
+  {date:"2026-05-24", time:"19:43", kategori:"Sebelum Makan", glukosa:110},
+  {date:"2026-05-24", time:"06:40", kategori:"Sebelum Olahraga", aktivitas:"Running 61 min"},
+  {date:"2026-05-23", time:"20:55", kategori:"Sebelum Makan", glukosa:132},
+  {date:"2026-05-21", time:"20:59", kategori:"Setelah Makan", glukosa:180},
+  {date:"2026-05-18", time:"21:54", kategori:"Setelah Makan", glukosa:147},
+  {date:"2026-05-16", time:"12:04", kategori:"Setelah Makan", glukosa:182, berat:83.2},
+  {date:"2026-05-16", time:"05:38", kategori:"Malam", glukosa:132},
+  {date:"2026-05-12", time:"19:22", kategori:"Setelah Makan", glukosa:176},
+  {date:"2026-05-11", time:"06:23", kategori:"Setelah Makan", glukosa:132},
+  {date:"2026-05-08", time:"14:40", kategori:"Lainnya", glukosa:139},
+  {date:"2026-05-07", time:"18:43", kategori:"Sebelum Olahraga", aktivitas:"Other 21 min"},
+  {date:"2026-05-05", time:"22:31", kategori:"Sebelum Olahraga", aktivitas:"Walking 4 min"},
+  {date:"2026-05-05", time:"16:34", kategori:"Setelah Makan", glukosa:172, kolesterol:164},
+  {date:"2026-05-05", time:"09:40", kategori:"Sebelum Olahraga", aktivitas:"Other 14 min"},
+  {date:"2026-05-05", time:"08:45", kategori:"Pagi", glukosa:198},
+  {date:"2026-05-02", time:"13:32", kategori:"Sebelum Olahraga", aktivitas:"Other 14 min"},
+  {date:"2026-05-02", time:"13:14", kategori:"Sebelum Olahraga", aktivitas:"Walking 10 min"},
+  {date:"2026-05-02", time:"12:57", kategori:"Sebelum Olahraga", aktivitas:"Walking 4 min"},
+  {date:"2026-05-02", time:"06:51", kategori:"Sebelum Olahraga", aktivitas:"Walking 6 min"},
+  {date:"2026-05-02", time:"06:32", kategori:"Sebelum Olahraga", aktivitas:"Walking 8 min"},
+  {date:"2026-05-02", time:"06:11", kategori:"Malam", glukosa:139, kolesterol:183},
+  {date:"2026-05-02", time:"05:55", kategori:"Sebelum Olahraga", aktivitas:"Other 9 min"}
+];
+
+function normalizeSeed(arr){
+  return arr.map((e,i)=>({
+    id: 'seed_v3_'+i+'_'+e.date+'_'+(e.time||'').replace(':',''),
+    date: e.date,
+    time: e.time || "00:00",
+    kategori: e.kategori || "Lainnya",
+    glukosa: e.glukosa ?? null,
+    asam_urat: e.asam_urat ?? null,
+    hba1c: e.hba1c ?? null,
+    trigliserida: e.trigliserida ?? null,
+    kolesterol: e.kolesterol ?? null,
+    tensi_sis: e.tensi_sis ?? null,
+    tensi_dia: e.tensi_dia ?? null,
+    berat: e.berat ?? null,
+    karbo: e.karbo ?? null,
+    aktivitas: e.aktivitas || "",
+    obat: e.obat || [],
+    catatan: e.catatan || ""
+  }));
+}
+
+function migrateEntry(e){
+  return {
+    id: e.id || ('e_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)),
+    date: e.date,
+    time: e.time || "00:00",
+    kategori: e.kategori || "Lainnya",
+    glukosa: e.glukosa ?? null,
+    asam_urat: e.asam_urat ?? null,
+    hba1c: e.hba1c ?? null,
+    trigliserida: e.trigliserida ?? null,
+    kolesterol: e.kolesterol ?? null,
+    tensi_sis: e.tensi_sis ?? null,
+    tensi_dia: e.tensi_dia ?? null,
+    berat: e.berat ?? null,
+    karbo: e.karbo ?? null,
+    aktivitas: e.aktivitas || "",
+    obat: Array.isArray(e.obat) ? e.obat : [],
+    catatan: e.catatan || ""
+  };
+}
+
+function loadEntries(){
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      return parsed.map(migrateEntry);
+    }
+  } catch(e){}
+  // try migrate from v1
+  try {
+    const oldRaw = localStorage.getItem(LS_KEY_OLD);
+    if(oldRaw){
+      const parsed = JSON.parse(oldRaw);
+      const migrated = parsed.map(migrateEntry);
+      localStorage.setItem(LS_KEY, JSON.stringify(migrated));
+      return migrated;
+    }
+  } catch(e){}
+  const seeded = normalizeSeed(seedData);
+  localStorage.setItem(LS_KEY, JSON.stringify(seeded));
+  return seeded;
+}
+
+let entries = loadEntries();
+
+function saveEntries(){
+  localStorage.setItem(LS_KEY, JSON.stringify(entries));
+}
+
+function fmtDateID(iso){
+  if(!iso) return '–';
+  const d = new Date(iso + 'T00:00:00');
+  if(isNaN(d)) return iso;
+  return d.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+}
+function fmtDateShort(iso){
+  const d = new Date(iso+'T00:00:00');
+  return d.toLocaleDateString('id-ID', { day:'2-digit', month:'short' });
+}
+
+function getSortedEntries(){
+  return [...entries].sort((a,b)=>{
+    const ta = a.date + ' ' + a.time;
+    const tb = b.date + ' ' + b.time;
+    return tb.localeCompare(ta);
+  });
+}
+
+function latestWith(field){
+  const sorted = getSortedEntries();
+  return sorted.find(e => e[field] !== null && e[field] !== undefined && e[field] !== '' );
+}
+
+function isPostMealCategory(cat){
+  if(!cat) return false;
+  return cat.toLowerCase().includes('setelah makan');
+}
+
+function glucoseTargetStatus(entry){
+  if(!entry || entry.glukosa == null) return null;
+  const g = Number(entry.glukosa);
+  const t = targets;
+  if(isPostMealCategory(entry.kategori)){
+    if(g <= t.glucose_post_max) return { key:'ok', label:'Sesuai target' };
+    return { key:'high', label:'Di atas target' };
+  } else {
+    if(g < t.glucose_fasting_min) return { key:'low', label:'Di bawah target' };
+    if(g > t.glucose_fasting_max) return { key:'high', label:'Di atas target' };
+    return { key:'ok', label:'Sesuai target' };
+  }
+}
+
+function renderSummary(){
+  const g = latestWith('glukosa');
+  document.getElementById('sc-glucose').textContent = g ? Math.round(g.glukosa) : '–';
+  document.getElementById('sc-glucose-meta').textContent = g ? fmtDateID(g.date) + ' • ' + g.time + ' • ' + g.kategori : 'Belum ada data';
+
+  const badgeWrap = document.getElementById('sc-glucose-badge');
+  if(g){
+    const st = glucoseTargetStatus(g);
+    if(st){
+      const cls = st.key === 'ok' ? 'pill-ok' : st.key === 'high' ? 'pill-high' : 'pill-low';
+      badgeWrap.innerHTML = `<span class="soft-pill ${cls}">${st.label}</span>`;
+      badgeWrap.classList.remove('hidden');
+    } else {
+      badgeWrap.classList.add('hidden');
+    }
+  } else {
+    badgeWrap.classList.add('hidden');
+  }
+
+  const u = latestWith('asam_urat');
+  document.getElementById('sc-ua').textContent = u ? Number(u.asam_urat).toFixed(1) : '–';
+  document.getElementById('sc-ua-meta').textContent = u ? fmtDateID(u.date) + ' • ' + u.time : 'Belum ada data';
+
+  const w = latestWith('berat');
+  document.getElementById('sc-weight').textContent = w ? Number(w.berat).toFixed(1).replace('.', ',') : '–';
+  document.getElementById('sc-weight-meta').textContent = w ? fmtDateID(w.date) : 'Belum ada data';
+
+  const h = latestWith('hba1c');
+  document.getElementById('sc-hba1c').textContent = h ? Number(h.hba1c).toFixed(1) : '–';
+  document.getElementById('sc-hba1c-meta').textContent = h ? fmtDateID(h.date) + ' • ' + (h.time || '') : 'Belum ada data';
+
+  const refEntry = g || latestWith('glukosa') || getSortedEntries()[0];
+  const refDate = refEntry ? new Date(refEntry.date + 'T12:00:00') : new Date();
+  const cutoff = new Date(refDate); cutoff.setDate(cutoff.getDate() - 7);
+  const recentGluc = entries.filter(e => {
+    if(e.glukosa == null) return false;
+    const ed = new Date(e.date + 'T12:00:00');
+    return ed >= cutoff && ed <= refDate;
+  }).map(e=>Number(e.glukosa));
+  const avg = recentGluc.length ? (recentGluc.reduce((a,b)=>a+b,0) / recentGluc.length) : null;
+  document.getElementById('sc-glucose-avg').textContent = avg ? Math.round(avg) : '–';
+}
+
+let glucoseChart, uaChart, hba1cChart, activityChart;
+
+function parseActivityMinutes(str){
+  if(!str) return 0;
+  const m = str.match(/(\d+(?:[.,]\d+)?)\s*min/i);
+  if(!m) return 0;
+  return parseFloat(m[1].replace(',', '.')) || 0;
+}
+
+function getWeekStartISO(dateStr){
+  const d = new Date(dateStr + 'T12:00:00');
+  const day = d.getDay(); // 0 Sun
+  const diff = (day + 6) % 7; // Mon = 0
+  d.setDate(d.getDate() - diff);
+  return d.toISOString().slice(0,10);
+}
+
+function renderCharts(){
+  const sortedAsc = [...entries].sort((a,b)=> (a.date+a.time).localeCompare(b.date+b.time));
+  const latestDateStr = getSortedEntries()[0]?.date;
+  const latestDate = latestDateStr ? new Date(latestDateStr+'T12:00:00') : new Date();
+  const start = new Date(latestDate); start.setDate(start.getDate()-90);
+  const filtered = sortedAsc.filter(e => {
+    const d = new Date(e.date+'T12:00:00');
+    return d >= start && d <= latestDate;
+  });
+
+  const labels = filtered.map(e => fmtDateShort(e.date) + ' ' + e.time.slice(0,5));
+  const gData = filtered.map(e => e.glukosa ?? null);
+  const uaData = filtered.map(e => e.asam_urat ?? null);
+  const hbaData = filtered.map(e => e.hba1c ?? null);
+
+  const targetMinArr = filtered.map(()=> targets.glucose_fasting_min);
+  const targetMaxArr = filtered.map(()=> targets.glucose_fasting_max);
+
+  const gCtx = document.getElementById('glucoseChart');
+  if(glucoseChart) glucoseChart.destroy();
+  glucoseChart = new Chart(gCtx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Target Min',
+          data: targetMinArr,
+          borderColor: 'rgba(16,185,129,0.75)',
+          borderDash: [6,4],
+          borderWidth: 1.4,
+          pointRadius: 0,
+          fill: false,
+          tension: 0
+        },
+        {
+          label: 'Target Max',
+          data: targetMaxArr,
+          borderColor: 'rgba(16,185,129,0.75)',
+          borderDash: [6,4],
+          borderWidth: 1.4,
+          pointRadius: 0,
+          fill: '-1',
+          backgroundColor: 'rgba(16,185,129,0.10)',
+          tension: 0
+        },
+        {
+          label: 'Glukosa mg/dL',
+          data: gData,
+          borderColor: '#0ea5b7',
+          backgroundColor: 'rgba(14,165,183,0.06)',
+          tension: .38,
+          pointRadius: 3,
+          pointBackgroundColor: '#0ea5b7',
+          spanGaps: true,
+          borderWidth: 2.4,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display:false },
+        zoom: {
+          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
+          pan: { enabled: true, mode: 'x' }
+        },
+        tooltip: {
+          mode:'index', intersect:false,
+          filter: (item) => item.dataset.label.includes('Glukosa')
+        }
+      },
+      scales: {
+        x: { grid:{ display:false }, ticks:{ color:'#7b8798', maxRotation:0, autoSkip:true, maxTicksLimit:6 } },
+        y: { grid:{ color:'#eef1f5' }, ticks:{ color:'#7b8798' }, beginAtZero:false }
+      }
+    }
+  });
+
+  const uaCtx = document.getElementById('uaChart');
+  if(uaChart) uaChart.destroy();
+  const uaRefLine = uaData.map(() => Number(targets.ua_max) || 7);
+  uaChart = new Chart(uaCtx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Asam Urat',
+          data: uaData,
+          borderColor: '#119e6f',
+          backgroundColor: 'rgba(17,158,111,0.09)',
+          tension: .38,
+          pointRadius: 3,
+          spanGaps: true,
+          borderWidth: 2.3,
+          fill: true
+        },
+        {
+          label: 'Batas target',
+          data: uaRefLine,
+          borderColor: '#e35b5b',
+          borderDash: [6,5],
+          pointRadius: 0,
+          borderWidth: 1.6,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display:false },
+        zoom: {
+          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
+          pan: { enabled: true, mode: 'x' }
+        }
+      },
+      scales: {
+        x: { grid:{ display:false }, ticks:{ color:'#7b8798', maxRotation:0, autoSkip:true, maxTicksLimit:6 } },
+        y: { grid:{ color:'#eef1f5' }, ticks:{ color:'#7b8798' }, suggestedMin:4, suggestedMax:9 }
+      }
+    }
+  });
+
+  const hbaCtx = document.getElementById('hba1cChart');
+  if(hba1cChart) hba1cChart.destroy();
+  const hbaRefLine = hbaData.map(()=> Number(targets.hba1c_target) || 7);
+  hba1cChart = new Chart(hbaCtx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'HbA1c %',
+          data: hbaData,
+          borderColor: '#c2711a',
+          backgroundColor: 'rgba(194,113,26,0.08)',
+          tension: .38,
+          pointRadius: 3.5,
+          spanGaps: true,
+          borderWidth: 2.3,
+          fill: true
+        },
+        {
+          label: 'Target HbA1c',
+          data: hbaRefLine,
+          borderColor: '#d97706',
+          borderDash: [6,5],
+          pointRadius: 0,
+          borderWidth: 1.5,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display:false },
+        zoom: {
+          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
+          pan: { enabled: true, mode: 'x' }
+        }
+      },
+      scales: {
+        x: { grid:{ display:false }, ticks:{ color:'#7b8798', maxRotation:0, autoSkip:true, maxTicksLimit:6 } },
+        y: { grid:{ color:'#eef1f5' }, ticks:{ color:'#7b8798' }, suggestedMin:5, suggestedMax:9 }
+      }
+    }
+  });
+
+  // Aktivitas Mingguan
+  const activityEntries = entries.filter(e => parseActivityMinutes(e.aktivitas) > 0);
+  const weekMap = {};
+  activityEntries.forEach(e => {
+    const wk = getWeekStartISO(e.date);
+    weekMap[wk] = (weekMap[wk] || 0) + parseActivityMinutes(e.aktivitas);
+  });
+  const weekKeys = Object.keys(weekMap).sort();
+  const weekLabels = weekKeys.map(wk => {
+    const d = new Date(wk + 'T12:00:00');
+    return d.toLocaleDateString('id-ID', { day:'numeric', month:'short' });
+  });
+  const weekValues = weekKeys.map(k => Math.round(weekMap[k]));
+
+  const actCtx = document.getElementById('activityChart');
+  if(activityChart) activityChart.destroy();
+  activityChart = new Chart(actCtx, {
+    type: 'bar',
+    data: {
+      labels: weekLabels.length ? weekLabels : ['Belum ada data'],
+      datasets: [{
+        label: 'Menit',
+        data: weekValues.length ? weekValues : [0],
+        backgroundColor: 'rgba(14,165,183,0.72)',
+        borderRadius: 7,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display:false } },
+      scales: {
+        x: { grid:{ display:false }, ticks:{ color:'#7b8798' } },
+        y: { beginAtZero:true, grid:{ color:'#eef1f5' }, ticks:{ color:'#7b8798' } }
+      }
+    }
+  });
+
+  // update activity note total
+  const totalActivityMins = Object.values(weekMap).reduce((a,b)=>a+b,0);
+  const activityNote = document.getElementById('activityChartNote');
+  if(activityNote){
+    activityNote.textContent = totalActivityMins > 0
+      ? `Total ${Math.round(totalActivityMins)} menit tercatat dari ${activityEntries.length} sesi. Diurai otomatis dari kolom Aktivitas.`
+      : `Diurai otomatis dari kolom Aktivitas, mis. "Walking 30 min".`;
+  }
+}
+
+function renderReport(){
+  const countEl = document.getElementById('rp_count');
+  countEl.textContent = entries.length;
+
+  const glucVals = entries.map(e=>e.glukosa).filter(v => v!=null && !isNaN(v)).map(Number);
+  const uaVals = entries.map(e=>e.asam_urat).filter(v => v!=null && !isNaN(v)).map(Number);
+  const hbaVals = entries.map(e=>e.hba1c).filter(v => v!=null && !isNaN(v)).map(Number);
+  const trigVals = entries.map(e=>e.trigliserida).filter(v => v!=null && !isNaN(v)).map(Number);
+
+  const gEl = document.getElementById('rp_glucose');
+  if(glucVals.length){
+    const min = Math.min(...glucVals);
+    const max = Math.max(...glucVals);
+    const avg = glucVals.reduce((a,b)=>a+b,0)/glucVals.length;
+    gEl.textContent = `${min} / ${max} / ${Math.round(avg)}`;
+  } else { gEl.textContent = '– / – / –'; }
+
+  const uaEl = document.getElementById('rp_ua');
+  if(uaVals.length){
+    const min = Math.min(...uaVals).toFixed(1);
+    const max = Math.max(...uaVals).toFixed(1);
+    const avg = (uaVals.reduce((a,b)=>a+b,0)/uaVals.length).toFixed(1);
+    uaEl.textContent = `${min} / ${max} / ${avg}`;
+  } else { uaEl.textContent = '– / – / –'; }
+
+  const hbaEl = document.getElementById('rp_hba1c');
+  if(hbaVals.length){
+    const min = Math.min(...hbaVals).toFixed(1);
+    const max = Math.max(...hbaVals).toFixed(1);
+    const avg = (hbaVals.reduce((a,b)=>a+b,0)/hbaVals.length).toFixed(1);
+    hbaEl.textContent = `${min} / ${max} / ${avg}`;
+  } else { hbaEl.textContent = '– / – / –'; }
+
+  const trigEl = document.getElementById('rp_trig');
+  if(trigVals.length){
+    const min = Math.min(...trigVals);
+    const max = Math.max(...trigVals);
+    const avg = Math.round(trigVals.reduce((a,b)=>a+b,0)/trigVals.length);
+    trigEl.textContent = `${min} / ${max} / ${avg}`;
+  } else { trigEl.textContent = '– / – / –'; }
+
+  // Time in Range
+  const glucoseEntries = entries.filter(e => e.glukosa != null);
+  let inRange = 0;
+  glucoseEntries.forEach(e => {
+    const st = glucoseTargetStatus(e);
+    if(st && st.key === 'ok') inRange++;
+  });
+  const tirPct = glucoseEntries.length ? Math.round(inRange / glucoseEntries.length * 100) : 0;
+  document.getElementById('rp_tir').textContent = tirPct + '%';
+
+  const withMed = entries.filter(e => Array.isArray(e.obat) && e.obat.length > 0).length;
+  const adherence = entries.length ? Math.round(withMed / entries.length * 100) : 0;
+  document.getElementById('rp_adherence').textContent = adherence + '%';
+
+  // Aktivitas summary
+  const activityEntries = entries.filter(e => e.aktivitas && parseActivityMinutes(e.aktivitas) > 0);
+  const totalMins = activityEntries.reduce((sum, e) => sum + parseActivityMinutes(e.aktivitas), 0);
+  const rpAct = document.getElementById('rp_activity');
+  const rpActSub = document.getElementById('rp_activity_sub');
+  if(rpAct) rpAct.textContent = activityEntries.length;
+  if(rpActSub) rpActSub.textContent = Math.round(totalMins) + ' menit total';
+}
+
+let currentFilter = '';
+function renderTable(){
+  const tbody = document.getElementById('logTbody');
+  const empty = document.getElementById('emptyLog');
+  let rows = getSortedEntries();
+  if(currentFilter){
+    const q = currentFilter.toLowerCase();
+    rows = rows.filter(e => {
+      return (e.kategori||'').toLowerCase().includes(q) ||
+             (e.catatan||'').toLowerCase().includes(q) ||
+             (e.aktivitas||'').toLowerCase().includes(q) ||
+             (e.date||'').includes(q) ||
+             (e.obat||[]).join(' ').toLowerCase().includes(q);
+    });
+  }
+  tbody.innerHTML = '';
+  if(rows.length === 0){
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+  rows.forEach(e=>{
+    const tr = document.createElement('tr');
+    const tensi = (e.tensi_sis && e.tensi_dia) ? `${e.tensi_sis}/${e.tensi_dia}` : '–';
+    const obatHtml = (e.obat && e.obat.length) ? e.obat.map(o => `<span class="badge-obat">${o === 'Vildagliptin' ? 'Vilda' : o}</span>`).join(' ') : '<span class="text-slate-400">–</span>';
+    const gluc = e.glukosa != null ? `<span class="font-semibold">${e.glukosa}</span>` : '<span class="text-slate-400">–</span>';
+    const ua = e.asam_urat != null ? Number(e.asam_urat).toFixed(1) : '<span class="text-slate-400">–</span>';
+    const hba = e.hba1c != null ? Number(e.hba1c).toFixed(1) : '<span class="text-slate-400">–</span>';
+    const trig = e.trigliserida != null ? Math.round(e.trigliserida) : '<span class="text-slate-400">–</span>';
+    const berat = e.berat != null ? Number(e.berat).toFixed(1).replace('.', ',') : '<span class="text-slate-400">–</span>';
+    const aktivitasCell = e.aktivitas ? `<span class="badge-activity">${escapeHtml(e.aktivitas)}</span>` : '<span class="text-slate-400">–</span>';
+    tr.innerHTML = `
+      <td class="whitespace-nowrap">${fmtDateID(e.date)}</td>
+      <td class="text-slate-600">${e.time || '–'}</td>
+      <td>${e.kategori || '–'}</td>
+      <td>${gluc}</td>
+      <td>${ua}</td>
+      <td>${hba}</td>
+      <td>${trig}</td>
+      <td>${tensi}</td>
+      <td>${berat}</td>
+      <td>${aktivitasCell}</td>
+      <td><div class="flex flex-wrap gap-1">${obatHtml}</div></td>
+      <td class="text-slate-600 max-w-[230px]">${e.catatan ? escapeHtml(e.catatan) : '<span class="text-slate-400">–</span>'}</td>
+      <td class="text-right">
+        <button class="icon-btn" data-del="${e.id}" title="Hapus">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', ()=> askDelete(btn.getAttribute('data-del')));
+  });
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+// Delete confirm
+let pendingDeleteId = null;
+function askDelete(id){
+  pendingDeleteId = id;
+  document.getElementById('confirmModal').classList.remove('hidden');
+}
+function closeConfirm(){
+  pendingDeleteId = null;
+  document.getElementById('confirmModal').classList.add('hidden');
+}
+document.getElementById('confirmCancel').addEventListener('click', closeConfirm);
+document.getElementById('confirmBackdrop').addEventListener('click', closeConfirm);
+document.getElementById('confirmOk').addEventListener('click', ()=>{
+  if(pendingDeleteId){
+    entries = entries.filter(e => e.id !== pendingDeleteId);
+    saveEntries();
+    refreshAll();
+    showToast('Entri dihapus.');
+  }
+  closeConfirm();
+});
+
+// Toast
+let toastTimer;
+function showToast(msg='Catatan berhasil disimpan.'){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  requestAnimationFrame(()=>{
+    t.classList.remove('toast-enter');
+    t.classList.add('toast-show');
+  });
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{
+    t.classList.add('toast-enter');
+    t.classList.remove('toast-show');
+    setTimeout(()=> t.style.display='none', 180);
+  }, 2300);
+}
+
+// Form handling
+function setFormDefaults(){
+  const today = '2026-06-25';
+  document.getElementById('f_date').value = today;
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('f_time').value = `${hh}:${mm}`;
+}
+setFormDefaults();
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  document.getElementById('entryForm').reset();
+  setFormDefaults();
+});
+
+document.getElementById('entryForm').addEventListener('submit', (ev)=>{
+  ev.preventDefault();
+  const d = {
+    id: 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+    date: document.getElementById('f_date').value,
+    time: document.getElementById('f_time').value,
+    kategori: document.getElementById('f_kategori').value,
+    glukosa: numOrNull('f_glukosa'),
+    asam_urat: numOrNull('f_au'),
+    hba1c: numOrNull('f_hba1c'),
+    trigliserida: numOrNull('f_trig'),
+    kolesterol: numOrNull('f_kolesterol'),
+    tensi_sis: numOrNull('f_tensi_sis'),
+    tensi_dia: numOrNull('f_tensi_dia'),
+    berat: numOrNull('f_berat'),
+    karbo: numOrNull('f_karbo'),
+    aktivitas: document.getElementById('f_aktivitas').value.trim(),
+    obat: [
+      ...document.getElementById('ob_metformin').checked ? ['Metformin'] : [],
+      ...document.getElementById('ob_vilda').checked ? ['Vildagliptin'] : []
+    ],
+    catatan: document.getElementById('f_catatan').value.trim()
+  };
+  const hasAny = d.glukosa != null || d.asam_urat != null || d.hba1c != null || d.trigliserida != null || d.berat != null || d.kolesterol != null || d.tensi_sis != null || d.karbo != null || d.aktivitas || d.catatan;
+  if(!d.date || !d.time){
+    showToast('Tanggal & waktu wajib diisi.');
+    return;
+  }
+  if(!hasAny){
+    showToast('Isi minimal satu pengukuran / catatan / aktivitas.');
+    return;
+  }
+  entries.push(d);
+  saveEntries();
+  refreshAll();
+  showToast('Catatan berhasil disimpan.');
+  document.getElementById('entryForm').reset();
+  setFormDefaults();
+});
+
+function numOrNull(id){
+  const el = document.getElementById(id);
+  if(!el) return null;
+  const v = el.value;
+  if(v === '' || v === null) return null;
+  const n = Number(v);
+  return isNaN(n) ? null : n;
+}
+
+// Search
+document.getElementById('searchInput').addEventListener('input', (e)=>{
+  currentFilter = e.target.value.trim();
+  renderTable();
+});
+
+// Export
+document.getElementById('exportCsvBtn').addEventListener('click', ()=>{
+  const headers = ['date','time','kategori','glukosa','asam_urat','hba1c','trigliserida','kolesterol','tensi_sis','tensi_dia','berat','karbo','aktivitas','obat','catatan'];
+  const rows = getSortedEntries().map(e => headers.map(h => {
+    let v = e[h];
+    if(h==='obat') v = (e.obat||[]).join(';');
+    if(v==null) v='';
+    const s = String(v).replace(/"/g,'""');
+    return /[",\n]/.test(s) ? `"${s}"` : s;
+  }).join(','));
+  const csv = headers.join(',') + '\n' + rows.join('\n');
+  downloadFile('jurnal-sehat-v3.csv', csv, 'text/csv');
+});
+document.getElementById('exportJsonBtn').addEventListener('click', ()=>{
+  const json = JSON.stringify(entries, null, 2);
+  downloadFile('jurnal-sehat-v3.json', json, 'application/json');
+});
+function downloadFile(filename, content, mime){
+  const blob = new Blob([content], {type: mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+// Collapsible form
+const toggleBtn = document.getElementById('toggleFormBtn');
+const formBody = document.getElementById('formBody');
+const chev = document.getElementById('formChevron');
+let formOpen = true;
+toggleBtn.addEventListener('click', ()=>{
+  formOpen = !formOpen;
+  formBody.style.display = formOpen ? '' : 'none';
+  chev.style.transform = formOpen ? 'rotate(0deg)' : 'rotate(-90deg)';
+  toggleBtn.setAttribute('aria-expanded', formOpen);
+});
+
+// Target Pribadi collapsible + logic
+const toggleTargetBtn = document.getElementById('toggleTargetBtn');
+const targetBody = document.getElementById('targetBody');
+const targetChev = document.getElementById('targetChevron');
+let targetOpen = false;
+toggleTargetBtn.addEventListener('click', ()=>{
+  targetOpen = !targetOpen;
+  targetBody.style.display = targetOpen ? '' : 'none';
+  targetChev.style.transform = targetOpen ? 'rotate(0deg)' : 'rotate(-90deg)';
+  toggleTargetBtn.setAttribute('aria-expanded', targetOpen);
+});
+
+function populateTargetInputs(){
+  document.getElementById('t_glukosa_min').value = targets.glucose_fasting_min;
+  document.getElementById('t_glukosa_max').value = targets.glucose_fasting_max;
+  document.getElementById('t_glukosa_post').value = targets.glucose_post_max;
+  document.getElementById('t_hba1c').value = targets.hba1c_target;
+  document.getElementById('t_ua_max').value = targets.ua_max;
+}
+populateTargetInputs();
+updateTargetSummaryPill();
+
+document.getElementById('targetSaveBtn').addEventListener('click', ()=>{
+  const gmin = Number(document.getElementById('t_glukosa_min').value);
+  const gmax = Number(document.getElementById('t_glukosa_max').value);
+  const gpost = Number(document.getElementById('t_glukosa_post').value);
+  const hba = Number(document.getElementById('t_hba1c').value);
+  const ua = Number(document.getElementById('t_ua_max').value);
+  targets = {
+    glucose_fasting_min: isFinite(gmin) ? gmin : defaultTargets.glucose_fasting_min,
+    glucose_fasting_max: isFinite(gmax) ? gmax : defaultTargets.glucose_fasting_max,
+    glucose_post_max: isFinite(gpost) ? gpost : defaultTargets.glucose_post_max,
+    hba1c_target: isFinite(hba) ? hba : defaultTargets.hba1c_target,
+    ua_max: isFinite(ua) ? ua : defaultTargets.ua_max
+  };
+  saveTargets();
+  refreshAll();
+  showToast('Target pribadi disimpan.');
+});
+
+document.getElementById('targetResetBtn').addEventListener('click', ()=>{
+  targets = {...defaultTargets};
+  populateTargetInputs();
+  saveTargets();
+  refreshAll();
+  showToast('Target dikembalikan ke default.');
+});
+
+// Dblclick chart reset zoom
+document.addEventListener('dblclick', (e)=>{
+  if(e.target.closest('canvas')){
+    try { glucoseChart?.resetZoom(); uaChart?.resetZoom(); hba1cChart?.resetZoom(); activityChart?.resetZoom(); } catch(err){}
+  }
+});
+
+function refreshAll(){
+  renderSummary();
+  renderCharts();
+  renderTable();
+  renderReport();
+}
+refreshAll();
+</script>
+<script>(function(){document.addEventListener("click",function(e){var a=e.target.closest("[data-product-id]");if(!a)return;e.preventDefault();var pid=a.getAttribute("data-product-id");if(pid)parent.postMessage({type:"ecto-artifact-link-click",productId:pid},"*")})})();</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;var a=target.closest?target.closest("a[href]"):null;if(!a||!a.href||!/^https?:\/\//.test(a.href))return;if(a.href.replace(/#.*$/,"")===loc)return;var productId=extractProductId(target)||extractProductId(a);if(!productId)return;e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*")},true)})();</script></body>
+</html>

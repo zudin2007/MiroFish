@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumen — Budget Tracker • Juni 2026 • Bandung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'system-ui', 'sans-serif'],
+          display: ['Fraunces', 'serif'],
+        },
+        colors: {
+          bg: '#0c1018',
+          card: '#141925',
+          cardSoft: '#1b2130',
+          stroke: '#252d3d',
+          stroke2: '#2d364a',
+          muted: '#8b95a8',
+          dim: '#667085',
+          soft: '#c8cfdc',
+          greenL: '#72e0a3',
+          greenDeep: '#1a9d5e',
+          amberL: '#f6c453',
+          redL: '#ff7a7a',
+          cream: '#f5f0e8',
+        }
+      }
+    }
+  }
+</script>
+<style type="text/tailwindcss">
+  body { background:#0c1018; color:#e6e9f0;}
+  .card { background: #141925; border:1px solid #232c3d; border-radius: 22px; }
+  .chip { background:#1b2231; border:1px solid #2a3346; border-radius: 9999px; }
+  .input-dark { background:#111724; border:1px solid #293245; border-radius:14px; color:#e8ecf3; width:100%; padding:13px 14px; outline:none; transition: .15s; font-size:16px; }
+  @media (min-width: 640px){ .input-dark{ font-size:15px; } }
+  .input-dark:focus { border-color:#3a5270; box-shadow: 0 0 0 3px rgba(114,224,163,0.10);}
+  .input-dark::placeholder { color:#5d6779; }
+  select.input-dark { appearance:none; background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%238b95a8' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position: right 14px center;}
+  .subtle { color:#8b95a8; }
+  .progress-track { background:#1c2433; border-radius: 999px; height:8px; overflow:hidden;}
+  .toast { position: fixed; bottom: 22px; left:50%; transform:translateX(-50%) translateY(16px); background:#1c2434; border:1px solid #2f3a50; color:#dfe6f2; padding:12px 18px; border-radius:14px; font-size:13.5px; font-weight:600; z-index:90; opacity:0; transition: all .25s ease; pointer-events:none; max-width: 90vw; text-align:center;}
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0);}
+  ::-webkit-scrollbar { width:8px; height:8px;}
+  ::-webkit-scrollbar-thumb { background:#2a3346; border-radius: 8px;}
+  .quick-day { min-width:42px; height:40px; border-radius:11px; border:1px solid #2a3346; background:#151d2b; color:#b8c2d4; font-size:13.5px; font-weight:600; display:flex; align-items:center; justify-content:center; transition:.12s; flex-shrink:0;}
+  .quick-day:hover{ border-color:#3a465c;}
+  .quick-day.active{ background:#72e0a3; color:#0b1b14; border-color:#72e0a3;}
+  .quick-pill { padding:8px 13px; border-radius:9999px; border:1px solid #2a3346; background:#151d2b; color:#b9c3d5; font-size:12.5px; font-weight:600;}
+  .quick-pill.active{ background:#1f2c3d; border-color:#3b4a63; color:#dfe7f3;}
+  .no-scrollbar::-webkit-scrollbar{ display:none; }
+  .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
+</style>
+</head>
+<body class="font-sans antialiased min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 sm:px-8 lg:px-10 pt-7 sm:pt-12 pb-28">
+    <!-- Top bar -->
+    <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-7 sm:mb-9">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-[16px] bg-[#1f2737] border border-[#2b3549] flex items-center justify-center text-[#f2e9da] font-display text-[19px] font-bold">L</div>
+        <div>
+          <div class="text-[22px] sm:text-[25px] font-display font-[700] tracking-tight text-[#f0e8d9] leading-tight">Lumen</div>
+          <div class="text-[12.5px] text-muted -mt-0.5">Budget Tracker • Bandung</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 flex-wrap">
+        <div class="chip px-3 py-[8px] text-[12px] text-soft flex items-center gap-2">
+          <span class="w-[7px] h-[7px] rounded-full bg-greenL inline-block"></span>
+          Juni 2026
+        </div>
+        <button id="mayToggleBtn" class="chip px-3 py-[8px] text-[12px] text-soft hover:border-stroke2 transition flex items-center gap-1.5">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Actual Mei
+        </button>
+        <button id="exportBtn" class="px-3.5 py-[8px] rounded-full text-[12px] font-bold bg-[#f2e9da] text-[#141925] hover:bg-[#e9dfcf] transition">Export CSV</button>
+        <button id="resetBtn" class="px-3.5 py-[8px] rounded-full text-[12px] font-semibold bg-transparent text-[#d8a6a6] border border-[#3b2a2f] hover:bg-[#20161a] transition">Reset Bulan</button>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <div class="mb-5 sm:mb-7">
+      <h1 class="font-display text-[38px] sm:text-[54px] lg:text-[60px] leading-[0.98] tracking-tight text-[#f3ecdf]">Juni 2026</h1>
+      <p class="text-muted mt-3 text-[14px] sm:text-[14.5px] max-w-xl">Budget pintar berbasis Actual Mei. Catat pengeluaran harian dengan cepat, semua data tersimpan lokal di perangkat Anda.</p>
+    </div>
+
+    <!-- SUMMARY HEADER -->
+    <div class="flex items-center justify-between gap-3 mb-3 flex-wrap">
+      <h2 class="font-display text-[20px] text-[#f0e7d8]">Ringkasan Juni</h2>
+      <button id="editBudgetBtn" class="chip px-3.5 py-[9px] text-[12.5px] text-soft hover:border-stroke2 transition flex items-center gap-1.5 font-semibold">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Edit Budget
+      </button>
+    </div>
+
+    <!-- SUMMARY CARDS -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5 sm:mb-6">
+      <!-- Income -->
+      <div class="card p-4 sm:p-5">
+        <div class="flex items-center justify-between text-muted text-[11.5px] mb-1.5">
+          <span>Pemasukan</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6d798c" stroke-width="1.7"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div id="statIncome" class="text-[20px] sm:text-[23px] font-[700] tracking-tight text-[#e9edf5]">Rp 0</div>
+        <div class="text-[11.5px] text-dim mt-1.5">Target <span id="statIncomeTarget" class="text-[#9aa5b8]">Rp 53.310.475</span></div>
+      </div>
+      <!-- Expenses -->
+      <div class="card p-4 sm:p-5">
+        <div class="flex items-center justify-between text-muted text-[11.5px] mb-1.5">
+          <span>Pengeluaran</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6d798c" stroke-width="1.7"><path d="M5 12h14"/></svg>
+        </div>
+        <div id="statExpense" class="text-[20px] sm:text-[23px] font-[700] tracking-tight text-[#e9edf5]">Rp 0</div>
+        <div class="text-[11.5px] text-dim mt-1.5">Budget <span id="statExpenseBudget" class="text-[#9aa5b8]">Rp 42.260.000</span></div>
+      </div>
+      <!-- Net -->
+      <div class="card p-4 sm:p-5">
+        <div class="flex items-center justify-between text-muted text-[11.5px] mb-1.5">
+          <span>Net</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6d798c" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M9 12h6"/></svg>
+        </div>
+        <div id="statNet" class="text-[20px] sm:text-[23px] font-[700] tracking-tight text-greenL">Rp 0</div>
+        <div class="text-[11.5px] text-dim mt-1.5">Sisa bulan ini</div>
+      </div>
+      <!-- Savings Rate -->
+      <div class="card p-4 sm:p-5">
+        <div class="flex items-center justify-between text-muted text-[11.5px] mb-1.5">
+          <span>Tingkat Tabungan</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6d798c" stroke-width="1.7"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 8h7v7"/></svg>
+        </div>
+        <div id="statSavings" class="text-[20px] sm:text-[23px] font-[700] tracking-tight text-[#e9edf5]">0%</div>
+        <div class="text-[11.5px] text-dim mt-1.5">Dari pemasukan</div>
+      </div>
+    </section>
+
+    <!-- MAY COMPARE PANEL -->
+    <div id="mayPanel" class="hidden mb-5 sm:mb-6 card p-4 sm:p-6">
+      <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
+        <div>
+          <h3 class="font-display text-[21px] text-[#f0e7d8]">Actual Mei 2026</h3>
+          <p class="text-muted text-[13px] mt-1">Perbandingan baseline untuk budget Juni yang lebih cerdas.</p>
+        </div>
+        <div class="flex gap-5 sm:gap-9 text-[12.5px]">
+          <div><div class="text-dim">Income Mei</div><div class="font-semibold text-[#dde3ee] mt-0.5" id="mayIncomeTxt">Rp 53.310.475</div></div>
+          <div><div class="text-dim">Expenses Mei</div><div class="font-semibold text-[#dde3ee] mt-0.5">Rp 44.410.881</div></div>
+          <div><div class="text-dim">Net Mei</div><div class="font-semibold text-greenL mt-0.5">Rp 8.899.594</div></div>
+        </div>
+      </div>
+      <div class="overflow-x-auto -mx-1">
+        <table class="w-full text-[13px] min-w-[600px]">
+          <thead class="text-dim text-[11.3px] uppercase tracking-wider">
+            <tr class="border-b border-stroke">
+              <th class="text-left font-[600] py-2.5 pl-1">Kategori</th>
+              <th class="text-right font-[600] py-2.5">Actual Mei</th>
+              <th class="text-right font-[600] py-2.5">Budget Juni</th>
+              <th class="text-right font-[600] py-2.5 pr-1">Selisih</th>
+            </tr>
+          </thead>
+          <tbody id="mayTableBody" class="text-[#cfd6e3]"></tbody>
+        </table>
+      </div>
+      <div class="mt-4 text-[12px] text-dim bg-[#111724] border border-[#232b3c] rounded-xl px-3.5 py-3">
+        Budget default Juni memotong <strong class="text-[#d8cdbc] font-semibold">Life & Entertainment -20%</strong> dan <strong class="text-[#d8cdbc] font-semibold">Shopping -10%</strong> dari Actual Mei. Kategori lain flat. Anda bisa ubah kapan saja lewat tombol Edit Budget.
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
+      <!-- Left column -->
+      <div class="lg:col-span-5 space-y-5">
+        <!-- Add Transaction -->
+        <div class="card p-4 sm:p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="font-display text-[21px] sm:text-[22px] text-[#f0e7d8]">Tambah Transaksi</h2>
+            <span class="text-[11.3px] text-dim">Cepat & offline</span>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-[11.5px] text-muted mb-2">Jenis</label>
+            <div class="grid grid-cols-2 gap-2 bg-[#111724] border border-[#252d3d] p-1 rounded-[14px]">
+              <button type="button" id="typeExpenseBtn" class="py-[12px] rounded-[10px] text-[13.5px] font-[700] bg-[#1f2738] text-[#e9edf5] transition">Pengeluaran</button>
+              <button type="button" id="typeIncomeBtn" class="py-[12px] rounded-[10px] text-[13.5px] font-[600] text-muted hover:text-soft transition">Pemasukan</button>
+            </div>
+          </div>
+
+          <div class="space-y-3.5">
+            <div>
+              <label class="block text-[11.5px] text-muted mb-2">Kategori</label>
+              <select id="categoryInput" class="input-dark pr-10">
+                <!-- populated by JS -->
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-[11.5px] text-muted mb-2">Nominal (IDR)</label>
+              <input id="amountInput" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Rp 0" class="input-dark text-[17px] font-[600]" autocomplete="off" />
+              <div class="text-[11.5px] text-dim mt-1.5 min-h-[18px]" id="amountPreview">&nbsp;</div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11.5px] text-muted mb-2">Tanggal</label>
+                <input id="dateInput" type="date" class="input-dark" />
+                <p class="text-[11px] text-dim mt-1.5">Bulan: Juni 2026</p>
+              </div>
+              <div>
+                <label class="block text-[11.5px] text-muted mb-2">Catatan <span class="text-dim">(opsional)</span></label>
+                <input id="noteInput" type="text" placeholder="Mis. Kopi sore" class="input-dark" maxlength="80" />
+              </div>
+            </div>
+
+            <!-- Quick date -->
+            <div class="rounded-[14px] bg-[#111624] border border-[#232a3a] px-3.5 py-3">
+              <div class="flex items-center gap-2 flex-wrap mb-2.5">
+                <span class="text-[11.5px] text-muted mr-1">Cepat:</span>
+                <button type="button" class="quick-pill" id="qdToday" data-quick="today">Hari ini</button>
+                <button type="button" class="quick-pill" id="qdYesterday" data-quick="yesterday">Kemarin</button>
+                <span class="text-[11px] text-dim">1–23 Juni</span>
+              </div>
+              <div id="juneDayPicker" class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
+                <!-- days injected -->
+              </div>
+            </div>
+
+            <button id="addBtn" class="w-full mt-1 bg-[#72e0a3] hover:bg-[#63d494] active:bg-[#55c985] text-[#0b1b14] font-[800] text-[15px] py-[15px] rounded-[14px] transition min-h-[50px]">
+              Tambah Transaksi
+            </button>
+            <p class="text-center text-[11.5px] text-dim">Data tersimpan otomatis di perangkat ini.</p>
+          </div>
+        </div>
+
+        <!-- Transaction List -->
+        <div class="card p-4 sm:p-6">
+          <div class="flex items-center justify-between mb-3 gap-3 flex-wrap">
+            <h3 class="font-display text-[20px] text-[#f0e7d8]">Transaksi Juni</h3>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span id="txCount" class="text-[11.5px] text-dim">0 transaksi</span>
+              <button id="sampleAddBtn" class="text-[11.7px] px-2.5 py-1.5 rounded-full border border-[#2d3548] text-[#b8c3d6] hover:border-[#3a445c]">Tambah contoh Mei</button>
+              <button id="sampleRemoveBtn" class="hidden text-[11.7px] px-2.5 py-1.5 rounded-full border border-[#4a2c30] text-[#e2a8a8] hover:bg-[#22151a]">Hapus contoh</button>
+            </div>
+          </div>
+          <div id="txList" class="space-y-2.5 max-h-[480px] overflow-y-auto pr-1">
+          </div>
+          <div id="txEmpty" class="text-center py-10 text-muted text-[13.5px] rounded-[14px] bg-[#101621] border border-dashed border-[#232c3d]">
+            Belum ada transaksi bulan ini.<br>
+            <span class="text-dim text-[12.5px]">Tambahkan yang pertama di atas, atau coba “Tambah contoh Mei”.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div class="lg:col-span-7 space-y-5">
+        <!-- Category Progress -->
+        <div class="card p-4 sm:p-6">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <h3 class="font-display text-[21px] text-[#f0e7d8]">Progress per Kategori</h3>
+            <div class="text-[11.4px] text-dim flex items-center gap-3 flex-wrap">
+              <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-greenL mr-1"></span>Aman &lt;80%</span>
+              <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-amberL mr-1"></span>Waspada</span>
+              <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-redL mr-1"></span>Melebihi</span>
+            </div>
+          </div>
+          <div id="progressList" class="grid grid-cols-1 md:grid-cols-2 gap-x-7 gap-y-5">
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="card p-4 sm:p-6">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-display text-[20px] text-[#f0e7d8]">Alokasi Pengeluaran</h3>
+            <span id="chartLabel" class="text-[11.5px] text-dim">Aktual Juni</span>
+          </div>
+          <div class="flex flex-col sm:flex-row items-center gap-5 sm:gap-6">
+            <div class="relative w-[200px] h-[200px] sm:w-[220px] sm:h-[220px] shrink-0">
+              <canvas id="donutChart" width="220" height="220"></canvas>
+              <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <div class="text-[11.5px] text-muted">Total</div>
+                <div id="chartCenter" class="text-[16px] sm:text-[18px] font-[700] text-[#e7ebf3]">Rp 0</div>
+              </div>
+            </div>
+            <div id="chartLegend" class="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-[9px] text-[13px]">
+            </div>
+          <p id="chartHint" class="mt-4 text-[11.8px] text-dim">Belum ada pengeluaran bulan ini — chart menampilkan alokasi budget.</p>
+        </div>
+
+        <!-- Tips / summary -->
+        <div class="rounded-[22px] border border-[#2a2d2b] bg-[#171d1a] px-5 py-5">
+          <div class="text-[11.5px] text-[#a8b59f] mb-1.5">Budget Smart Juni</div>
+          <p class="text-[13.4px] text-[#cbd8c8] leading-relaxed" id="smartTip">
+            Target hemat bulan ini dari pemangkasan Life &amp; Entertainment dan Shopping. Jaga Tingkat Tabungan di atas 20% untuk tetap surplus sehat.
+          </p>
+          <div class="mt-3 flex flex-wrap gap-2 text-[11.5px] text-[#93a88c]" id="smartChips">
+            <span class="px-2.5 py-1 bg-[#1f2822] rounded-full border border-[#2a352f]" id="chipBudget">Budget total: Rp 42.260.000</span>
+            <span class="px-2.5 py-1 bg-[#1f2822] rounded-full border border-[#2a352f]" id="chipIncome">Target income: Rp 53.310.475</span>
+            <span class="px-2.5 py-1 bg-[#1f2822] rounded-full border border-[#2a352f]" id="chipSurplus">Surplus rencana: Rp 11.050.475</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="mt-10 pt-6 border-t border-stroke text-center text-[12px] text-dim">
+      Lumen • Budget Tracker Bandung — Data tersimpan lokal di browser Anda • v2.0
+    </footer>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast">Tersimpan</div>
+
+  <!-- Edit Budget Modal -->
+  <div id="budgetModal" class="fixed inset-0 z-[60] hidden">
+    <div class="absolute inset-0 bg-black/65" id="budgetBackdrop"></div>
+    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[94%] max-w-[680px] card p-5 sm:p-6 max-h-[88vh] overflow-y-auto shadow-2xl">
+      <div class="flex items-start justify-between gap-3 mb-4">
+        <div>
+          <h3 class="font-display text-[22px] text-[#f0e7d8]">Edit Budget Juni</h3>
+          <p class="text-[12.7px] text-muted mt-1">Sesuaikan target sesuai kebutuhan bulan ini. Semua dalam IDR.</p>
+        </div>
+        <button id="budgetClose" class="text-muted hover:text-soft p-1 text-[18px] leading-none">✕</button>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="text-[11.5px] text-muted font-[600]">Target Pemasukan Bulanan</label>
+          <input id="budgetIncome" type="text" inputmode="numeric" pattern="[0-9]*" class="input-dark mt-1.5 text-[16px] font-[600]" placeholder="Rp 0" />
+        </div>
+        <div class="border-t border-stroke pt-4">
+          <div class="text-[11.5px] text-muted mb-3 font-[600]">Anggaran Pengeluaran per Kategori</div>
+          <div id="budgetFields" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+        </div>
+        <div class="bg-[#111724] border border-stroke rounded-xl px-3.5 py-3 text-[12.6px] text-muted flex justify-between flex-wrap gap-3">
+          <span>Total budget: <b id="budgetTotalText" class="text-[#d8e2f0]">Rp 0</b></span>
+          <span>Surplus rencana: <b id="budgetSurplusText" class="text-greenL">Rp 0</b></span>
+        </div>
+      </div>
+
+      <div class="flex gap-2 justify-end mt-5">
+        <button id="budgetCancel" class="px-4 py-[13px] rounded-xl text-[13.5px] bg-[#1b2231] border border-stroke2 text-soft min-h-[46px] font-[600]">Batal</button>
+        <button id="budgetSave" class="px-5 py-[13px] rounded-xl text-[13.5px] bg-[#72e0a3] text-[#0b1b14] font-[800] min-h-[46px]">Simpan Budget</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete confirm modal -->
+  <div id="confirmModal" class="fixed inset-0 z-[70] hidden">
+    <div class="absolute inset-0 bg-black/60" id="confirmBackdrop"></div>
+    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-sm card p-5 shadow-2xl">
+      <div class="text-[16.5px] font-[700] text-[#e8ecf4] mb-1.5">Hapus transaksi?</div>
+      <p class="text-[13.4px] text-muted mb-5">Tindakan ini tidak dapat dibatalkan.</p>
+      <div class="flex gap-2 justify-end">
+        <button id="confirmCancel" class="px-4 py-3 rounded-xl text-[13px] bg-[#1b2231] border border-stroke2 text-soft min-h-[44px]">Batal</button>
+        <button id="confirmOk" class="px-4 py-3 rounded-xl text-[13px] bg-[#d95a5a] text-white font-[700] min-h-[44px]">Hapus</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ---------- Data / Config ---------- */
+const CATEGORY_DEFS = [
+  { key: 'investments', name: 'Investments', may: 10550330, defaultBudget: 10550000 },
+  { key: 'life', name: 'Life & Entertainment', may: 7116158, defaultBudget: 5700000 },
+  { key: 'households', name: 'Households', may: 6830000, defaultBudget: 6830000 },
+  { key: 'shopping', name: 'Shopping', may: 6561284, defaultBudget: 5900000 },
+  { key: 'financial', name: 'Financial expenses', may: 5000000, defaultBudget: 5000000 },
+  { key: 'housing', name: 'Housing', may: 3963145, defaultBudget: 3960000 },
+  { key: 'vehicle', name: 'Vehicle', may: 1652500, defaultBudget: 1650000 },
+  { key: 'others', name: 'Others', may: 1570000, defaultBudget: 1500000 },
+  { key: 'communication', name: 'Communication, gadget', may: 678464, defaultBudget: 680000 },
+  { key: 'transportation', name: 'Transportation', may: 489000, defaultBudget: 490000 },
+];
+
+const DEFAULT_INCOME_TARGET = 53310475;
+const MAY_INCOME_ACTUAL = 53310475;
+
+const TX_KEY = 'lumen-juni-2026-tx-v2';
+const BUDGET_KEY = 'lumen-juni-2026-budget-v2';
+
+const idr = n => new Intl.NumberFormat('id-ID').format(Math.round(n || 0));
+const rp = n => 'Rp ' + idr(n);
+const parseIDR = str => parseInt(String(str||'').replace(/[^\d]/g, ''), 10) || 0;
+
+/* ---------- Budget store ---------- */
+let budgetStore = (() => {
+  try {
+    const raw = localStorage.getItem(BUDGET_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e){}
+  const obj = { incomeTarget: DEFAULT_INCOME_TARGET };
+  CATEGORY_DEFS.forEach(c => obj[c.key] = c.defaultBudget);
+  return obj;
+})();
+
+function saveBudgets(){
+  localStorage.setItem(BUDGET_KEY, JSON.stringify(budgetStore));
+}
+function getCategories(){
+  return CATEGORY_DEFS.map(c => ({
+    ...c,
+    budget: Number(budgetStore[c.key] ?? c.defaultBudget)
+  }));
+}
+function getIncomeTarget(){ return Number(budgetStore.incomeTarget || DEFAULT_INCOME_TARGET); }
+function getBudgetTotal(){ return getCategories().reduce((s,c)=>s+c.budget,0); }
+
+/* ---------- Transactions ---------- */
+let transactions = [];
+try {
+  const raw = localStorage.getItem(TX_KEY);
+  if(raw) transactions = JSON.parse(raw);
+} catch(e){}
+
+function saveTx(){
+  localStorage.setItem(TX_KEY, JSON.stringify(transactions));
+}
+
+/* ---------- Helpers ---------- */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=> t.classList.remove('show'), 2100);
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function formatDateId(iso){
+  try{
+    const d = new Date(iso + 'T00:00:00');
+    return d.toLocaleDateString('id-ID', { day:'2-digit', month:'short' });
+  }catch(e){ return iso;}
+}
+
+/* ---------- Transaction Form ---------- */
+let currentType = 'expense';
+const categoryInput = document.getElementById('categoryInput');
+const amountInput = document.getElementById('amountInput');
+const amountPreview = document.getElementById('amountPreview');
+const noteInput = document.getElementById('noteInput');
+const dateInput = document.getElementById('dateInput');
+dateInput.value = '2026-06-15';
+dateInput.min = '2026-06-01';
+dateInput.max = '2026-06-30';
+
+function fillCategoryOptions(){
+  categoryInput.innerHTML = '';
+  if(currentType === 'income'){
+    const opt = document.createElement('option');
+    opt.value = 'Pemasukan';
+    opt.textContent = 'Pemasukan';
+    categoryInput.appendChild(opt);
+    categoryInput.disabled = true;
+    categoryInput.classList.add('opacity-70');
+  } else {
+    getCategories().forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.name;
+      opt.textContent = c.name;
+      categoryInput.appendChild(opt);
+    });
+    categoryInput.disabled = false;
+    categoryInput.classList.remove('opacity-70');
+  }
+}
+fillCategoryOptions();
+
+document.getElementById('typeExpenseBtn').addEventListener('click', () => setType('expense'));
+document.getElementById('typeIncomeBtn').addEventListener('click', () => setType('income'));
+
+function setType(t){
+  currentType = t;
+  const expBtn = document.getElementById('typeExpenseBtn');
+  const incBtn = document.getElementById('typeIncomeBtn');
+  if(t === 'expense'){
+    expBtn.className = 'py-[12px] rounded-[10px] text-[13.5px] font-[700] bg-[#1f2738] text-[#e9edf5] transition';
+    incBtn.className = 'py-[12px] rounded-[10px] text-[13.5px] font-[600] text-muted hover:text-soft transition';
+  } else {
+    incBtn.className = 'py-[12px] rounded-[10px] text-[13.5px] font-[700] bg-[#1f2738] text-[#e9edf5] transition';
+    expBtn.className = 'py-[12px] rounded-[10px] text-[13.5px] font-[600] text-muted hover:text-soft transition';
+  }
+  fillCategoryOptions();
+}
+
+amountInput.addEventListener('input', () => {
+  const raw = amountInput.value.replace(/[^\d]/g,'');
+  if(!raw){ amountPreview.innerHTML='&nbsp;'; amountInput.value=''; return;}
+  const n = parseInt(raw,10);
+  amountPreview.textContent = rp(n);
+  amountInput.value = idr(n);
+});
+
+/* Quick date picker */
+const juneDayPicker = document.getElementById('juneDayPicker');
+function buildDayPicker(){
+  juneDayPicker.innerHTML = '';
+  for(let d=1; d<=23; d++){
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'quick-day';
+    btn.textContent = d;
+    btn.dataset.day = d;
+    btn.addEventListener('click', () => setTxDate(2026,6,d, btn));
+    juneDayPicker.appendChild(btn);
+  }
+}
+buildDayPicker();
+
+function setTxDate(y,m,day, sourceBtn){
+  const mm = String(m).padStart(2,'0');
+  const dd = String(day).padStart(2,'0');
+  dateInput.value = `${y}-${mm}-${dd}`;
+  syncDayPicker();
+  syncQuickPills();
+}
+function syncDayPicker(){
+  const v = dateInput.value;
+  let day = null;
+  if(v && v.startsWith('2026-06-')){
+    day = parseInt(v.slice(8,10),10);
+  }
+  juneDayPicker.querySelectorAll('.quick-day').forEach(b=>{
+    b.classList.toggle('active', Number(b.dataset.day) === day && day>=1 && day<=23);
+  });
+}
+dateInput.addEventListener('change', ()=>{ syncDayPicker(); syncQuickPills(); });
+syncDayPicker();
+
+const qdToday = document.getElementById('qdToday');
+const qdYesterday = document.getElementById('qdYesterday');
+qdToday.addEventListener('click', ()=> setTxDate(2026,6,15));
+qdYesterday.addEventListener('click', ()=> setTxDate(2026,6,14));
+function syncQuickPills(){
+  const v = dateInput.value;
+  qdToday.classList.toggle('active', v === '2026-06-15');
+  qdYesterday.classList.toggle('active', v === '2026-06-14');
+}
+syncQuickPills();
+
+/* Add transaction */
+document.getElementById('addBtn').addEventListener('click', () => {
+  const amount = parseIDR(amountInput.value);
+  if(amount <= 0){
+    toast('Nominal harus lebih dari 0');
+    amountInput.focus();
+    return;
+  }
+  const category = categoryInput.value;
+  const note = noteInput.value.trim();
+  const date = dateInput.value || '2026-06-15';
+  const tx = {
+    id: 'tx_' + Date.now() + Math.random().toString(36).slice(2,6),
+    type: currentType,
+    category,
+    amount,
+    note,
+    date,
+    isSample: false
+  };
+  transactions.unshift(tx);
+  saveTx();
+  renderAll();
+  toast('Transaksi ditambahkan');
+  amountInput.value = '';
+  amountPreview.innerHTML='&nbsp;';
+  noteInput.value = '';
+  amountInput.focus();
+});
+
+/* Delete */
+let pendingDeleteId = null;
+function deleteTx(id){
+  pendingDeleteId = id;
+  document.getElementById('confirmModal').classList.remove('hidden');
+}
+document.getElementById('confirmCancel').onclick = () => {
+  document.getElementById('confirmModal').classList.add('hidden');
+  pendingDeleteId = null;
+};
+document.getElementById('confirmBackdrop').onclick = () => document.getElementById('confirmCancel').click();
+document.getElementById('confirmOk').onclick = () => {
+  if(pendingDeleteId){
+    transactions = transactions.filter(t => t.id !== pendingDeleteId);
+    saveTx(); renderAll();
+    toast('Transaksi dihapus');
+  }
+  document.getElementById('confirmModal').classList.add('hidden');
+  pendingDeleteId = null;
+};
+
+/* ---------- Sample Mei ---------- */
+const sampleAddBtn = document.getElementById('sampleAddBtn');
+const sampleRemoveBtn = document.getElementById('sampleRemoveBtn');
+
+sampleAddBtn.addEventListener('click', ()=>{
+  const hasSample = transactions.some(t=>t.isSample);
+  if(hasSample){
+    toast('Contoh Mei sudah ditambahkan. Hapus contoh dulu.');
+    return;
+  }
+  const cats = getCategories();
+  const samples = [];
+  // income first
+  samples.push({
+    id: 'sample_inc_' + Date.now(),
+    type: 'income',
+    category: 'Pemasukan',
+    amount: MAY_INCOME_ACTUAL,
+    note: 'Contoh Mei – Gaji',
+    date: '2026-06-01',
+    isSample: true
+  });
+  cats.forEach((c, i)=>{
+    samples.push({
+      id: 'sample_' + c.key + '_' + Date.now() + '_' + i,
+      type: 'expense',
+      category: c.name,
+      amount: c.may,
+      note: 'Contoh Mei',
+      date: '2026-06-' + String((i % 10) + 2).padStart(2,'0'),
+      isSample: true
+    });
+  });
+  transactions = [...samples, ...transactions];
+  saveTx();
+  renderAll();
+  toast('Contoh transaksi Mei ditambahkan');
+});
+
+sampleRemoveBtn.addEventListener('click', ()=>{
+  const count = transactions.filter(t=>t.isSample).length;
+  if(count === 0){ toast('Tidak ada contoh yang aktif'); return; }
+  transactions = transactions.filter(t=> !t.isSample);
+  saveTx();
+  renderAll();
+  toast('Contoh transaksi dihapus');
+});
+
+function updateSampleButtons(){
+  const hasSample = transactions.some(t=>t.isSample);
+  sampleRemoveBtn.classList.toggle('hidden', !hasSample);
+}
+
+/* ---------- Rendering ---------- */
+let donutChart = null;
+
+function getSums(){
+  let income = 0, expense = 0;
+  const cats = getCategories();
+  const perCat = {};
+  cats.forEach(c => perCat[c.name] = 0);
+  transactions.forEach(tx => {
+    if(tx.type === 'income') income += tx.amount;
+    else {
+      expense += tx.amount;
+      if(perCat[tx.category] !== undefined) perCat[tx.category] += tx.amount;
+      else {
+        // In case category name changed after budget edit, still count
+        perCat[tx.category] = (perCat[tx.category]||0) + tx.amount;
+      }
+    }
+  });
+  return {income, expense, perCat, net: income - expense};
+}
+
+function renderChart(perCat, hasExpense){
+  const cats = getCategories();
+  const ctx = document.getElementById('donutChart');
+  const values = cats.map(c => hasExpense ? (perCat[c.name]||0) : c.budget);
+  const labels = cats.map(c => c.name);
+  const total = values.reduce((a,b)=>a+b,0);
+  document.getElementById('chartCenter').textContent = rp(total);
+  document.getElementById('chartLabel').textContent = hasExpense ? 'Aktual Juni' : 'Alokasi Budget';
+  document.getElementById('chartHint').textContent = hasExpense 
+    ? 'Donat menampilkan proporsi pengeluaran aktual bulan ini.'
+    : 'Belum ada pengeluaran bulan ini — chart menampilkan alokasi budget.';
+  const colors = [
+    '#72e0a3','#7bc7f5','#d9c07a','#c297e6','#f29a6a','#6fd1bd','#e892a7','#9ab0c6','#cdb49a','#8f9fc1'
+  ];
+  if(donutChart) donutChart.destroy();
+  donutChart = new Chart(ctx, {
+    type:'doughnut',
+    data: {
+      labels,
+      datasets:[{
+        data: values,
+        backgroundColor: colors,
+        borderWidth: 0,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      cutout:'68%',
+      plugins:{ legend:{ display:false } },
+      animation: { duration: 380 }
+    }
+  });
+  // legend
+  const legendEl = document.getElementById('chartLegend');
+  legendEl.innerHTML = '';
+  cats.forEach((c,i)=> {
+    const v = values[i];
+    const pct = total ? Math.round(v/total*100) : 0;
+    const dot = `<span class="inline-block w-2.5 h-2.5 rounded-full mr-2" style="background:${colors[i]}"></span>`;
+    const row = document.createElement('div');
+    row.className = 'flex items-center justify-between gap-3 text-[#c6cedc]';
+    row.innerHTML = `<span class="flex items-center min-w-0"><span>${dot}</span><span class="truncate">${c.name}</span></span><span class="text-[12px] text-dim shrink-0">${pct}%</span>`;
+    legendEl.appendChild(row);
+  });
+}
+
+function renderAll(){
+  const cats = getCategories();
+  const incomeTarget = getIncomeTarget();
+  const budgetTotal = getBudgetTotal();
+  const {income, expense, perCat, net} = getSums();
+
+  document.getElementById('statIncome').textContent = rp(income);
+  document.getElementById('statIncomeTarget').textContent = rp(incomeTarget);
+  document.getElementById('statExpense').textContent = rp(expense);
+  document.getElementById('statExpenseBudget').textContent = rp(budgetTotal);
+
+  const netEl = document.getElementById('statNet');
+  netEl.textContent = rp(net);
+  netEl.className = 'text-[20px] sm:text-[23px] font-[700] tracking-tight ' + (net >= 0 ? 'text-greenL' : 'text-redL');
+  const savings = income > 0 ? (net / income * 100) : 0;
+  document.getElementById('statSavings').textContent = (savings>0 ? savings.toFixed(1) : '0') + '%';
+
+  // Progress list
+  const progEl = document.getElementById('progressList');
+  progEl.innerHTML = '';
+  cats.forEach(c => {
+    const actual = perCat[c.name] || 0;
+    const pct = c.budget > 0 ? (actual / c.budget * 100) : 0;
+    const safePct = Math.min(100, pct);
+    let color = '#72e0a3';
+    if(pct > 100) color = '#ff7a7a';
+    else if(pct > 80) color = '#f6c453';
+    const remain = c.budget - actual;
+    const remainText = remain >= 0 ? 'Sisa ' + rp(remain) : 'Over ' + rp(Math.abs(remain));
+    const remainClass = remain >= 0 ? 'text-[#9aa6b8]' : 'text-redL';
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <div class="flex justify-between text-[13px] text-[#cdd5e3] mb-1.5">
+        <span class="font-[600]">${escapeHtml(c.name)}</span>
+        <span class="text-muted text-[12.5px]">${Math.round(pct)}%</span>
+      </div>
+      <div class="progress-track mb-1.5"><div style="width:${safePct}%;background:${color};height:100%;border-radius:999px;transition:width .45s"></div></div>
+      <div class="flex justify-between text-[12px]">
+        <span class="text-muted">${rp(actual)} / ${rp(c.budget)}</span>
+        <span class="${remainClass}">${remainText}</span>
+      </div>
+    `;
+    progEl.appendChild(div);
+  });
+
+  // Tx list
+  const txList = document.getElementById('txList');
+  const txEmpty = document.getElementById('txEmpty');
+  txList.innerHTML = '';
+  document.getElementById('txCount').textContent = transactions.length + ' transaksi';
+  updateSampleButtons();
+  if(transactions.length === 0){
+    txEmpty.classList.remove('hidden');
+  } else {
+    txEmpty.classList.add('hidden');
+    transactions.forEach(tx => {
+      const isInc = tx.type === 'income';
+      const row = document.createElement('div');
+      row.className = 'flex items-center justify-between bg-[#121827] border border-[#232b3b] rounded-[15px] px-3.5 py-3';
+      row.innerHTML = `
+        <div class="min-w-0 pr-3">
+          <div class="text-[13.5px] text-[#d9e0eb] truncate">${tx.note ? escapeHtml(tx.note) : escapeHtml(tx.category)} ${tx.isSample ? '<span class="text-[10.5px] text-[#9aa68f] bg-[#1b241d] border border-[#26342a] px-1.5 py-0.5 rounded-full ml-1 align-middle">contoh</span>':''}</div>
+          <div class="text-[11.5px] text-dim mt-0.5">${escapeHtml(tx.category)} • ${formatDateId(tx.date)}</div>
+        </div>
+        <div class="text-right shrink-0 flex items-center gap-2">
+          <div>
+            <div class="text-[14.5px] font-[700] ${isInc ? 'text-greenL' : 'text-[#dde3ee]'}">${isInc ? '+' : ''}${rp(tx.amount)}</div>
+            <div class="text-[11px] text-dim">${isInc ? 'Pemasukan' : 'Pengeluaran'}</div>
+          </div>
+          <button data-id="${tx.id}" class="delBtn text-[#677385] hover:text-[#e08a8a] p-2 rounded-lg" title="Hapus" aria-label="Hapus">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          </button>
+        </div>
+      `;
+      txList.appendChild(row);
+    });
+    txList.querySelectorAll('.delBtn').forEach(b => {
+      b.addEventListener('click', () => deleteTx(b.getAttribute('data-id')));
+    });
+  }
+
+  renderChart(perCat, expense > 0);
+
+  // Smart tip chips
+  document.getElementById('chipBudget').textContent = 'Budget total: ' + rp(budgetTotal);
+  document.getElementById('chipIncome').textContent = 'Target income: ' + rp(incomeTarget);
+  document.getElementById('chipSurplus').textContent = 'Surplus rencana: ' + rp(incomeTarget - budgetTotal);
+
+  renderMayTable();
+}
+
+/* ---------- May Table ---------- */
+function renderMayTable(){
+  const tbody = document.getElementById('mayTableBody');
+  tbody.innerHTML = '';
+  getCategories().forEach(c=>{
+    const diff = c.budget - c.may;
+    const tr = document.createElement('tr');
+    tr.className = 'border-b border-[#1d2433] last:border-0';
+    tr.innerHTML = `
+      <td class="py-2.5 pl-1">${escapeHtml(c.name)}</td>
+      <td class="text-right py-2.5">${rp(c.may)}</td>
+      <td class="text-right py-2.5">${rp(c.budget)}</td>
+      <td class="text-right py-2.5 pr-1 ${diff < 0 ? 'text-[#e7c28a]' : 'text-[#9db6a7]'}">${diff < 0 ? rp(diff) : '+' + idr(diff)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+const mayPanel = document.getElementById('mayPanel');
+document.getElementById('mayToggleBtn').addEventListener('click', ()=>{
+  mayPanel.classList.toggle('hidden');
+});
+
+/* ---------- Budget Edit Modal ---------- */
+const budgetModal = document.getElementById('budgetModal');
+const budgetIncomeInput = document.getElementById('budgetIncome');
+const budgetFieldsEl = document.getElementById('budgetFields');
+
+function openBudgetModal(){
+  // fill
+  budgetIncomeInput.value = idr(getIncomeTarget());
+  budgetFieldsEl.innerHTML = '';
+  getCategories().forEach(c=>{
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `
+      <label class="text-[11.5px] text-muted">${escapeHtml(c.name)}</label>
+      <input type="text" inputmode="numeric" pattern="[0-9]*" data-bkey="${c.key}" value="${idr(c.budget)}" class="input-dark mt-1.5 budget-cat-input" />
+    `;
+    budgetFieldsEl.appendChild(wrap);
+  });
+  budgetFieldsEl.querySelectorAll('.budget-cat-input, #budgetIncome').forEach(inp=>{
+    inp.addEventListener('input', function(){
+      const raw = this.value.replace(/[^\d]/g,'');
+      this.value = raw ? idr(parseInt(raw,10)) : '';
+      updateBudgetSummaryPreview();
+    });
+  });
+  updateBudgetSummaryPreview();
+  budgetModal.classList.remove('hidden');
+}
+function closeBudgetModal(){
+  budgetModal.classList.add('hidden');
+}
+function updateBudgetSummaryPreview(){
+  let total = 0;
+  budgetFieldsEl.querySelectorAll('.budget-cat-input').forEach(inp=>{
+    total += parseIDR(inp.value);
+  });
+  const incomeVal = parseIDR(budgetIncomeInput.value);
+  document.getElementById('budgetTotalText').textContent = rp(total);
+  const surplus = incomeVal - total;
+  const surplusEl = document.getElementById('budgetSurplusText');
+  surplusEl.textContent = rp(surplus);
+  surplusEl.className = surplus >= 0 ? 'text-greenL' : 'text-redL';
+}
+
+document.getElementById('editBudgetBtn').addEventListener('click', openBudgetModal);
+document.getElementById('budgetClose').addEventListener('click', closeBudgetModal);
+document.getElementById('budgetCancel').addEventListener('click', closeBudgetModal);
+document.getElementById('budgetBackdrop').addEventListener('click', closeBudgetModal);
+
+document.getElementById('budgetSave').addEventListener('click', ()=>{
+  const incomeVal = parseIDR(budgetIncomeInput.value);
+  const newBudgets = { incomeTarget: incomeVal };
+  let ok = true;
+  budgetFieldsEl.querySelectorAll('.budget-cat-input').forEach(inp=>{
+    const key = inp.dataset.bkey;
+    const val = parseIDR(inp.value);
+    if(val < 0) ok = false;
+    newBudgets[key] = val;
+  });
+  if(!ok){ toast('Nilai budget tidak valid'); return; }
+  budgetStore = newBudgets;
+  saveBudgets();
+  fillCategoryOptions(); // refresh category dropdown (names unchanged, but just in case)
+  renderAll();
+  closeBudgetModal();
+  toast('Budget disimpan');
+});
+
+/* ---------- Export / Reset ---------- */
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  if(transactions.length === 0){
+    toast('Belum ada transaksi untuk diekspor');
+    return;
+  }
+  const rows = [['Tanggal','Jenis','Kategori','Catatan','Nominal']];
+  transactions.forEach(t=>{
+    rows.push([t.date, t.type, t.category, (t.note||'').replace(/"/g,'""'), t.amount]);
+  });
+  const csv = rows.map(r => r.map(v => /[",\n]/.test(String(v)) ? `"${v}"` : v).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'lumen-juni-2026.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('CSV diunduh');
+});
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(!confirm('Reset semua transaksi Juni 2026? Data akan hilang dari perangkat ini.')) return;
+  transactions = [];
+  saveTx();
+  renderAll();
+  toast('Bulan Juni di-reset');
+});
+
+/* ---------- Init ---------- */
+fillCategoryOptions();
+renderAll();
+
+/* close modals on ESC */
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape'){
+    if(!budgetModal.classList.contains('hidden')) closeBudgetModal();
+    const cm = document.getElementById('confirmModal');
+    if(!cm.classList.contains('hidden')) document.getElementById('confirmCancel').click();
+  }
+});
+</script>
+<script>(function(){document.addEventListener("click",function(e){var a=e.target.closest("[data-product-id]");if(!a)return;e.preventDefault();var pid=a.getAttribute("data-product-id");if(pid)parent.postMessage({type:"ecto-artifact-link-click",productId:pid},"*")})})();</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;var a=target.closest?target.closest("a[href]"):null;if(!a||!a.href||!/^https?:\/\//.test(a.href))return;if(a.href.replace(/#.*$/,"")===loc)return;var productId=extractProductId(target)||extractProductId(a);if(!productId)return;e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*")},true)})();</script></body>
+</html>

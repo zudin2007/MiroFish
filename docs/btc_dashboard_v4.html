@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="id">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BTC SR & Liquidation Monitor v4 – S2F / Rainbow</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<style>
+:root{--bg:#0b1220;--card:#131d31;--card2:#1a2540;--cyan:#2dd4ff;--green:#22c55e;--red:#ef4444;--yellow:#facc15;--text:#e6eefc;--muted:#8a9bb8}
+*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+body{background:var(--bg);color:var(--text);padding:16px;max-width:540px;margin:0 auto}
+h1{font-size:20px}
+.sub{color:var(--muted);font-size:12px;margin-bottom:12px}
+.tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.tab{padding:8px 12px;border-radius:999px;background:var(--card2);border:1px solid #2a3758;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer}
+.tab.on{background:#0f2b3a;color:var(--cyan);border-color:var(--cyan)}
+.card{background:var(--card);border-radius:16px;padding:14px 16px;margin-bottom:12px;border:1px solid #1f2b45}
+.card h2{font-size:12px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em}
+.big{font-size:30px;font-weight:800}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input,select{background:var(--card2);border:1px solid #2a3758;color:var(--text);border-radius:10px;padding:10px;font-size:15px}
+input[type=number]{width:100%}
+.btn{background:var(--card2);border:1px solid #2a3758;color:var(--text);border-radius:10px;padding:10px 12px;font-weight:600;cursor:pointer}
+.btn.on{background:#0f2b3a;border-color:var(--cyan);color:var(--cyan)}
+.small{font-size:12px;color:var(--muted)}
+.pill{font-size:11px;background:var(--card2);border:1px solid #2a3758;padding:4px 8px;border-radius:99px;color:var(--muted)}
+.pill.live{color:#86efac;border-color:#14532d}
+.lvl{display:flex;justify-content:space-between;padding:9px 10px;border-radius:10px;margin:4px 0;background:var(--card2);font-size:13px}
+.lvl.res{border-left:3px solid var(--cyan)}
+.lvl.sup{border-left:3px solid var(--yellow)}
+.lvl.strong{border-left:3px solid var(--red)}
+.heatmap{position:relative;height:240px;background:var(--card2);border-radius:12px;overflow:hidden;border:1px solid #2a3758}
+.hbar{position:absolute;left:0;height:15px;border-radius:0 6px 6px 0;opacity:.85}
+.hbar.long{background:linear-gradient(90deg, rgba(239,68,68,.25), rgba(239,68,68,.85))}
+.hbar.short{background:linear-gradient(90deg, rgba(34,197,94,.25), rgba(34,197,94,.85))}
+.hlabel{position:absolute;right:8px;font-size:11px;color:#dbeafe;text-shadow:0 1px 2px #000}
+.price-line{position:absolute;left:0;right:0;height:2px;background:var(--cyan);box-shadow:0 0 8px #2dd4ff88}
+.price-line span{position:absolute;left:8px;top:-18px;font-size:11px;color:var(--cyan);background:#0b1220;padding:1px 6px;border-radius:6px}
+canvas{background:#0f172a;border-radius:12px}
+footer{color:var(--muted);font-size:11px;margin:18px 0;text-align:center;line-height:1.5}
+.warn{color:#fca5a5;font-size:12px;margin-top:6px}
+.ok{color:#86efac;font-size:12px;margin-top:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.badge{display:inline-block;font-size:11px;padding:3px 8px;border-radius:99px;background:#3b1a1a;color:#fca5a5;border:1px solid #7f1d1d;margin-bottom:6px}
+.badge2{display:inline-block;font-size:11px;padding:3px 8px;border-radius:99px;background:#1a2b3b;color:#7dd3fc;border:1px solid #0c4a6e;margin-bottom:6px}
+.view{display:none}
+.view.on{display:block}
+</style>
+</head>
+<body>
+<h1>BTC SR & Liquidation Monitor v4</h1>
+<div class="sub">Live • SR • RSI • S2F • Rainbow – Edukasi, bukan saran finansial</div>
+
+<div class="tabs">
+  <div class="tab on" data-v="live">Live / SR</div>
+  <div class="tab" data-v="rsi">RSI Weekly</div>
+  <div class="tab" data-v="s2f">Stock-to-Flow</div>
+  <div class="tab" data-v="rainbow">Rainbow</div>
+</div>
+
+<!-- LIVE / SR VIEW -->
+<div class="view on" id="v-live">
+<div class="card">
+  <h2>Harga BTC Live</h2>
+  <div class="big" id="livePrice">$62,700</div>
+  <div class="row" style="margin-top:8px">
+    <select id="source">
+      <option value="coingecko">CoinGecko</option>
+      <option value="binance">Binance</option>
+      <option value="kraken">Kraken</option>
+      <option value="coincap">CoinCap</option>
+    </select>
+    <button class="btn" id="refreshBtn">Refresh</button>
+    <button class="btn" id="alertBtn">🔔 Alert SMA 200W: OFF</button>
+    <span class="pill" id="statusPill">idle</span>
+  </div>
+  <div class="small" id="distInfo" style="margin-top:8px"></div>
+  <div class="row" style="margin-top:8px">
+    <button class="btn" id="m100">-100</button>
+    <input type="number" id="price" value="62700" step="50" style="flex:1;min-width:120px">
+    <button class="btn" id="p100">+100</button>
+  </div>
+  <div class="small">Auto-fetch 15s, fallback otomatis. Bisa edit manual.</div>
+</div>
+
+<div class="card">
+  <h2>Support / Resistance Crucial</h2>
+  <div id="ladder"></div>
+  <div class="small">$68,106 Resistance · $61,820 SMA 200W · $59,275 Jun Low · $53,457 Realized</div>
+</div>
+
+<div class="card">
+  <h2>Liquidation Heatmap</h2>
+  <div class="heatmap" id="heatmap"></div>
+  <div class="small">Merah = Long liq · Hijau = Short liq – Simulasi edukasi</div>
+</div>
+
+<div class="card">
+  <h2>Kalkulator Liquidasi</h2>
+  <div class="grid2">
+    <div><div class="small">Size USD</div><input type="number" id="size" value="1000"></div>
+    <div><div class="small">Leverage</div><input type="number" id="lev" value="10" min="1" max="50"></div>
+  </div>
+  <div id="liqOut" style="margin-top:8px;font-weight:700"></div>
+  <div id="liqWarn"></div>
+</div>
+</div>
+
+<!-- RSI VIEW -->
+<div class="view" id="v-rsi">
+<div class="card">
+  <h2>Chart – Bitcoin Weekly RSI</h2>
+  <canvas id="priceChart" height="170"></canvas>
+  <canvas id="rsiChart" height="110" style="margin-top:8px"></canvas>
+  <div class="small">Rekonstruksi @JoeConsorti / Bloomberg 02-Jun-2026. RSI 70 Overbought merah, RSI 30 Oversold hijau, marker Bottom 2022.</div>
+</div>
+<div class="card">
+  <h2>RSI Weekly – Live Adjust</h2>
+  <input type="range" id="rsiLive" min="0" max="100" value="41" style="width:100%">
+  <div class="small" id="rsiLiveVal">RSI: 41 – Bear pressure</div>
+  <div class="small">Geser untuk simulasi – titik Live di chart ikut bergerak</div>
+</div>
+</div>
+
+<!-- S2F VIEW -->
+<div class="view" id="v-s2f">
+<div class="card">
+  <h2>Bitcoin Stock-to-Flow</h2>
+  <span class="badge">Model patah sejak 2022 – Edukasi saja</span>
+  <canvas id="s2fChart" height="210"></canvas>
+  <div class="small">Biru = BTC actual (log scale). Putih putus-putus = S2F model PlanB. Titik cyan = harga live kamu. Sejak 2022 model overshoot jauh di atas harga real – jangan dipakai untuk trading. Data 2012-2026 ilustratif.</div>
+</div>
+</div>
+
+<!-- RAINBOW VIEW -->
+<div class="view" id="v-rainbow">
+<div class="card">
+  <h2>Bitcoin Rainbow Chart</h2>
+  <span class="badge2">Meme chart – tidak ilmiah</span>
+  <canvas id="rainbowChart" height="220"></canvas>
+  <div class="small">Rainbow = band logaritmik warna-warni 2012-2026. "Basically a Fire Sale" sampai "Maximum Bubble". Ini bukan model statistik, hanya visual historis. Harga live = titik cyan. Bukan saran beli/jual.</div>
+</div>
+</div>
+
+<footer>
+Dashboard edukasi v4. Harga live dari public API, bisa delay.<br>
+S2F & Rainbow = model ilustratif, sudah meleset, jangan untuk trading leverage.<br>
+Bukan saran finansial.
+</footer>
+
+<script>
+/* ---- Tabs ---- */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+    document.getElementById('v-'+t.dataset.v).classList.add('on');
+    setTimeout(()=>{window.dispatchEvent(new Event('resize'))},50);
+  }
+});
+
+/* ---- Shared data ---- */
+const levels = [
+  {p:68106, name:"Resistance Chart", type:"res"},
+  {p:61820, name:"SMA 200W", type:"sup"},
+  {p:59275, name:"Jun Low", type:"sup"},
+  {p:53457, name:"Realized Price", type:"strong"},
+];
+let currentPrice = 62700;
+let alertOn = false; let lastBeep=0;
+
+/* ---- Live price multi-source ---- */
+const priceEl = document.getElementById('price');
+const livePriceEl = document.getElementById('livePrice');
+const statusPill = document.getElementById('statusPill');
+const sources = {
+  coingecko: async()=>{const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',{cache:'no-store'});const j=await r.json();return j.bitcoin.usd},
+  binance: async()=>{const r=await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');const j=await r.json();return parseFloat(j.price)},
+  kraken: async()=>{const r=await fetch('https://api.kraken.com/0/public/Ticker?pair=XBTUSD');const j=await r.json();return parseFloat(j.result.XXBTZUSD.c[0])},
+  coincap: async()=>{const r=await fetch('https://api.coincap.io/v2/assets/bitcoin');const j=await r.json();return parseFloat(j.data.priceUsd)}
+};
+async function fetchPrice(preferred){
+  const order=[preferred,'coingecko','binance','kraken','coincap'].filter((v,i,a)=>a.indexOf(v)===i);
+  for(const src of order){
+    try{statusPill.textContent='fetch '+src;statusPill.className='pill';const p=await sources[src]();if(p>1000){statusPill.textContent='live via '+src;statusPill.className='pill live';return p}}catch(e){}
+  }
+  statusPill.textContent='offline – manual';statusPill.className='pill';return null;
+}
+async function updateLive(){
+  const src=document.getElementById('source').value;
+  const p=await fetchPrice(src);
+  if(p){currentPrice=p;priceEl.value=Math.round(p);livePriceEl.textContent='$'+Math.round(p).toLocaleString();renderAll();checkAlert(p);updateLiveDots(p);}
+}
+document.getElementById('refreshBtn').onclick=updateLive;
+document.getElementById('source').onchange=updateLive;
+setInterval(updateLive,15000);
+
+/* ---- Alert SMA 200W ---- */
+const alertBtn=document.getElementById('alertBtn');
+alertBtn.onclick=()=>{alertOn=!alertOn;alertBtn.textContent=alertOn?'🔔 Alert SMA 200W: ON':'🔔 Alert SMA 200W: OFF';alertBtn.className=alertOn?'btn on':'btn';};
+function beep(){try{const ac=new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=880;g.gain.setValueAtTime(0.2,ac.currentTime);o.start();o.stop(ac.currentTime+0.25)}catch(e){}}
+function checkAlert(p){const sma=61820;if(alertOn && Math.abs(p-sma)/sma<0.005 && Date.now()-lastBeep>8000){beep();lastBeep=Date.now();if(navigator.vibrate)navigator.vibrate(200)}}
+
+/* ---- SR Ladder / Heatmap / Liq ---- */
+function renderAll(){
+  const price=parseFloat(priceEl.value)||currentPrice; currentPrice=price;
+  livePriceEl.textContent='$'+Math.round(price).toLocaleString();
+  const sorted=[...levels].sort((a,b)=>b.p-a.p);
+  let html=''; sorted.forEach(l=>{const dist=((l.p-price)/price*100).toFixed(2); html+=`<div class="lvl ${l.type}"><b>$${l.p.toLocaleString()}</b><span>${l.name}</span><span class="tag">${dist>0?'+':''}${dist}%</span></div>`});
+  document.getElementById('ladder').innerHTML=html;
+  const nearest=sorted.reduce((a,b)=>Math.abs(b.p-price)<Math.abs(a.p-price)?b:a);
+  document.getElementById('distInfo').textContent=`Nearest: ${nearest.name} $${nearest.p.toLocaleString()}  (${((nearest.p-price)/price*100).toFixed(2)}%)`;
+  renderHeatmap(price); calcLiq();
+}
+document.getElementById('m100').onclick=()=>{priceEl.value=+priceEl.value-100;renderAll()};
+document.getElementById('p100').onclick=()=>{priceEl.value=+priceEl.value+100;renderAll()};
+priceEl.oninput=renderAll;
+
+const clusters=[{p:71200,w:55,side:'short',label:'Short $71.2k'},{p:68500,w:75,side:'short',label:'Short $68.5k'},{p:65800,w:60,side:'short',label:'Short $65.8k'},{p:60500,w:80,side:'long',label:'Long $60.5k'},{p:58200,w:70,side:'long',label:'Long $58.2k'},{p:54000,w:50,side:'long',label:'Long $54.0k'}];
+function renderHeatmap(price){const minP=50000,maxP=72000;let html='';clusters.forEach(c=>{const y=240-((c.p-minP)/(maxP-minP)*220)-8;html+=`<div class="hbar ${c.side}" style="top:${y}px;width:${c.w}%"></div><div class="hlabel" style="top:${y}px">${c.label}</div>`});const py=240-((price-minP)/(maxP-minP)*220)-1;html+=`<div class="price-line" style="top:${py}px"><span>$${Math.round(price).toLocaleString()}</span></div>`;document.getElementById('heatmap').innerHTML=html;}
+
+function calcLiq(){const entry=parseFloat(priceEl.value)||currentPrice;const lev=parseFloat(document.getElementById('lev').value)||1;const mm=0.005;const longLiq=entry*(1-1/lev+mm);const shortLiq=entry*(1+1/lev-mm);document.getElementById('liqOut').textContent=`Long Liq ≈ $${longLiq.toFixed(0)}  |  Short Liq ≈ $${shortLiq.toFixed(0)}`;const near=levels.find(l=>Math.abs(l.p-longLiq)/entry<0.05||Math.abs(l.p-shortLiq)/entry<0.05);document.getElementById('liqWarn').innerHTML=near?`<div class="warn">⚠️ Liquidasi dekat ${near.name} $${near.p.toLocaleString()} – rawan sweep.</div>`:`<div class="ok">Liquidasi jauh dari SR utama.</div>`}
+document.getElementById('size').oninput=calcLiq;document.getElementById('lev').oninput=calcLiq;
+
+/* ---- RSI Weekly chart (Bloomberg style) ---- */
+const weeks=['2021-Q3','2022-Q1','2022-Q3','2023-Q1','2023-Q3','2024-Q1','2024-Q3','2025-Q1','2025-Q3','2026-Q1','Live'];
+const btcWeekly=[42000,28000,19500,23000,27000,52000,68000,95000,118000,72000,currentPrice];
+const sma200w=[null,null,21000,24000,28000,34000,41000,48000,56000,60500,61820];
+const priceChart=new Chart(document.getElementById('priceChart'),{type:'line',data:{labels:weeks,datasets:[{label:'BTC',data:btcWeekly,borderColor:'#2dd4ff',tension:0.3,pointRadius:2},{label:'SMA 200W',data:sma200w,borderColor:'#facc15',borderDash:[5,4],pointRadius:0}]},options:{responsive:true,plugins:{legend:{labels:{color:'#8a9bb8',boxWidth:12}}},scales:{x:{ticks:{color:'#8a9bb8'} ,grid:{color:'#1e293b'}},y:{ticks:{color:'#8a9bb8'},grid:{color:'#1e293b'}}}}});
+
+const rsiData=[48,29,35,58,73,71,55,72,46,31.55,41];
+const rsiChart=new Chart(document.getElementById('rsiChart'),{type:'line',data:{labels:weeks,datasets:[{label:'RSI 7W',data:rsiData,borderColor:'#e6eefc',tension:0.35,pointRadius:(ctx)=>ctx.dataIndex===9?5:2,pointBackgroundColor:(ctx)=>ctx.dataIndex===9?'#22c55e':'#e6eefc'}]},options:{responsive:true,plugins:{legend:{display:false},annotation:{annotations:{overbought:{type:'line',yMin:70,yMax:70,borderColor:'#ef4444',borderWidth:1.5,borderDash:[4,4],label:{display:true,content:'RSI 70 = Overbought',color:'#fca5a5',position:'start',backgroundColor:'rgba(0,0,0,0)'}},oversold:{type:'line',yMin:30,yMax:30,borderColor:'#22c55e',borderWidth:1.5,label:{display:true,content:'RSI 30 = Oversold',color:'#86efac',position:'start',backgroundColor:'rgba(0,0,0,0)'}},boxOver:{type:'box',yMin:70,yMax:100,backgroundColor:'rgba(239,68,68,0.06)',borderWidth:0},bottom2022:{type:'point',xValue:'2022-Q1',yValue:29,backgroundColor:'#22c55e',radius:5},rsiLabel:{type:'label',xValue:'2025-Q3',yValue:18,content:['RSI 7: 31.55'],backgroundColor:'rgba(15,23,42,0.9)',color:'#fff',font:{weight:'bold'},padding:6,borderRadius:6}}}}},scales:{x:{ticks:{color:'#8a9bb8'},grid:{color:'#1e293b'}},y:{min:0,max:100,ticks:{color:'#8a9bb8'},grid:{color:'#1e293b'}}}}});
+
+// RSI live slider
+const rsiLive=document.getElementById('rsiLive');
+const rsiLiveVal=document.getElementById('rsiLiveVal');
+function updateRsiLive(){const v=+rsiLive.value;let label=v<30?'Oversold ekstrem':v<45?'Bear pressure':v<60?'Netral':v<70?'Bullish':'Overbought';rsiLiveVal.textContent=`RSI: ${v} – ${label}`;rsiChart.data.datasets[0].data[rsiChart.data.datasets[0].data.length-1]=v;rsiChart.options.plugins.annotation.annotations.rsiLabel.content=['RSI 7: '+v.toFixed(2)];rsiChart.update('none');}
+rsiLive.oninput=updateRsiLive;updateRsiLive();
+
+/* ---- Stock-to-Flow Chart ---- */
+const s2fYears=['2012','2013','2014','2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025','2026'];
+const btcPriceLog=[12,120,380,250,450,19000,3200,7200,29000,47000,16500,42000,68000,110000,currentPrice];
+const s2fModel=[10,80,400,800,1200,8000,15000,18000,55000,100000,110000,125000,180000,220000,280000];
+const s2fChart=new Chart(document.getElementById('s2fChart'),{type:'line',data:{labels:s2fYears,datasets:[{label:'BTC Actual',data:btcPriceLog,borderColor:'#2dd4ff',tension:0.3,pointRadius:2},{label:'S2F Model',data:s2fModel,borderColor:'#e6eefc',borderDash:[5,4],pointRadius:0}]},options:{responsive:true,plugins:{legend:{labels:{color:'#8a9bb8'}}},scales:{y:{type:'logarithmic',ticks:{color:'#8a9bb8'},grid:{color:'#1e293b'}},x:{ticks:{color:'#8a9bb8'},grid:{color:'#1e293b'}}}}});
+
+/* ---- Rainbow Chart ---- */
+const rainbowYears=s2fYears;
+const rainbowPrice=btcPriceLog;
+// rainbow bands – simplified log bands
+const bands=[
+  {name:'Maximum Bubble', color:'rgba(239,68,68,0.18)'},
+  {name:'Sell!', color:'rgba(249,115,22,0.16)'},
+  {name:'FOMO', color:'rgba(250,204,21,0.14)'},
+  {name:'Is this a bubble?', color:'rgba(132,204,4,0.12)'},
+  {name:'HODL', color:'rgba(34,197,94,0.12)'},
+  {name:'Still cheap', color:'rgba(59,130,246,0.12)'},
+  {name:'Accumulate', color:'rgba(99,102,241,0.14)'},
+  {name:'BUY!', color:'rgba(139,92,246,0.16)'},
+  {name:'Basically a Fire Sale', color:'rgba(14,165,233,0.18)'},
+];
+const rainbowCtx=document.getElementById('rainbowChart');
+const rainbowChart=new Chart(rainbowCtx,{type:'line',data:{labels:rainbowYears,datasets:[{label:'BTC',data:rainbowPrice,borderColor:'#2dd4ff',tension:0.3,pointRadius:3,pointBackgroundColor:'#2dd4ff'}]},options:{responsive:true,plugins:{legend:{display:false},annotation:{annotations:Object.fromEntries(bands.map((b,i)=>['band'+i,{type:'box',yMin:Math.pow(10,1+i*0.45),yMax:Math.pow(10,1+(i+1)*0.45),backgroundColor:b.color,borderWidth:0,label:{display:i%2===0,content:b.name,color:'#cbd5e1',font:{size:9},position:'start'}}]))}},scales:{y:{type:'logarithmic',ticks:{color:'#8a9bb8'},grid:{color:'#1e293b'}},x:{ticks:{color:'#8a9bb8'},grid:{color:'#1e293b'}}}}});
+
+/* ---- Live dot updater ---- */
+function updateLiveDots(p){
+  // price chart
+  priceChart.data.datasets[0].data[priceChart.data.datasets[0].data.length-1]=p;
+  priceChart.update('none');
+  // s2f
+  s2fChart.data.datasets[0].data[s2fChart.data.datasets[0].data.length-1]=p;
+  s2fChart.update('none');
+  // rainbow
+  rainbowChart.data.datasets[0].data[rainbowChart.data.datasets[0].data.length-1]=p;
+  rainbowChart.update('none');
+}
+
+/* init */
+renderAll();updateLive();
+</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;var a=target.closest?target.closest("a[href]"):null;if(!a||!a.href||!/^https?:\/\//.test(a.href))return;if(a.href.replace(/#.*$/,"")===loc)return;var productId=extractProductId(target)||extractProductId(a);if(!productId)return;e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*")},true)})();</script></body>
+</html>
