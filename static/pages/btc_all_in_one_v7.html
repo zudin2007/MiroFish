@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="id">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BTC All-in-One Monitor v7 – Binance Edition</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['"IBM Plex Sans"', 'Inter', 'system-ui', 'sans-serif'],
+        mono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
+      },
+      colors: {
+        binance: {
+          bg: '#0B0E11',
+          card: '#181A20',
+          card2: '#1E2329',
+          border: '#2B3139',
+          yellow: '#FCD535',
+          yellowHover: '#F0B90B',
+          green: '#0ECB81',
+          red: '#F6465D',
+          orange: '#FF9F0A',
+          muted: '#848E9C',
+          text: '#EAECEF',
+        }
+      }
+    }
+  }
+}
+</script>
+<style>
+body { background:#0B0E11; color:#EAECEF; font-family: "IBM Plex Sans", Inter, system-ui, sans-serif; }
+.mono { font-family: "IBM Plex Mono", monospace; }
+.bin-card { background:#181A20; border:1px solid #2B3139; border-radius:16px; }
+.bin-input { background:#0B0E11; border:1px solid #2B3139; color:#EAECEF; border-radius:10px; padding:10px 14px; width:100%; outline:none; font-family: "IBM Plex Mono", monospace; }
+.bin-input:focus { border-color:#FCD535; box-shadow: 0 0 0 3px rgba(252,213,53,.1); }
+.bin-label { font-size:12px; color:#848E9C; margin-bottom:6px; display:block; font-weight:500;}
+.tab-btn { padding:9px 16px; border-radius:10px; font-size:13px; font-weight:600; color:#848E9C; background:#1E2329; border:1px solid #2B3139; cursor:pointer; transition:.15s;}
+.tab-btn.on { background:#FCD535; color:#181A20; border-color:#FCD535;}
+.view { display:none; }
+.view.on { display:block; }
+canvas { background:#0f1419; border-radius:12px; }
+.kpi { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;}
+.kpi div { background:#1E2329; border-radius:10px; padding:10px; font-size:12px; color:#848E9C;}
+.kpi b { display:block; font-size:16px; margin-top:2px; color:#EAECEF; font-family: "IBM Plex Mono", monospace;}
+.lvl { display:flex; justify-content:space-between; padding:10px 12px; border-radius:10px; margin:4px 0; background:#1E2329; font-size:13px;}
+.lvl.res { border-left:3px solid #FCD535; }
+.lvl.sup { border-left:3px solid #0ECB81; }
+.lvl.strong { border-left:3px solid #F6465D; }
+.heatmap { position:relative; height:240px; background:#1E2329; border-radius:12px; overflow:hidden; border:1px solid #2B3139;}
+.hbar { position:absolute; left:0; height:15px; border-radius:0 6px 6px 0; opacity:.9;}
+.hbar.long { background: linear-gradient(90deg, rgba(246,70,93,.25), rgba(246,70,93,.85)); }
+.hbar.short { background: linear-gradient(90deg, rgba(14,203,129,.25), rgba(14,203,129,.85)); }
+.hlabel { position:absolute; right:8px; font-size:11px; color:#EAECEF; text-shadow:0 1px 2px #000;}
+.price-line { position:absolute; left:0; right:0; height:2px; background:#FCD535; box-shadow:0 0 8px rgba(252,213,53,.5);}
+.price-line span { position:absolute; left:8px; top:-18px; font-size:11px; color:#FCD535; background:#0B0E11; padding:1px 6px; border-radius:6px; font-family: "IBM Plex Mono", monospace;}
+.pill { font-size:11px; background:#1E2329; border:1px solid #2B3139; padding:4px 9px; border-radius:99px; color:#848E9C;}
+.pill.live { color:#0ECB81; border-color:#0e3b2a;}
+.pill.buy { color:#FCD535; border-color:#7a5a00; background:#1a1600;}
+.btn { background:#1E2329; border:1px solid #2B3139; color:#EAECEF; border-radius:10px; padding:10px 14px; font-weight:600; cursor:pointer; font-size:13px;}
+.btn.on { background:#FCD535; color:#181A20; border-color:#FCD535;}
+.btn-yellow { background:#FCD535; color:#181A20; border-color:#FCD535;}
+.small { font-size:12px; color:#848E9C; line-height:1.5;}
+.amort-wrap { max-height: 420px; overflow:auto; }
+.amort-wrap thead th { position: sticky; top:0; background:#111419; z-index:2; }
+.feed-card { background:#0B0E11; border:1px solid #2B3139; border-radius:12px; padding:11px 12px; min-height: 96px;}
+.feed-card.ok { border-color: #253036; }
+.feed-card.fail { border-color: rgba(246,70,93,.35); }
+.feed-card.stale { border-color: rgba(255,159,10,.35); }
+</style>
+</head>
+<body class="antialiased min-h-screen">
+<div class="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8">
+
+  <!-- Header -->
+  <header class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
+    <div>
+      <div class="flex items-center gap-2 text-[11px] tracking-widest text-binance-muted uppercase font-semibold">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L13.9 8.3L20.5 9.7L15.4 14.3L16.6 21L12 18.1L7.4 21L8.6 14.3L3.5 9.7L10.1 8.3L12 2Z" fill="#FCD535"/></svg>
+        BTC ALL-IN-ONE • BINANCE EDITION
+      </div>
+      <h1 class="text-[26px] md:text-[32px] font-[700] tracking-tight mt-1">SR / S2F / Rainbow / RSI / Loan</h1>
+      <p class="text-binance-muted text-[13px] mt-1">Support/Resistance, Stock-to-Flow, Rainbow, RSI Weekly, dan Loan Repay Planner – 11 exchange price feed.</p>
+    </div>
+  </header>
+
+  <!-- GLOBAL PRICE FEED – from Loan Planner -->
+  <div class="bin-card p-5 md:p-6 mb-4">
+    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
+      <div>
+        <div class="text-[11px] text-binance-muted uppercase tracking-wider font-semibold">Harga BTC – Aggregate</div>
+        <div class="flex items-baseline gap-3 flex-wrap mt-1">
+          <div id="agg-price" class="mono text-[32px] md:text-[40px] font-[600] tracking-tight">$ —</div>
+          <div id="agg-source-pill" class="text-[11.5px] font-[600] px-2.5 py-1 rounded-full bg-binance-card2 text-binance-muted border border-binance-border">Menunggu feed…</div>
+          <span id="statusPill" class="pill">init…</span>
+        </div>
+        <div class="text-[12px] text-binance-muted mt-1">
+          <span id="agg-sub">0/11 sumber aktif</span>
+          <span class="text-[#2b3139]"> • </span>
+          <span id="agg-spread">Spread: —</span>
+          <span id="agg-spread-warn" class="hidden text-binance-orange font-[600]"> Spread > 0.5%!</span>
+        </div>
+        <div id="manual-override-banner" class="hidden mt-2 text-[12px] text-binance-yellow bg-yellow-950/20 border border-yellow-900/40 rounded-lg px-3 py-2 inline-block">
+          Manual override aktif. <button id="btn-clear-manual" class="underline font-[600] ml-1">Kembali ke live</button>
+        </div>
+      </div>
+      <div class="w-full lg:w-[420px] space-y-3">
+        <div>
+          <label class="bin-label" for="price-source-select">Sumber harga (dipakai semua modul)</label>
+          <select id="price-source-select" class="bin-input py-[10px] font-sans">
+            <option value="auto">Auto Median – 11 exchanges</option>
+            <option value="binance">Binance</option>
+            <option value="coingecko">CoinGecko</option>
+            <option value="coinbase">Coinbase</option>
+            <option value="kraken">Kraken</option>
+            <option value="indodax">Indodax (IDR→USD)</option>
+            <option value="bybit">Bybit</option>
+            <option value="okx">OKX</option>
+            <option value="gateio">Gate.io</option>
+            <option value="kucoin">KuCoin</option>
+            <option value="mexc">MEXC</option>
+            <option value="tokocrypto">Tokocrypto</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 items-end">
+          <div class="sm:col-span-3">
+            <label class="bin-label" for="manual-price">Harga manual override (USD)</label>
+            <input id="manual-price" type="number" step="any" placeholder="cth. 62700" class="bin-input py-[9px]" />
+          </div>
+          <div class="sm:col-span-2 flex gap-2">
+            <button id="btn-use-manual" class="btn flex-1">Pakai</button>
+            <button id="btn-refresh-feeds" class="btn px-3" title="Refresh">⟳</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Feed grid – collapsible -->
+    <details>
+      <summary class="text-[12px] text-binance-muted cursor-pointer mb-2">Lihat 11 exchange feed ▼</summary>
+      <div id="feed-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-[260px] overflow-auto pr-1"></div>
+    </details>
+  </div>
+
+  <!-- TABS -->
+  <div class="flex flex-wrap gap-2 mb-4">
+    <button class="tab-btn on" data-v="sr">SR / Liq</button>
+    <button class="tab-btn" data-v="s2f">Stock-to-Flow</button>
+    <button class="tab-btn" data-v="rainbow">Rainbow</button>
+    <button class="tab-btn" data-v="rsi">RSI Weekly</button>
+    <button class="tab-btn" data-v="loan">Loan Planner</button>
+  </div>
+
+  <!-- VIEW: SR / LIQUIDATION -->
+  <div class="view on" id="v-sr">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div class="bin-card p-5">
+        <h2 class="text-[11px] text-binance-muted uppercase tracking-wider font-semibold mb-3">Support / Resistance Crucial</h2>
+        <div id="ladder"></div>
+        <div class="small mt-2">$68,106 Resistance · $61,820 SMA 200W · $59,275 Jun Low · $53,457 Realized</div>
+      </div>
+      <div class="bin-card p-5">
+        <h2 class="text-[11px] text-binance-muted uppercase tracking-wider font-semibold mb-3">Liquidation Heatmap</h2>
+        <div class="heatmap" id="heatmap"></div>
+        <div class="small mt-2">Merah = Long liq · Hijau = Short liq – Simulasi edukasi</div>
+      </div>
+    </div>
+    <div class="bin-card p-5 mt-4">
+      <h2 class="text-[11px] text-binance-muted uppercase tracking-wider font-semibold mb-3">Kalkulator Liquidasi</h2>
+      <div class="grid grid-cols-2 gap-3 max-w-sm">
+        <div><label class="bin-label">Size USD</label><input type="number" id="liq-size" value="1000" class="bin-input"></div>
+        <div><label class="bin-label">Leverage</label><input type="number" id="liq-lev" value="10" min="1" max="50" class="bin-input"></div>
+      </div>
+      <div id="liqOut" class="mt-3 font-[600] mono"></div>
+      <div id="liqWarn" class="mt-1"></div>
+    </div>
+  </div>
+
+  <!-- VIEW: S2F -->
+  <div class="view" id="v-s2f">
+    <div class="bin-card p-5">
+      <h2 class="text-[11px] text-binance-muted uppercase tracking-wider font-semibold mb-2">Bitcoin Stock-to-Flow</h2>
+      <div class="text-[11px] px-2 py-1 rounded-full bg-red-950/30 text-red-400 border border-red-900/40 inline-block mb-3">Model patah sejak 2022 – Edukasi saja</div>
+      <canvas id="s2fChart" height="210"></canvas>
+      <div class="mt-3"><button id="exportS2F" class="btn">📥 Export PNG S2F</button></div>
+      <div class="kpi">
+        <div>BTC Actual<b id="s2f_price">$62,700</b></div>
+        <div>S2F Model 2026<b>~$280,000</b></div>
+        <div>Deviasi<b id="s2f_dev">-77.6%</b></div>
+        <div>Halving terakhir<b>Apr 2024</b></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW: RAINBOW -->
+  <div class="view" id="v-rainbow">
+    <div class="bin-card p-5">
+      <h2 class="text-[11px] text-binance-muted uppercase tracking-wider font-semibold mb-2">Bitcoin Rainbow Chart – Live Follow</h2>
+      <div class="text-[11px] px-2 py-1 rounded-full bg-sky-950/30 text-sky-300 border border-sky-900/40 inline-block mb-3">Meme chart – tidak ilmiah</div>
+      <canvas id="rainbowChart" height="230"></canvas>
+      <div class="flex flex-wrap gap-2 mt-3">
+        <button id="rbAlertBtn" class="btn">🔔 Alert Buy Zone: OFF</button>
+        <button id="rbFollowBtn" class="btn on">🎯 Follow Live: ON</button>
+        <button id="exportRainbow" class="btn">📥 Export PNG</button>
+      </div>
+      <hr class="border-binance-border my-3">
+      <div class="small font-[600] text-binance-text mb-2">Notifikasi Email – Rainbow Buy Zone</div>
+      <div class="flex flex-wrap gap-2 items-end">
+        <input type="email" id="alertEmail" placeholder="email@kamu.com" class="bin-input flex-1 min-w-[200px]" style="max-width:260px">
+        <button id="saveEmailBtn" class="btn">Simpan</button>
+        <button id="testEmailBtn" class="btn">Test</button>
+      </div>
+      <div class="small mt-2" id="emailStatus">Browser notification + suara saat alert ON. Email: mailto + copy fallback (push email butuh server).</div>
+      <div class="kpi">
+        <div>Band sekarang<b id="rb_band">Accumulate</b></div>
+        <div>Harga<b id="rb_price">$62,700</b></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW: RSI -->
+  <div class="view" id="v-rsi">
+    <div class="bin-card p-5">
+      <h2 class="text-[11px] text-binance-muted uppercase tracking-wider font-semibold mb-3">RSI Weekly – Stable</h2>
+      <canvas id="rsiChart" height="130"></canvas>
+      <div class="small mt-2">Merah = RSI 70 Overbought · Hijau = RSI 30 Oversold</div>
+    </div>
+    <div class="bin-card p-5 mt-4">
+      <h2 class="text-[11px] text-binance-muted uppercase tracking-wider font-semibold mb-3">RSI Live Adjust</h2>
+      <input type="range" id="rsiLive" min="0" max="100" value="41" style="width:100%; accent-color:#FCD535;">
+      <div class="small" id="rsiLiveVal">RSI: 41 – Bear pressure</div>
+    </div>
+  </div>
+
+  <!-- VIEW: LOAN PLANNER – full from uploaded file, trimmed -->
+  <div class="view" id="v-loan">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <!-- Left: Position -->
+      <div class="bin-card p-5">
+        <h2 class="text-[11px] text-binance-muted uppercase tracking-wider font-semibold mb-3">Posisi Pinjaman</h2>
+        <label class="bin-label">Total Hutang (USDT)</label>
+        <input id="in-debt" type="number" step="any" value="5749.15151865" class="bin-input mb-3">
+        <label class="bin-label">Collateral BTC</label>
+        <input id="in-btc" type="number" step="any" value="0.11750211" class="bin-input mb-3">
+        <label class="bin-label">Bunga / tahun (%)</label>
+        <input id="in-rate" type="number" step="any" value="3.38" class="bin-input">
+        <div class="grid grid-cols-2 gap-3 mt-4 text-[12px]">
+          <div class="bg-binance-card2 rounded-[10px] p-3">Collateral USD<b class="block text-[15px] text-binance-text mono" id="k-collateral">$ —</b></div>
+          <div class="bg-binance-card2 rounded-[10px] p-3">LTV Sekarang<b class="block text-[15px] text-binance-text mono" id="k-ltv">— %</b></div>
+          <div class="bg-binance-card2 rounded-[10px] p-3">Harga Liq<b class="block text-[15px] text-binance-text mono" id="k-liq">—</b></div>
+          <div class="bg-binance-card2 rounded-[10px] p-3">Jarak ke Liq<b class="block text-[15px] text-binance-text mono" id="k-buffer">—</b></div>
+        </div>
+        <div id="k-risk" class="mt-3 text-[12px]"></div>
+      </div>
+      <!-- Middle: Scenario -->
+      <div class="bin-card p-5">
+        <h2 class="text-[11px] text-binance-muted uppercase tracking-wider font-semibold mb-3">Skenario Pelunasan</h2>
+        <div class="flex gap-1.5 mb-3 text-[12px]" id="pay-mode-seg">
+          <button class="seg-btn active" data-mode="weekly">Mingguan</button>
+          <button class="seg-btn" data-mode="monthly">Bulanan</button>
+        </div>
+        <label class="bin-label">Lump sum awal (USDT)</label>
+        <input id="sc-lump" type="number" step="any" value="0" class="bin-input mb-3">
+        <label class="bin-label" id="lbl-monthly">Cicilan per minggu (USDT)</label>
+        <input id="sc-monthly" type="number" step="any" value="300" class="bin-input">
+        <div class="text-[11px] text-binance-muted mt-1" id="pay-equiv">≈ $1,300 / bulan • $42.86 / hari</div>
+        <div class="grid grid-cols-2 gap-3 mt-3">
+          <div><label class="bin-label">Target LTV (%)</label><input id="sc-targetltv" type="number" value="60" class="bin-input"></div>
+          <div><label class="bin-label">Target tanggal</label><input id="sc-targetdate" type="date" class="bin-input"></div>
+        </div>
+        <div class="flex gap-2 mt-3">
+          <button id="btn-calc" class="btn btn-yellow flex-1">Hitung Rencana</button>
+          <button id="btn-save-scenario" class="btn">Simpan</button>
+        </div>
+        <div class="flex gap-2 mt-2 text-[11px]">
+          <button class="preset-btn text-binance-muted hover:text-binance-text" data-preset="hemat">Hemat</button>
+          <span class="text-binance-border">•</span>
+          <button class="preset-btn text-binance-muted hover:text-binance-text" data-preset="standar">Standar</button>
+          <span class="text-binance-border">•</span>
+          <button class="preset-btn text-binance-muted hover:text-binance-text" data-preset="agresif">Agresif</button>
+        </div>
+      </div>
+      <!-- Right: Summary -->
+      <div class="bin-card p-5">
+        <h2 class="text-[11px] text-binance-muted uppercase tracking-wider font-semibold mb-3">Ringkasan</h2>
+        <div class="space-y-2 text-[13px]" id="summary-box">
+          <div class="flex justify-between"><span class="text-binance-muted">Lunas dalam</span><b id="sum-weeks" class="mono">— minggu</b></div>
+          <div class="flex justify-between"><span class="text-binance-muted">Total dibayar</span><b id="sum-total" class="mono">—</b></div>
+          <div class="flex justify-between"><span class="text-binance-muted">Bunga total</span><b id="sum-interest" class="mono">—</b></div>
+          <div class="flex justify-between"><span class="text-binance-muted">LTV akhir</span><b id="sum-ltv" class="mono">—</b></div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-binance-border">
+          <div class="text-[11px] text-binance-muted mb-1">Quick Repay – ke LTV target</div>
+          <div class="flex gap-2">
+            <input id="qr-ltv" type="number" value="60" class="bin-input py-[8px] w-20">
+            <button id="qr-btn" class="btn px-3">Hitung</button>
+            <span id="qr-result" class="mono text-[13px] self-center text-binance-yellow font-[600]"></span>
+          </div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-binance-border text-[11px]">
+          <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="notif-toggle"><span>Peringatan LTV via Browser Notification</span></label>
+          <div id="notif-status" class="text-binance-muted mt-1">Status notifikasi: default</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LTV Chart + Amortization -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 mt-4">
+      <div class="bin-card p-5 lg:col-span-3">
+        <h2 class="text-[11px] text-binance-muted uppercase tracking-wider font-semibold mb-3">Proyeksi LTV</h2>
+        <canvas id="ltvChart" width="800" height="260" style="width:100%;height:auto;background:#0B0E11;border-radius:12px"></canvas>
+      </div>
+      <div class="bin-card p-5 lg:col-span-2">
+        <h2 class="text-[11px] text-binance-muted uppercase tracking-wider font-semibold mb-2">Amortisasi</h2>
+        <div class="amort-wrap">
+          <table class="w-full text-[12px]">
+            <thead><tr class="text-binance-muted text-[11px]"><th class="text-left py-2 px-2">Minggu</th><th class="text-right px-2">Bayar</th><th class="text-right px-2">Bunga</th><th class="text-right px-2">Pokok</th><th class="text-right px-2">Sisa</th><th class="text-right px-2">LTV</th></tr></thead>
+            <tbody id="amort-body" class="mono text-[11.5px]"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="bin-card p-5 mt-4">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-[11px] text-binance-muted uppercase tracking-wider font-semibold">Skenario Tersimpan</h2>
+        <button id="btn-reset" class="text-[11px] text-binance-muted hover:text-binance-text">Reset semua</button>
+      </div>
+      <div id="saved-list" class="text-[12px] text-binance-muted">Belum ada skenario tersimpan.</div>
+    </div>
+  </div>
+
+  <footer class="text-center text-[11px] text-binance-muted mt-8 pb-6 leading-relaxed">
+    BTC All-in-One Monitor v7 – Binance Edition<br>
+    SR / Liquidation • S2F • Rainbow • RSI • Loan Planner<br>
+    11-exchange price feed • Bukan saran finansial
+  </footer>
+</div>
+
+<div id="toast" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1E2329;border:1px solid #2B3139;color:#EAECEF;padding:10px 16px;border-radius:10px;font-size:12px;opacity:0;transition:.2s;z-index:99;pointer-events:none">—</div>
+
+<script>
+/* ========== Shared utils ========== */
+const $ = id => document.getElementById(id);
+const fmt = (n,d=0)=> Number.isFinite(n) ? n.toLocaleString('en-US',{maximumFractionDigits:d}) : '—';
+const fmtMoney = n => '$' + fmt(n,2);
+function toNum(v,fb){ const n = parseFloat(v); return Number.isFinite(n)?n:fb; }
+
+/* ========== Tabs ========== */
+document.querySelectorAll('.tab-btn').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('off')||v.classList.remove('on'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+    const view = document.getElementById('v-'+t.dataset.v);
+    if(view) view.classList.add('on');
+    setTimeout(()=>{ [window.s2fChart, window.rainbowChart, window.rsiChart].forEach(c=>{try{c&&c.resize()}catch(e){}}); try{ if(typeof runScenario==='function') runScenario(); }catch(e){} }, 80);
+  });
+});
+
+/* ========== 11-EXCHANGE PRICE FEED – from Loan Planner ========== */
+const FEEDS = {
+  binance:   { name:'Binance', url:'https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT', p: j=>+j.price },
+  coingecko: { name:'CoinGecko', url:'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd', p: j=>j.bitcoin?.usd },
+  coinbase:  { name:'Coinbase', url:'https://api.coinbase.com/v2/prices/BTC-USD/spot', p: j=> +j?.data?.amount },
+  kraken:    { name:'Kraken', url:'https://api.kraken.com/0/public/Ticker?pair=XBTUSD', p: j=> +j?.result?.XXBTZUSD?.c?.[0] },
+  bybit:     { name:'Bybit', url:'https://api.bybit.com/v5/market/tickers?category=spot&symbol=BTCUSDT', p: j=> +j?.result?.list?.[0]?.lastPrice },
+  okx:       { name:'OKX', url:'https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT', p: j=> +j?.data?.[0]?.last },
+  gateio:    { name:'Gate.io', url:'https://api.gateio.ws/api/v4/spot/tickers?currency_pair=BTC_USDT', p: j=> +j?.[0]?.last },
+  kucoin:    { name:'KuCoin', url:'https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=BTC-USDT', p: j=> +j?.data?.price },
+  mexc:      { name:'MEXC', url:'https://api.mexc.com/api/v3/ticker/price?symbol=BTCUSDT', p: j=> +j?.price },
+  indodax:   { name:'Indodax', url:'https://indodax.com/api/btc_idr/ticker', p: j=> { const idr = +j?.ticker?.last; const usdRate = 16300; return idr ? idr/usdRate : NaN; } },
+  tokocrypto:{ name:'Tokocrypto', url:'https://www.tokocrypto.com/open/v1/market/ticker?symbol=BTC_USDT', p: j=> +j?.data?.c || +j?.data?.lastPrice },
+};
+const FEED_KEYS = Object.keys(FEEDS);
+const feedState = {};
+FEED_KEYS.forEach(k=> feedState[k] = { price: NaN, ts: 0, ok: false, err: '' });
+
+let state = {
+  priceSource: localStorage.getItem('blrp_price_source_v3') || 'auto',
+  manualOverride: null,
+  debt: 5749.15151865,
+  btc: 0.11750211,
+  rate: 3.38,
+  payMode: 'weekly',
+};
+
+function fetchWithTimeout(url, ms=4200){
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), ms);
+  return fetch(url, { signal: ctrl.signal, cache: 'no-store' }).finally(()=>clearTimeout(t));
+}
+async function fetchFeed(key){
+  const f = FEEDS[key];
+  try{
+    let res = await fetchWithTimeout(f.url, 4200);
+    if(!res.ok) throw new Error('http '+res.status);
+    let j = await res.json();
+    let price = f.p(j);
+    if(!Number.isFinite(price) || price < 1000 || price > 500000) throw new Error('bad price');
+    feedState[key] = { price, ts: Date.now(), ok: true, err: '' };
+  }catch(e){
+    try{
+      const proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(f.url);
+      let res2 = await fetchWithTimeout(proxy, 4200);
+      if(!res2.ok) throw new Error();
+      let j2 = await res2.json();
+      let price2 = f.p(j2);
+      if(!Number.isFinite(price2) || price2 < 1000) throw new Error();
+      feedState[key] = { price: price2, ts: Date.now(), ok: true, err: '' };
+    }catch(e2){
+      feedState[key].ok = false;
+      feedState[key].err = ''+ (e.message||'fail');
+    }
+  }
+  renderFeedCard(key);
+  renderAggregate();
+}
+
+function renderFeedCard(key){
+  const el = document.getElementById('feed-'+key);
+  if(!el) return;
+  const s = feedState[key];
+  const age = s.ts ? Math.floor((Date.now()-s.ts)/1000) : 9999;
+  let cls = 'feed-card ';
+  if(!s.ok) cls += 'fail';
+  else if(age > 45) cls += 'stale';
+  else cls += 'ok';
+  el.className = cls;
+  el.querySelector('.feed-price').textContent = s.ok ? '$' + fmt(s.price,2) : '—';
+  el.querySelector('.feed-age').textContent = s.ok ? age + 's ago' : (s.err || 'error');
+}
+
+function getMedianPrice(){
+  const vals = FEED_KEYS.map(k=>feedState[k]).filter(s=>s.ok && Date.now()-s.ts < 60000).map(s=>s.price).sort((a,b)=>a-b);
+  if(vals.length===0) return NaN;
+  const mid = Math.floor(vals.length/2);
+  return vals.length%2 ? vals[mid] : (vals[mid-1]+vals[mid])/2;
+}
+function getEffectivePrice(){
+  if(state.manualOverride && state.manualOverride > 0) return state.manualOverride;
+  if(state.priceSource !== 'auto'){
+    const s = feedState[state.priceSource];
+    if(s && s.ok && Date.now()-s.ts < 60000) return s.price;
+  }
+  return getMedianPrice();
+}
+
+function renderAggregate(){
+  const price = getEffectivePrice();
+  const activeFeeds = FEED_KEYS.filter(k=>feedState[k].ok && Date.now()-feedState[k].ts < 60000);
+  const prices = activeFeeds.map(k=>feedState[k].price);
+  const minP = prices.length ? Math.min(...prices) : NaN;
+  const maxP = prices.length ? Math.max(...prices) : NaN;
+  const spread = (Number.isFinite(minP) && Number.isFinite(maxP) && minP>0) ? ((maxP-minP)/((maxP+minP)/2)*100) : NaN;
+
+  const aggEl = $('agg-price');
+  if(aggEl) aggEl.textContent = Number.isFinite(price) ? '$' + fmt(price,2) : '$ —';
+  const srcPill = $('agg-source-pill');
+  if(srcPill){
+    if(state.manualOverride) { srcPill.textContent = 'Manual Override'; srcPill.style.color = '#FCD535'; }
+    else if(state.priceSource === 'auto') { srcPill.textContent = 'Auto Median'; srcPill.style.color = '#848E9C'; }
+    else { srcPill.textContent = FEEDS[state.priceSource]?.name || state.priceSource; srcPill.style.color = '#0ECB81'; }
+  }
+  const subEl = $('agg-sub'); if(subEl) subEl.textContent = activeFeeds.length + '/11 sumber aktif';
+  const spreadEl = $('agg-spread'); if(spreadEl) spreadEl.textContent = Number.isFinite(spread) ? 'Spread: ' + spread.toFixed(3) + '%' : 'Spread: —';
+  const warnEl = $('agg-spread-warn'); if(warnEl) warnEl.classList.toggle('hidden', !(spread > 0.5));
+
+  // broadcast to all modules
+  if(Number.isFinite(price)) window.__btcPriceUpdate && window.__btcPriceUpdate(price);
+
+  // update status pill
+  const statusPill = document.getElementById('statusPill');
+  if(statusPill){
+    if(Number.isFinite(price)){
+      statusPill.textContent = 'live • ' + activeFeeds.length + '/11';
+      statusPill.className = 'pill live';
+    } else {
+      statusPill.textContent = 'offline – manual';
+      statusPill.className = 'pill';
+    }
+  }
+}
+
+let feedCursor = 0;
+function runSweepCycle(){
+  const batch = 3;
+  for(let i=0;i<batch;i++){
+    const key = FEED_KEYS[feedCursor % FEED_KEYS.length];
+    fetchFeed(key);
+    feedCursor++;
+  }
+}
+function startFeedCycles(){
+  runSweepCycle();
+  setInterval(runSweepCycle, 1100);
+  setInterval(renderAggregate, 3000);
+}
+
+// Build feed grid
+(function buildFeedGrid(){
+  const grid = document.getElementById('feed-grid');
+  if(!grid) return;
+  grid.innerHTML = FEED_KEYS.map(k=>`
+    <div class="feed-card" id="feed-${k}">
+      <div class="text-[11px] text-binance-muted">${FEEDS[k].name}</div>
+      <div class="feed-price mono text-[15px] font-[600] mt-1 text-binance-text">$ —</div>
+      <div class="feed-age text-[10px] text-binance-muted mt-1">—</div>
+    </div>
+  `).join('');
+})();
+
+/* ========== GLOBAL PRICE BUS – for SR/S2F/Rainbow/RSI ========== */
+let currentPrice = 62700;
+const levels = [
+  {p:68106, name:"Resistance Chart", type:"res"},
+  {p:61820, name:"SMA 200W", type:"sup"},
+  {p:53457, name:"Realized Price", type:"strong"},
+  {p:59275, name:"Jun Low", type:"sup"},
+];
+
+function getRainbowBand(p){
+  if(p < 28000) return {name:'Fire Sale', buy:true};
+  if(p < 48000) return {name:'BUY!', buy:true};
+  if(p < 72000) return {name:'Accumulate', buy:true};
+  if(p < 105000) return {name:'Still cheap', buy:false};
+  if(p < 155000) return {name:'HODL', buy:false};
+  if(p < 220000) return {name:'Is this a bubble?', buy:false};
+  if(p < 320000) return {name:'FOMO', buy:false};
+  if(p < 480000) return {name:'Sell!', buy:false};
+  return {name:'Maximum Bubble', buy:false};
+}
+
+window.__btcPriceUpdate = function(p){
+  if(!Number.isFinite(p)) return;
+  currentPrice = p;
+  // SR ladder
+  const ladder = document.getElementById('ladder');
+  if(ladder){
+    const sorted=[...levels].sort((a,b)=>b.p-a.p);
+    ladder.innerHTML = sorted.map(l=>{
+      const dist=((l.p-p)/p*100).toFixed(2);
+      return `<div class="lvl ${l.type}"><b>$${fmt(l.p,0)}</b><span>${l.name}</span><span>${dist>0?'+':''}${dist}%</span></div>`;
+    }).join('');
+  }
+  // liquidation calc
+  calcLiq();
+  // heatmap
+  renderHeatmap(p);
+  // S2F
+  const s2fEl = document.getElementById('s2f_price'); if(s2fEl) s2fEl.textContent = '$' + fmt(p,0);
+  if(window.s2fChart){ s2fChart.data.datasets[0].data[s2fChart.data.datasets[0].data.length-1] = p; s2fChart.update('none'); }
+  const devEl = document.getElementById('s2f_dev'); if(devEl){ const dev=((p-280000)/280000*100); devEl.textContent = dev.toFixed(1) + '%'; }
+  // Rainbow
+  const rb = getRainbowBand(p);
+  const rbBandEl = document.getElementById('rb_band'); if(rbBandEl) rbBandEl.textContent = rb.name;
+  const rbPriceEl = document.getElementById('rb_price'); if(rbPriceEl) rbPriceEl.textContent = '$' + fmt(p,0);
+  if(window.rainbowChart){
+    const ds = rainbowChart.data.datasets[0];
+    ds.data[ds.data.length-1] = p;
+    ds.pointRadius = ds.data.map((_,i)=> i===ds.data.length-1 ? 7 : 2);
+    const ann = rainbowChart.options.plugins.annotation.annotations;
+    ann.priceNow = { type:'line', yMin:p, yMax:p, borderColor:'#FCD535', borderWidth:2, label:{display:true, content:'$'+fmt(p,0)+' · '+rb.name, color:'#FCD535', backgroundColor:'rgba(11,14,17,0.9)', padding:4, position:'start'}};
+    if(window.rainbowFollow){
+      rainbowChart.options.scales.y.min = p / 3.8;
+      rainbowChart.options.scales.y.max = p * 3.8;
+    }
+    rainbowChart.update('none');
+  }
+  // Rainbow alert
+  if(window.rainbowAlertOn && rb.buy && Date.now() - (window.lastRainbowBeep||0) > 12000){
+    window.lastRainbowBeep = Date.now();
+    try{ const ac = new (window.AudioContext||window.webkitAudioContext)(); const o=ac.createOscillator(), g=ac.createGain(); o.connect(g); g.connect(ac.destination); o.frequency.value=660; g.gain.setValueAtTime(0.18,ac.currentTime); o.start(); o.stop(ac.currentTime+0.16); setTimeout(()=>{ const ac2=new (window.AudioContext||window.webkitAudioContext)(); const o2=ac2.createOscillator(), g2=ac2.createGain(); o2.connect(g2); g2.connect(ac2.destination); o2.frequency.value=880; g2.gain.setValueAtTime(0.18,ac2.currentTime); o2.start(); o2.stop(ac2.currentTime+0.16); },160)}catch(e){}
+    if(navigator.vibrate) navigator.vibrate([120,80,120]);
+    const subject = `BTC Rainbow Buy Alert – ${rb.name} @ $${fmt(p,0)}`;
+    const body = `BTC masuk Rainbow band: ${rb.name}\nHarga: $${fmt(p,0)}\nWaktu: ${new Date().toLocaleString('id-ID')}\n\n— Bukan saran finansial —`;
+    sendEmailAlert(subject, body);
+  }
+};
+
+function calcLiq(){
+  const entry = currentPrice;
+  const levEl = document.getElementById('liq-lev');
+  const lev = levEl ? toNum(levEl.value, 10) : 10;
+  const mm=0.005;
+  const longLiq=entry*(1-1/lev+mm);
+  const shortLiq=entry*(1+1/lev-mm);
+  const out = document.getElementById('liqOut');
+  if(out) out.textContent = `Long Liq ≈ $${longLiq.toFixed(0)}  |  Short Liq ≈ $${shortLiq.toFixed(0)}`;
+  const near = levels.find(l=>Math.abs(l.p-longLiq)/entry<0.05||Math.abs(l.p-shortLiq)/entry<0.05);
+  const warn = document.getElementById('liqWarn');
+  if(warn) warn.innerHTML = near ? `<div style="color:#F6465D;font-size:12px;margin-top:6px">⚠️ Liquidasi dekat ${near.name} $${fmt(near.p,0)} – rawan sweep.</div>` : `<div style="color:#0ECB81;font-size:12px;margin-top:6px">Liquidasi jauh dari SR utama.</div>`;
+}
+const clusters=[{p:71200,w:55,side:'short',label:'Short $71.2k'},{p:68500,w:75,side:'short',label:'Short $68.5k'},{p:65800,w:60,side:'short',label:'Short $65.8k'},{p:60500,w:80,side:'long',label:'Long $60.5k'},{p:58200,w:70,side:'long',label:'Long $58.2k'},{p:54000,w:50,side:'long',label:'Long $54.0k'}];
+function renderHeatmap(price){
+  const el = document.getElementById('heatmap'); if(!el) return;
+  const minP=50000,maxP=72000; let html='';
+  clusters.forEach(c=>{const y=240-((c.p-minP)/(maxP-minP)*220)-8;html+=`<div class="hbar ${c.side}" style="top:${y}px;width:${c.w}%"></div><div class="hlabel" style="top:${y}px">${c.label}</div>`});
+  const py=240-((price-minP)/(maxP-minP)*220)-1;
+  html+=`<div class="price-line" style="top:${py}px"><span>$${Math.round(price).toLocaleString()}</span></div>`;
+  el.innerHTML=html;
+}
+
+/* ========== CHARTS – Binance colors ========== */
+const chartText = '#848E9C';
+const chartGrid = '#2B3139';
+const yellow = '#FCD535';
+const green = '#0ECB81';
+const red = '#F6465D';
+const white = '#EAECEF';
+
+const s2fYears = ['2012','2013','2014','2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025','2026','Live'];
+const btcPriceHist = [12,120,380,250,450,19000,3200,7200,29000,47000,16500,42000,68000,110000,65000,62700];
+const s2fModelHist = [10,80,400,800,1200,8000,15000,18000,55000,100000,110000,125000,180000,220000,260000,280000];
+
+window.s2fChart = new Chart(document.getElementById('s2fChart'),{
+  type:'line',
+  data:{labels:s2fYears, datasets:[
+    {label:'BTC Actual', data:[...btcPriceHist], borderColor:yellow, tension:0.3, pointRadius: (ctx)=> ctx.dataIndex===btcPriceHist.length-1 ? 5 : 2, pointBackgroundColor: yellow},
+    {label:'S2F Model', data:s2fModelHist, borderColor:'#848E9C', borderDash:[5,4], pointRadius:0, tension:0.3}
+  ]},
+  options:{responsive:true,plugins:{legend:{labels:{color:chartText}}},scales:{y:{type:'logarithmic',ticks:{color:chartText},grid:{color:chartGrid}},x:{ticks:{color:chartText},grid:{color:chartGrid}}}}
+});
+
+window.rainbowChart = new Chart(document.getElementById('rainbowChart'),{
+  type:'line',
+  data:{labels:s2fYears, datasets:[{label:'BTC', data:[...btcPriceHist], borderColor:yellow, tension:0.35, pointRadius:2, pointBackgroundColor:yellow}]},
+  options:{
+    responsive:true,
+    plugins:{legend:{display:false},annotation:{annotations:{
+      b0:{type:'box',yMin:1, yMax:12000, backgroundColor:'rgba(14,165,233,0.10)', borderWidth:0, label:{display:true, content:'Fire Sale', color:'#cbd5e1', font:{size:9}}},
+      b1:{type:'box',yMin:12000, yMax:28000, backgroundColor:'rgba(139,92,246,0.12)', borderWidth:0, label:{display:true, content:'BUY!', color:'#cbd5e1', font:{size:9}}},
+      b2:{type:'box',yMin:28000, yMax:72000, backgroundColor:'rgba(99,102,241,0.11)', borderWidth:0, label:{display:true, content:'Accumulate', color:'#cbd5e1', font:{size:9}}},
+      b3:{type:'box',yMin:72000, yMax:140000, backgroundColor:'rgba(59,130,246,0.09)', borderWidth:0, label:{display:true, content:'Still cheap', color:'#cbd5e1', font:{size:9}}},
+      b4:{type:'box',yMin:140000, yMax:240000, backgroundColor:'rgba(34,197,94,0.09)', borderWidth:0, label:{display:true, content:'HODL', color:'#cbd5e1', font:{size:9}}},
+      b5:{type:'box',yMin:240000, yMax:420000, backgroundColor:'rgba(132,204,4,0.08)', borderWidth:0},
+      b6:{type:'box',yMin:420000, yMax:750000, backgroundColor:'rgba(250,204,21,0.10)', borderWidth:0, label:{display:true, content:'FOMO', color:'#cbd5e1', font:{size:9}}},
+      b7:{type:'box',yMin:750000, yMax:1300000, backgroundColor:'rgba(249,115,22,0.11)', borderWidth:0, label:{display:true, content:'Sell!', color:'#cbd5e1', font:{size:9}}},
+      b8:{type:'box',yMin:1300000, yMax:5000000, backgroundColor:'rgba(239,68,68,0.13)', borderWidth:0, label:{display:true, content:'Maximum Bubble', color:'#cbd5e1', font:{size:9}}}
+    }}},
+    scales:{y:{type:'logarithmic',ticks:{color:chartText},grid:{color:chartGrid}},x:{ticks:{color:chartText},grid:{color:chartGrid}}}
+  }
+});
+
+const rsiLabels = ['2021-Q3','2022-Q1','2022-Q3','2023-Q1','2023-Q3','2024-Q1','2024-Q3','2025-Q1','2025-Q3','2026-Q1','Live'];
+const rsiBaseData = [48,29,35,58,73,71,55,72,46,31.55,41];
+window.rsiChart = new Chart(document.getElementById('rsiChart'),{
+  type:'line',
+  data:{labels:rsiLabels, datasets:[{label:'RSI 7W', data:[...rsiBaseData], borderColor:white, tension:0.35, pointRadius:2}]},
+  options:{
+    responsive:true,
+    plugins:{legend:{display:false},annotation:{annotations:{
+      overbought:{type:'line',yMin:70,yMax:70,borderColor:red,borderWidth:1.5,borderDash:[4,4],label:{display:true,content:'RSI 70 = Overbought',color:'#fca5a5',position:'start',backgroundColor:'rgba(0,0,0,0)'}},
+      oversold:{type:'line',yMin:30,yMax:30,borderColor:green,borderWidth:1.5,label:{display:true,content:'RSI 30 = Oversold',color:'#86efac',position:'start',backgroundColor:'rgba(0,0,0,0)'}},
+      boxOver:{type:'box',yMin:70,yMax:100,backgroundColor:'rgba(239,68,68,0.06)',borderWidth:0}
+    }}},
+    scales:{y:{min:0,max:100,ticks:{color:chartText},grid:{color:chartGrid}},x:{ticks:{color:chartText},grid:{color:chartGrid}}}
+  }
+});
+
+/* RSI slider */
+const rsiLiveEl = document.getElementById('rsiLive');
+if(rsiLiveEl){
+  rsiLiveEl.addEventListener('input', ()=>{
+    const v = toNum(rsiLiveEl.value, 41);
+    let label = v<30 ? 'Oversold ekstrem' : v<45 ? 'Bear pressure' : v<60 ? 'Netral' : v<70 ? 'Bullish' : 'Overbought';
+    const out = document.getElementById('rsiLiveVal');
+    if(out) out.textContent = `RSI: ${v} – ${label}`;
+    if(window.rsiChart){ rsiChart.data.datasets[0].data[rsiChart.data.datasets[0].data.length-1] = v; rsiChart.update('none'); }
+  });
+  rsiLiveEl.dispatchEvent(new Event('input'));
+}
+
+/* Rainbow controls */
+window.rainbowAlertOn = false;
+window.rainbowFollow = true;
+window.lastRainbowBeep = 0;
+document.getElementById('rbAlertBtn')?.addEventListener('click', async ()=>{
+  window.rainbowAlertOn = !window.rainbowAlertOn;
+  const b = document.getElementById('rbAlertBtn');
+  b.textContent = window.rainbowAlertOn ? '🔔 Alert Buy Zone: ON' : '🔔 Alert Buy Zone: OFF';
+  b.className = window.rainbowAlertOn ? 'btn on' : 'btn';
+  if(window.rainbowAlertOn && 'Notification' in window && Notification.permission === 'default'){
+    await Notification.requestPermission();
+  }
+});
+document.getElementById('rbFollowBtn')?.addEventListener('click', ()=>{
+  window.rainbowFollow = !window.rainbowFollow;
+  const b = document.getElementById('rbFollowBtn');
+  b.textContent = window.rainbowFollow ? '🎯 Follow Live: ON' : '🎯 Follow Live: OFF';
+  b.className = window.rainbowFollow ? 'btn on' : 'btn';
+  const p = getEffectivePrice(); if(Number.isFinite(p)) window.__btcPriceUpdate(p);
+});
+
+/* Export */
+function exportChart(chart, filename){
+  try{
+    const url = chart.toBase64Image('image/png', 1.0);
+    const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+  }catch(e){ alert('Export gagal: '+e); }
+}
+document.getElementById('exportS2F')?.addEventListener('click', ()=> exportChart(window.s2fChart, 'btc_s2f.png'));
+document.getElementById('exportRainbow')?.addEventListener('click', ()=> exportChart(window.rainbowChart, 'btc_rainbow.png'));
+
+/* Email alert helper */
+let alertEmail = localStorage.getItem('btc_alert_email') || '';
+setTimeout(()=>{ const el=document.getElementById('alertEmail'); if(el) el.value = alertEmail; }, 0);
+async function sendEmailAlert(subject, body){
+  const emailEl = document.getElementById('alertEmail');
+  const email = emailEl ? emailEl.value.trim() : alertEmail;
+  if('Notification' in window){
+    if(Notification.permission === 'granted'){ try{ new Notification(subject, {body}); }catch(e){} }
+    else if(Notification.permission !== 'denied'){ Notification.requestPermission(); }
+  }
+  if(email && email.includes('@')){
+    const mailto = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    try{ window.open(mailto, '_blank'); }catch(e){}
+  }
+  try{ await navigator.clipboard.writeText(subject + '\n\n' + body); }catch(e){}
+  const st = document.getElementById('emailStatus');
+  if(st) st.textContent = email ? `Alert dikirim – Browser notif + mailto ke ${email} + copy clipboard.` : 'Browser notification terkirim. Isi email dan Save untuk mailto helper.';
+  return true;
+}
+document.getElementById('saveEmailBtn')?.addEventListener('click', ()=>{
+  const el = document.getElementById('alertEmail');
+  const email = el ? el.value.trim() : '';
+  localStorage.setItem('btc_alert_email', email);
+  alertEmail = email;
+  const st = document.getElementById('emailStatus');
+  if(st) st.textContent = email ? `Email disimpan: ${email}` : 'Email dihapus.';
+});
+document.getElementById('testEmailBtn')?.addEventListener('click', ()=>{
+  const emailEl = document.getElementById('alertEmail');
+  const email = emailEl ? emailEl.value.trim() : '';
+  if(!email || !email.includes('@')){ alert('Masukkan email valid dulu'); return; }
+  const price = getEffectivePrice() || currentPrice;
+  sendEmailAlert('Test BTC Rainbow Alert', `Test alert dari BTC All-in-One v7\nHarga: $${fmt(price,0)}\n— Bukan saran finansial —`);
+});
+
+/* SR/Liq inputs */
+document.getElementById('liq-size')?.addEventListener('input', calcLiq);
+document.getElementById('liq-lev')?.addEventListener('input', calcLiq);
+
+/* ========== LOAN PLANNER – ported from uploaded file ========== */
+let loanState = { debt: 5749.15151865, btc: 0.11750211, rate: 3.38, payMode: 'weekly' };
+function $lp(id){ return document.getElementById(id); }
+function readPositionInputs(){
+  loanState.debt = toNum($lp('in-debt')?.value, loanState.debt);
+  loanState.btc = toNum($lp('in-btc')?.value, loanState.btc);
+  loanState.rate = toNum($lp('in-rate')?.value, loanState.rate);
+}
+function updatePositionUI(){
+  readPositionInputs();
+  const price = getEffectivePrice();
+  const colEl = $lp('k-collateral'), ltvEl = $lp('k-ltv'), liqEl = $lp('k-liq'), bufEl = $lp('k-buffer'), riskEl = $lp('k-risk');
+  if(!Number.isFinite(price)){ if(colEl) colEl.textContent='$ —'; if(ltvEl) ltvEl.textContent='— %'; return; }
+  const collateral = loanState.btc * price;
+  const ltv = collateral > 0 ? (loanState.debt / collateral * 100) : 0;
+  const liqPrice = loanState.btc > 0 ? (loanState.debt / loanState.btc / 0.91) : 0;
+  const buffer = price > 0 ? ((price - liqPrice)/price*100) : 0;
+  if(colEl) colEl.textContent = '$' + fmt(collateral,2);
+  if(ltvEl) ltvEl.textContent = fmt(ltv,2) + '%';
+  if(liqEl) liqEl.textContent = '$' + fmt(liqPrice,2);
+  if(bufEl) bufEl.textContent = fmt(buffer,1) + '%';
+  if(riskEl){
+    let cls='color:#0ECB81', txt='Aman';
+    if(ltv >= 83){ cls='color:#F6465D'; txt='Bahaya – dekat liquidation!'; }
+    else if(ltv >= 75){ cls='color:#FF9F0A'; txt='Waspada – LTV tinggi'; }
+    else if(ltv >= 65){ cls='color:#FCD535'; txt='Hati-hati'; }
+    riskEl.innerHTML = `<span style="${cls}">${txt}</span>`;
+  }
+}
+// Simplified loan scenario runner – keeps original logic compact
+function runScenario(){
+  readPositionInputs();
+  const price = getEffectivePrice() || 62700;
+  const lump = toNum($lp('sc-lump')?.value, 0);
+  const payInput = toNum($lp('sc-monthly')?.value, 300);
+  const payPerWeek = loanState.payMode === 'monthly' ? payInput / 4.345 : payInput;
+  const targetLtv = toNum($lp('sc-targetltv')?.value, 60) / 100;
+  let debt = Math.max(0, loanState.debt - lump);
+  const weeklyRate = (loanState.rate/100) / 52;
+  let weeks = 0, totalInterest = 0;
+  const ltvPoints = [];
+  const maxWeeks = 260;
+  while(debt > 0.01 && weeks < maxWeeks){
+    const interest = debt * weeklyRate;
+    totalInterest += interest;
+    debt += interest;
+    const pay = Math.min(payPerWeek, debt);
+    debt -= pay;
+    weeks++;
+    const collateralValue = loanState.btc * price;
+    const ltv = collateralValue > 0 ? (debt / collateralValue * 100) : 0;
+    ltvPoints.push(ltv);
+    if(collateralValue > 0 && (debt / collateralValue) <= targetLtv && weeks >= 4) break;
+  }
+  const sumWeeks = $('sum-weeks'); if(sumWeeks) sumWeeks.textContent = weeks + ' minggu';
+  const sumTotal = $('sum-total'); if(sumTotal) sumTotal.textContent = '$' + fmt(lump + payPerWeek * weeks, 2);
+  const sumInt = $('sum-interest'); if(sumInt) sumInt.textContent = '$' + fmt(totalInterest, 2);
+  const sumLtv = $('sum-ltv'); if(sumLtv) sumLtv.textContent = fmt((debt / (loanState.btc * price) * 100) || 0, 2) + '%';
+  drawLTVChart(ltvPoints.length ? ltvPoints : [81,70,60,50,40,30], targetLtv*100);
+  // amortization table (first 52 weeks max for brevity)
+  const tbody = $('amort-body');
+  if(tbody){
+    let d = Math.max(0, loanState.debt - lump);
+    let rows = '';
+    for(let w=1; w<=Math.min(weeks,52); w++){
+      const interest = d * weeklyRate;
+      const pay = Math.min(payPerWeek, d + interest);
+      const principal = Math.max(0, pay - interest);
+      d = Math.max(0, d + interest - pay);
+      const ltv = (d / (loanState.btc * price) * 100) || 0;
+      rows += `<tr class="border-b border-binance-border/40"><td class="py-1.5 px-2">${w}</td><td class="text-right px-2">${fmt(pay,2)}</td><td class="text-right px-2 text-binance-muted">${fmt(interest,2)}</td><td class="text-right px-2">${fmt(principal,2)}</td><td class="text-right px-2">${fmt(d,2)}</td><td class="text-right px-2">${fmt(ltv,1)}%</td></tr>`;
+    }
+    tbody.innerHTML = rows || '<tr><td colspan="6" class="py-3 text-binance-muted text-center">Jalankan perhitungan dulu</td></tr>';
+  }
+}
+function drawLTVChart(points, target){
+  const canvas = $('ltvChart'); if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+  const pad = {l:44, r:16, t:16, b:28};
+  const cw = w - pad.l - pad.r, ch = h - pad.t - pad.b;
+  const maxY = Math.max(95, Math.ceil(Math.max(...points, 70)*1.08/5)*5);
+  const x = i => pad.l + (i/(Math.max(points.length-1,1))) * cw;
+  const y = v => pad.t + ch - (v/maxY) * ch;
+  ctx.strokeStyle = '#232831'; ctx.lineWidth = 1; ctx.font = '11px "IBM Plex Mono", monospace'; ctx.fillStyle = '#6b7280';
+  for(let gv=0; gv<=maxY; gv+=20){ const yy=y(gv); ctx.beginPath(); ctx.moveTo(pad.l, yy); ctx.lineTo(w-pad.r, yy); ctx.stroke(); ctx.fillText(gv+'%', 8, yy+4); }
+  function hline(val, color, label){ const yy=y(val); ctx.strokeStyle=color; ctx.setLineDash([5,5]); ctx.beginPath(); ctx.moveTo(pad.l, yy); ctx.lineTo(w-pad.r, yy); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle=color; ctx.fillText(label, w-pad.r-68, yy-4); }
+  hline(85, '#FF9F0A', 'MC 85%'); hline(91, '#F6465D', 'LQ 91%');
+  if(target>0 && target < maxY) hline(target, '#848E9C', 'Target '+target+'%');
+  ctx.beginPath(); points.forEach((v,i)=>{ const px=x(i), py=y(v); if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py); }); ctx.lineTo(x(points.length-1), y(0)); ctx.lineTo(x(0), y(0)); ctx.closePath();
+  const grad = ctx.createLinearGradient(0, pad.t, 0, h-pad.b); grad.addColorStop(0, 'rgba(252,213,53,0.22)'); grad.addColorStop(1, 'rgba(252,213,53,0.02)'); ctx.fillStyle = grad; ctx.fill();
+  ctx.beginPath(); points.forEach((v,i)=>{ const px=x(i), py=y(v); if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py); }); ctx.strokeStyle = '#FCD535'; ctx.lineWidth = 2.3; ctx.stroke();
+}
+function setPayMode(mode){
+  loanState.payMode = mode;
+  document.querySelectorAll('#pay-mode-seg .seg-btn, #v-loan .seg-btn[data-mode]').forEach(b=>{
+    b.classList.toggle('active', b.dataset.mode === mode);
+    b.style.background = b.dataset.mode === mode ? '#FCD535' : '';
+    b.style.color = b.dataset.mode === mode ? '#181A20' : '#848E9C';
+  });
+  const lbl = document.querySelector('#v-loan label[for="sc-monthly"]');
+  if(lbl) lbl.textContent = mode === 'monthly' ? 'Cicilan per bulan (USDT)' : 'Cicilan per minggu (USDT)';
+  updatePayEquivalent();
+}
+function updatePayEquivalent(){
+  const v = toNum($('sc-monthly')?.value, 0);
+  const el = document.getElementById('pay-equiv');
+  if(!el) return;
+  if(loanState.payMode === 'monthly'){
+    el.textContent = `≈ $${fmt(v/4.345,2)} / minggu • $${fmt(v/30.44,2)} / hari`;
+  } else {
+    el.textContent = `≈ $${fmt(v*4.345,0)} / bulan • $${fmt(v/7,2)} / hari`;
+  }
+}
+// Loan events
+document.querySelectorAll('#v-loan .seg-btn[data-mode]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{ setPayMode(btn.dataset.mode); runScenario(); });
+});
+// Preset buttons – Hemat / Standar / Agresif
+document.querySelectorAll('.preset-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const preset = btn.dataset.preset;
+    const lumpEl = $('sc-lump'); if(lumpEl) lumpEl.value = 0;
+    const payEl = $('sc-monthly');
+    if(payEl){
+      if(preset === 'hemat') payEl.value = 200;
+      else if(preset === 'agresif') payEl.value = 500;
+      else payEl.value = 300;
+    }
+    setPayMode('weekly');
+    updatePayEquivalent();
+    runScenario();
+    if(typeof toast === 'function') toast('Preset: ' + preset);
+  });
+});
+['in-debt','in-btc','in-rate','sc-lump','sc-monthly','sc-targetltv','sc-targetdate'].forEach(id=>{
+  const el = $(id); if(el) el.addEventListener('input', ()=>{ if(['in-debt','in-btc','in-rate'].includes(id)) updatePositionUI(); runScenario(); updatePayEquivalent(); });
+});
+$('btn-calc')?.addEventListener('click', runScenario);
+$('btn-save-scenario')?.addEventListener('click', ()=>{
+  const obj = { debt: $('in-debt').value, btc: $('in-btc').value, rate: $('in-rate').value, lump: $('sc-lump').value, payment: $('sc-monthly').value, payMode: loanState.payMode, targetltv: $('sc-targetltv').value, targetdate: $('sc-targetdate').value, ts: Date.now() };
+  const all = JSON.parse(localStorage.getItem('blrp_scenarios_v3')||'[]'); all.unshift(obj); localStorage.setItem('blrp_scenarios_v3', JSON.stringify(all.slice(0,8))); localStorage.setItem('blrp_last_v3', JSON.stringify(obj)); renderSaved(); toast('Skenario disimpan');
+});
+function renderSaved(){
+  const all = JSON.parse(localStorage.getItem('blrp_scenarios_v3')||'[]');
+  const box = $('saved-list'); if(!box) return;
+  if(all.length===0){ box.innerHTML = '<span class="text-binance-muted">Belum ada skenario tersimpan.</span>'; return; }
+  box.innerHTML = all.map((s,i)=>`<div class="flex items-center justify-between py-2 border-b border-binance-border/70 last:border-0 gap-3"><div><div class="font-[600] text-binance-text">Lump $${fmt(parseFloat(s.lump||0),0)} • Cicil $${fmt(parseFloat(s.payment||0),0)}/${(s.payMode||'weekly').startsWith('m')?'bln':'mg'}</div><div class="text-[11px] text-binance-muted">Target LTV ${s.targetltv||60}% • ${s.targetdate||'-'}</div></div><button data-loadidx="${i}" class="text-[11px] text-binance-yellow hover:underline load-btn shrink-0">Muat</button></div>`).join('');
+  box.querySelectorAll('.load-btn').forEach(b=>{ b.addEventListener('click', ()=>{ const s = all[parseInt(b.dataset.loadidx)]; $('sc-lump').value = s.lump||0; setPayMode(s.payMode||'weekly'); $('sc-monthly').value = s.payment||300; $('sc-targetltv').value = s.targetltv||60; $('sc-targetdate').value = s.targetdate||''; updatePayEquivalent(); runScenario(); }); });
+}
+$('btn-reset')?.addEventListener('click', ()=>{
+  localStorage.removeItem('blrp_last_v3'); localStorage.removeItem('blrp_scenarios_v3');
+  $('in-debt').value='5749.15151865'; $('in-btc').value='0.11750211'; $('in-rate').value='3.38';
+  $('sc-lump').value=0; setPayMode('weekly'); $('sc-monthly').value=300; $('sc-targetltv').value=60;
+  updatePayEquivalent(); renderSaved(); updatePositionUI(); runScenario(); toast('Direset');
+});
+$('qr-btn')?.addEventListener('click', ()=>{
+  readPositionInputs();
+  const price = getEffectivePrice() || 62700;
+  const target = toNum($('qr-ltv')?.value, 60);
+  const collateralValue = loanState.btc * price;
+  const targetDebt = (target/100) * collateralValue;
+  const need = Math.max(0, loanState.debt - targetDebt);
+  const out = $('qr-result'); if(out) out.textContent = fmtMoney(need);
+});
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById('toast');
+  if(!t) return;
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ t.style.opacity='0'; }, 2200);
+}
+
+// Price source select
+const priceSelect = $('price-source-select');
+if(priceSelect){
+  priceSelect.value = state.priceSource || 'auto';
+  priceSelect.addEventListener('change', (e)=>{
+    state.priceSource = e.target.value;
+    localStorage.setItem('blrp_price_source_v3', state.priceSource);
+    renderAggregate();
+    updatePositionUI();
+    runScenario();
+    toast('Sumber harga: ' + (FEEDS[state.priceSource]?.name || 'Auto Median'));
+  });
+}
+// Manual price
+$('btn-use-manual')?.addEventListener('click', ()=>{
+  const v = toNum($('manual-price')?.value, NaN);
+  if(v>0){
+    state.manualOverride = v;
+    $('manual-override-banner')?.classList.remove('hidden');
+    if(priceSelect) priceSelect.disabled = true;
+    renderAggregate(); updatePositionUI(); runScenario();
+    toast('Harga manual dipakai');
+  }
+});
+$('btn-clear-manual')?.addEventListener('click', ()=>{
+  state.manualOverride = null;
+  $('manual-override-banner')?.classList.add('hidden');
+  if(priceSelect) priceSelect.disabled = false;
+  const mp = $('manual-price'); if(mp) mp.value = '';
+  renderAggregate(); updatePositionUI(); runScenario();
+  toast('Kembali ke feed live');
+});
+$('btn-refresh-feeds')?.addEventListener('click', ()=>{ runSweepCycle(); toast('Refreshing feed…'); });
+
+// Init loan planner
+(function initLoan(){
+  try{
+    const last = localStorage.getItem('blrp_last_v3');
+    if(last){
+      const o = JSON.parse(last);
+      if($('in-debt')) $('in-debt').value = o.debt ?? '5749.15151865';
+      if($('in-btc')) $('in-btc').value = o.btc ?? '0.11750211';
+      if($('in-rate')) $('in-rate').value = o.rate ?? '3.38';
+      if($('sc-lump')) $('sc-lump').value = o.lump ?? 0;
+      setPayMode(o.payMode || 'weekly');
+      if($('sc-monthly')) $('sc-monthly').value = o.payment ?? 300;
+      if($('sc-targetltv')) $('sc-targetltv').value = o.targetltv ?? 60;
+      if($('sc-targetdate')) $('sc-targetdate').value = o.targetdate ?? '';
+    }
+  }catch(e){}
+  renderSaved();
+  updatePayEquivalent();
+  const d = new Date(); d.setDate(d.getDate()+90);
+  const td = $('sc-targetdate'); if(td && !td.value) td.value = d.toISOString().slice(0,10);
+})();
+
+// Start feeds
+startFeedCycles();
+updatePositionUI();
+runScenario();
+
+// Initial render for SR/Liq etc. with fallback price
+window.__btcPriceUpdate(62700);
+</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;var a=target.closest?target.closest("a[href]"):null;if(!a||!a.href||!/^https?:\/\//.test(a.href))return;if(a.href.replace(/#.*$/,"")===loc)return;var productId=extractProductId(target)||extractProductId(a);if(!productId)return;e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*")},true)})();</script></body>
+</html>

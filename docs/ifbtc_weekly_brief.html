@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IFBTC – Islamic Finance & Bitcoin Community</title>
+<meta name="description" content="IFBTC – Islamic Finance & Bitcoin Community. Analisis kripto perspektif syariah untuk Muslim investor Indonesia. Newsletter Weekly Brief & Sertifikasi Halal Crypto Analyst.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f1b2d'/%3E%3Ctext x='32' y='41' text-anchor='middle' fill='%23d4a84b' font-family='Georgia, serif' font-size='26' font-weight='700'%3EIF%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --navy: #0f1b2d;
+    --navy-2: #16263d;
+    --navy-3: #1d304a;
+    --gold: #d4a84b;
+    --gold-deep: #b88a2f;
+    --gold-soft: #e9d0a3;
+    --gold-faint: rgba(212, 168, 75, 0.13);
+    --cream: #f7f5f0;
+    --cream-mid: #dcd8d0;
+    --cream-dim: #b8b4ad;
+    --white: #ffffff;
+    --success: #3d8f6a;
+    --success-bg: #e8f4ed;
+    --border: rgba(247, 245, 240, 0.14);
+    --border-strong: rgba(212, 168, 75, 0.38);
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+    --shadow: 0 18px 50px rgba(0,0,0,.22);
+    --maxw: 720px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--navy);
+    color: var(--cream);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.72;
+    font-size: 16px;
+  }
+  a { color: var(--gold-soft); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  p { margin: 0 0 1em; }
+  img { max-width: 100%; display: block; }
+
+  .wrap {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 0 22px;
+  }
+
+  /* Header / Tab Nav */
+  .site-header {
+    border-bottom: 1px solid var(--border);
+    background: rgba(15, 27, 45, 0.93);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .header-inner {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 14px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .brand-mark {
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    color: var(--gold);
+    font-size: 1.42rem;
+    font-weight: 700;
+    letter-spacing: .035em;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+  .brand-mark:hover { text-decoration: none; color: var(--gold-soft); }
+
+  .tab-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tab-link {
+    font-size: 13.8px;
+    font-weight: 650;
+    color: var(--cream-dim);
+    padding: 9px 16px;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: color .15s, background .15s;
+    position: relative;
+    white-space: nowrap;
+  }
+  .tab-link:hover { color: var(--cream); text-decoration: none; }
+  .tab-link.is-active {
+    color: var(--gold-soft);
+    background: rgba(212,168,75,0.09);
+  }
+  .tab-link.is-active::after {
+    content: "";
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 5px;
+    height: 2px;
+    background: var(--gold);
+    border-radius: 2px;
+  }
+  .tab-link:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+    border-radius: 8px;
+  }
+
+  /* Page views */
+  .page-view[hidden] { display: none !important; }
+  .page-view { animation: viewIn .22s ease; }
+  @keyframes viewIn { from { opacity:0; transform: translateY(6px);} to { opacity:1; transform:translateY(0);} }
+
+  /* Sections */
+  section {
+    padding: 62px 0;
+  }
+  .section-kicker {
+    font-size: 11.5px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 700;
+    margin-bottom: 13px;
+  }
+  h1, h2, h3 {
+    margin: 0;
+    line-height: 1.27;
+    letter-spacing: -0.018em;
+    font-weight: 700;
+  }
+  h1 {
+    font-size: clamp(1.95rem, 5.4vw, 2.82rem);
+    color: var(--cream);
+    font-weight: 730;
+    letter-spacing: -0.024em;
+  }
+  h2 {
+    font-size: clamp(1.45rem, 4.1vw, 1.92rem);
+    color: var(--cream);
+    margin-bottom: 16px;
+  }
+  .lead {
+    font-size: 1.065rem;
+    color: var(--cream-mid);
+    max-width: 560px;
+  }
+  .muted { color: var(--cream-dim); }
+
+  .divider-gold {
+    width: 44px;
+    height: 2px;
+    background: var(--gold);
+    border-radius: 2px;
+    margin: 14px 0 22px;
+  }
+
+  /* Hero */
+  .hero { padding-top: 54px; padding-bottom: 42px; }
+  .hero h1 { margin-bottom: 16px; max-width: 600px;}
+  .hero-sub { margin-bottom: 32px; }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--border-strong);
+    background: rgba(212,168,75,0.065);
+    color: var(--gold-soft);
+    font-size: 12.3px;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: 999px;
+    margin-bottom: 18px;
+  }
+  .hero-badge-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--gold); flex-shrink:0;
+  }
+
+  /* Price card - HCA */
+  .price-card {
+    background: #fcfbf8;
+    color: #192839;
+    border-radius: var(--radius-lg);
+    padding: 19px 22px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(15,27,45,.07);
+    margin-bottom: 18px;
+    max-width: 520px;
+  }
+  .price-card .price-label {
+    font-size: 11.8px;
+    font-weight: 700;
+    color: #52606f;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    margin-bottom: 5px;
+  }
+  .price-card .price-main {
+    font-size: 1.22rem;
+    font-weight: 740;
+    color: #182739;
+    line-height: 1.45;
+  }
+  .price-card .price-note {
+    font-size: 13.5px;
+    color: #5b6875;
+    margin-top: 4px;
+  }
+
+  /* Forms */
+  .signup-card {
+    background: #fcfbf8;
+    color: #182739;
+    border-radius: var(--radius-lg);
+    padding: 26px 24px 22px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(15,27,45,.07);
+  }
+  .signup-intro {
+    font-size: 14.3px;
+    color: #4e5b68;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .signup-intro.strong {
+    font-size: 16px;
+    color: #243342;
+    font-weight: 700;
+  }
+  .signup-form { display: grid; gap: 12px; }
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .field { display:flex; flex-direction: column;}
+  .field.full { grid-column: 1 / -1; }
+  .field label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #3a4756;
+    margin-bottom: 6px;
+  }
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    font: inherit;
+    font-size: 15.3px;
+    padding: 13px 14px;
+    border-radius: 11px;
+    border: 1.4px solid #d3cfc7;
+    background: #ffffff;
+    color: #182739;
+    transition: border-color .15s, box-shadow .15s;
+    outline: none;
+  }
+  .field textarea { min-height: 96px; resize: vertical; }
+  .field select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%2366777a' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 40px;
+  }
+  .field input::placeholder,
+  .field textarea::placeholder { color: #9aa3ad; }
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    border-color: var(--gold-deep);
+    box-shadow: 0 0 0 3px rgba(212,168,75,.22);
+  }
+  .field input[aria-invalid="true"],
+  .field select[aria-invalid="true"],
+  .field textarea[aria-invalid="true"] {
+    border-color: #c84a3a;
+    box-shadow: 0 0 0 3px rgba(200,74,58,.12);
+  }
+  .field-error {
+    font-size: 12px;
+    color: #b93828;
+    margin-top: 5px;
+    display: none;
+  }
+  .field-error.show { display: block; }
+
+  .consent-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13.2px;
+    color: #4b5866;
+    line-height: 1.55;
+    margin-top: 2px;
+  }
+  .consent-row input[type="checkbox"] {
+    margin-top: 3px;
+    width: 17px; height: 17px;
+    accent-color: #b98a2e;
+    flex-shrink: 0;
+  }
+
+  .btn-primary {
+    width: 100%;
+    border: 0;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+    font-size: 15.5px;
+    background: var(--gold);
+    color: #1a2330;
+    padding: 15px 18px;
+    border-radius: 12px;
+    transition: background .15s, transform .06s, opacity .15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+  }
+  .btn-primary:hover { background: #c8962f; }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:disabled { opacity: .62; cursor: wait; }
+  .btn-primary:focus-visible { outline: 2px solid #182739; outline-offset: 2px; }
+
+  .form-note {
+    font-size: 12.4px;
+    color: #66727f;
+    text-align: center;
+    margin-top: 10px;
+  }
+  .form-status {
+    font-size: 12.2px;
+    text-align: center;
+    color: #6b7681;
+    margin-top: 8px;
+    min-height: 18px;
+  }
+  .form-status.is-success { color: #22664b; font-weight: 600; }
+  .form-status:empty { display:none; }
+
+  .form-success {
+    display: none;
+    background: #eef7f1;
+    border: 1px solid #c5e1cf;
+    color: #1e5c42;
+    border-radius: 12px;
+    padding: 17px 18px;
+    font-size: 14.8px;
+    line-height: 1.62;
+  }
+  .form-success strong { display: block; font-size: 16px; margin-bottom: 3px; }
+  .form-success.show { display: block; }
+  .signup-form.is-hidden { display: none; }
+
+  /* Problem cards */
+  .section-alt {
+    background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0));
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .problem-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-top: 26px;
+  }
+  .problem-card {
+    background: var(--navy-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px 20px;
+    color: var(--cream-mid);
+  }
+  .problem-card strong { color: var(--cream); font-weight: 650; }
+  .problem-num {
+    color: var(--gold);
+    font-size: 12.3px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    margin-bottom: 8px;
+  }
+
+  /* Feature grid */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 26px;
+  }
+  .feature-card {
+    background: #141f31;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px 18px;
+    min-height: 168px;
+  }
+  .feature-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    background: var(--gold-faint);
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 13px;
+  }
+  .feature-card h3 {
+    font-size: 1.03rem;
+    color: var(--cream);
+    margin-bottom: 7px;
+    font-weight: 680;
+  }
+  .feature-card p {
+    margin: 0;
+    font-size: 14.25px;
+    color: var(--cream-dim);
+    line-height: 1.64;
+  }
+  .module-tag {
+    font-size: 11.2px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .output-note {
+    margin-top: 18px;
+    color: var(--cream-mid);
+    font-size: 15px;
+    border-left: 2px solid var(--gold);
+    padding-left: 14px;
+  }
+  .output-note strong { color: var(--cream); font-weight: 650; }
+
+  /* Chips */
+  .audience-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .chip {
+    border: 1px solid var(--border-strong);
+    background: rgba(212,168,75,0.06);
+    color: var(--gold-soft);
+    font-size: 13.5px;
+    padding: 9px 14px;
+    border-radius: 999px;
+    line-height: 1.45;
+  }
+
+  /* Fit cards */
+  .fit-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 20px;
+  }
+  .fit-card {
+    background: var(--navy-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    color: var(--cream-mid);
+  }
+  .fit-card.negative {
+    background: #141b28;
+    border-color: rgba(247,245,240,0.10);
+  }
+  .fit-card h3 { font-size: 1rem; margin-bottom: 10px; color: var(--cream);}
+  .fit-list { margin:0; padding-left:18px; font-size:14.5px; color: var(--cream-dim);}
+  .fit-list li { margin-bottom: 6px; }
+
+  /* FAQ */
+  .faq-list {
+    margin-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+  details.faq { border-bottom: 1px solid var(--border); }
+  details.faq summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 19px 36px 19px 0;
+    font-weight: 640;
+    color: var(--cream);
+    position: relative;
+    font-size: 16.3px;
+  }
+  details.faq summary::-webkit-details-marker { display: none; }
+  details.faq summary::after {
+    content: "+";
+    position: absolute;
+    right: 2px;
+    top: 17px;
+    color: var(--gold);
+    font-size: 22px;
+    font-weight: 400;
+    transition: transform .2s ease;
+  }
+  details.faq[open] summary::after { transform: rotate(45deg); }
+  details.faq summary:focus-visible { outline: 2px solid var(--gold); outline-offset: 5px; border-radius: 6px;}
+  .faq-body { padding: 0 0 20px; color: var(--cream-dim); max-width: 600px; }
+
+  /* CTA blocks */
+  .cta-2 {
+    background: radial-gradient(900px 380px at 50% -60px, rgba(212,168,75,0.065), transparent 70%);
+    border-top: 1px solid var(--border);
+  }
+
+  /* Footer */
+  .cred-box {
+    border: 1px solid var(--border-strong);
+    background: linear-gradient(180deg, rgba(212,168,75,0.055), rgba(212,168,75,0.022));
+    border-radius: var(--radius-lg);
+    padding: 24px 22px;
+  }
+  .cred-box p { color: var(--cream-mid); margin-bottom: .7em;}
+  .cred-box p:last-child { margin-bottom:0;}
+
+  .deploy-box {
+    border: 1px solid var(--border-strong);
+    background: rgba(212,168,75,0.042);
+    border-radius: 14px;
+    padding: 18px 18px;
+    color: var(--cream-mid);
+    font-size: 13.6px;
+    line-height: 1.7;
+    margin-top: 26px;
+  }
+  .deploy-box strong { color: var(--gold-soft); }
+  .deploy-box code {
+    background: rgba(0,0,0,.28);
+    border: 1px solid rgba(212,168,75,0.22);
+    padding: 1px 6px;
+    border-radius: 6px;
+    font-size: 12.7px;
+    color: var(--gold-soft);
+  }
+
+  footer.site-footer {
+    border-top: 1px solid var(--border);
+    padding: 44px 0 56px;
+    color: #9ca3af;
+    font-size: 13px;
+    line-height: 1.82;
+  }
+  .footer-brand { 
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  /* Utilities */
+  .sr-only {
+    position: absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+
+  /* Responsive */
+  @media (max-width: 620px) {
+    .feature-grid, .fit-grid { grid-template-columns: 1fr; }
+    .feature-card { min-height: auto; }
+    .field-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .wrap { padding: 0 18px; }
+    section { padding: 52px 0; }
+    .hero { padding-top: 38px; }
+    .signup-card { padding: 22px 18px 18px; border-radius: 16px; }
+    .header-inner { padding: 12px 18px; }
+    .tab-link { padding: 8px 12px; font-size: 13.3px; }
+    .tab-link.is-active::after { left:12px; right:12px; }
+  }
+  @media (max-width: 400px) {
+    .tab-link { padding: 8px 10px; font-size: 12.9px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header" role="banner">
+  <div class="header-inner">
+    <a href="#newsletter" class="brand-mark" id="brand-home" aria-label="IFBTC Beranda">IFBTC</a>
+    <nav class="tab-nav" aria-label="Halaman IFBTC">
+      <a href="#newsletter" id="tab-newsletter" class="tab-link is-active" aria-current="page">Newsletter</a>
+      <a href="#hca" id="tab-hca" class="tab-link">Sertifikasi</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <!-- ===================== PAGE 1: NEWSLETTER ===================== -->
+  <div id="view-newsletter" class="page-view" role="tabpanel" aria-labelledby="tab-newsletter">
+    
+    <!-- Hero + Signup -->
+    <section class="hero">
+      <div class="wrap">
+        <h1>Kripto halal atau haram? Dapat jawabannya tiap pekan, dengan data.</h1>
+        <p class="lead hero-sub">IFBTC Weekly Brief — analisis pasar kripto perspektif syariah untuk Muslim investor Indonesia. Gratis. Tiap Jumat pagi.</p>
+
+        <div class="signup-card" style="max-width: 560px;">
+          <div class="signup-intro">Daftar Weekly Brief — Gratis</div>
+          <!-- NEWSLETTER FORM – ganti FORM_ENDPOINT_NEWSLETTER di <script> untuk online -->
+          <form class="signup-form" id="nl-form-1" novalidate>
+            <div class="field-grid">
+              <div class="field">
+                <label for="nl1-name">Nama</label>
+                <input type="text" id="nl1-name" name="nama" autocomplete="name" placeholder="Nama lengkap" required>
+              </div>
+              <div class="field">
+                <label for="nl1-email">Email</label>
+                <input type="email" id="nl1-email" name="email" autocomplete="email" placeholder="email@kamu.com" required>
+              </div>
+            </div>
+            <button class="btn-primary" type="submit">Daftar Gratis – Weekly Brief</button>
+            <p class="form-status" id="nl-status-1" aria-live="polite"></p>
+            <div class="form-note">No spam. Unsubscribe kapan saja. Rp 0 selamanya.</div>
+          </form>
+          <div class="form-success" id="nl-success-1" role="status" aria-live="polite">
+            <strong>Terima kasih! Cek email kamu.</strong>
+            Kamu sudah terdaftar di IFBTC Weekly Brief. Edisi Jumat pertama akan masuk ke inbox kamu.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Problem -->
+    <section class="section-alt">
+      <div class="wrap">
+        <div class="section-kicker">Masalahnya</div>
+        <h2>Investor Muslim terjebak di tengah</h2>
+        <div class="divider-gold" aria-hidden="true"></div>
+        <div class="problem-grid">
+          <div class="problem-card">
+            <div class="problem-num">01 — KOMUNITAS</div>
+            <p><strong>Komunitas crypto umum tidak bahas halal–haram.</strong> Fokusnya harga, leverage, dan hype. Pertimbangan fiqh muamalat jarang disentuh.</p>
+          </div>
+          <div class="problem-card">
+            <div class="problem-num">02 — LEMBAGA</div>
+            <p><strong>Lembaga syariah belum sentuh aset digital dalam.</strong> Banyak fatwa masih umum, belum spesifik per-protokol, per-token, dan per-use case.</p>
+          </div>
+          <div class="problem-card">
+            <div class="problem-num">03 — DAMPAKNYA</div>
+            <p><strong>Akibatnya: ragu, FOMO, atau diam.</strong> Investor Muslim kehilangan panduan yang jelas, berbasis data on-chain dan rujukan syariah yang kredibel.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- What you get -->
+    <section>
+      <div class="wrap">
+        <div class="section-kicker">Solusi IFBTC</div>
+        <h2>Analisis jernih. Tanpa sinyal trading.</h2>
+        <p class="lead muted">Weekly Brief merangkum yang perlu kamu tahu — pasar, regulasi, dan risk syariah — dalam 5 menit baca.</p>
+
+        <div class="feature-grid">
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 5-5"/></svg>
+            </div>
+            <h3>On-chain snapshot</h3>
+            <p>BTC/ETH flow, exchange reserve, dan metrik jaringan utama. Bukan chart teknikal, tapi konteks fundamental.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+            </div>
+            <h3>Regulatory OJK / Bappebti</h3>
+            <p>Perubahan aturan, daftar aset legal, dan implikasi compliance untuk investor ritel di Indonesia. Ringkas.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            </div>
+            <h3>Halal risk level</h3>
+            <p>Klasifikasi risiko syariah dengan rujukan fiqh muamalat — DSN-MUI, Muhammadiyah, dan AAOIFI. Transparan sumbernya.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>
+            </div>
+            <h3>Bukan sinyal trading</h3>
+            <p>Tidak ada ajakan beli/jual, tidak ada leverage call. Ini editorial riset, membantu kamu mengambil keputusan dengan tenang.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Untuk siapa -->
+    <section class="section-alt" style="padding-top:52px; padding-bottom:52px;">
+      <div class="wrap">
+        <div class="section-kicker">Untuk siapa</div>
+        <h2 style="font-size: clamp(1.28rem, 3.5vw, 1.58rem); margin-bottom:8px;">Dibuat untuk ekosistem keuangan syariah Indonesia</h2>
+        <div class="audience-chips" role="list">
+          <span class="chip" role="listitem">Muslim investor BTC / ETH</span>
+          <span class="chip" role="listitem">Pengurus BMT / koperasi syariah</span>
+          <span class="chip" role="listitem">Advisor / compliance officer</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Repeat -->
+    <section class="cta-2">
+      <div class="wrap">
+        <h2>Dapat analisis halal-risk tiap Jumat. Gratis selamanya.</h2>
+        <p class="muted" style="margin-top:8px; margin-bottom:24px; max-width:520px;">Bergabung dengan 1.400+ pembaca Weekly Brief dari Jakarta, Bandung, Surabaya, dan Yogyakarta.</p>
+
+        <div class="signup-card" style="max-width: 560px;">
+          <div class="signup-intro">Daftar Weekly Brief — Gratis</div>
+          <!-- NEWSLETTER FORM #2 – ganti FORM_ENDPOINT_NEWSLETTER di <script> untuk online -->
+          <form class="signup-form" id="nl-form-2" novalidate>
+            <div class="field-grid">
+              <div class="field">
+                <label for="nl2-name">Nama</label>
+                <input type="text" id="nl2-name" name="nama" autocomplete="name" placeholder="Nama lengkap" required>
+              </div>
+              <div class="field">
+                <label for="nl2-email">Email</label>
+                <input type="email" id="nl2-email" name="email" autocomplete="email" placeholder="email@kamu.com" required>
+              </div>
+            </div>
+            <button class="btn-primary" type="submit">Daftar Gratis – Weekly Brief</button>
+            <p class="form-status" id="nl-status-2" aria-live="polite"></p>
+            <div class="form-note">No spam. Unsubscribe kapan saja. Rp 0 selamanya.</div>
+          </form>
+          <div class="form-success" id="nl-success-2" role="status" aria-live="polite">
+            <strong>Terima kasih! Cek email kamu.</strong>
+            Kamu sudah terdaftar di IFBTC Weekly Brief.
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===================== PAGE 2: HCA ===================== -->
+  <div id="view-hca" class="page-view" hidden role="tabpanel" aria-labelledby="tab-hca">
+    
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-badge"><span class="hero-badge-dot" aria-hidden="true"></span> Pre-registration – Batch 1 – Q3 2026</div>
+        <h1>Jadi analis crypto syariah pertama di institusi kamu.</h1>
+        <p class="lead hero-sub">Sertifikasi Halal Crypto Analyst – HCA by IFBTC. Online 8 minggu.</p>
+
+        <div class="price-card" role="note" aria-label="Harga HCA">
+          <div class="price-label">Biaya Program</div>
+          <div class="price-main">Early Bird <strong>Rp 1.500.000</strong> – kuota terbatas</div>
+          <div class="price-note">Regular Rp 2.500.000–3.500.000</div>
+        </div>
+
+        <p style="margin-top:14px;">
+          <a href="#hca-form-anchor" class="btn-primary" style="max-width:520px;">Join Waiting List HCA Batch 1</a>
+        </p>
+        <p class="muted" style="font-size:13.3px; max-width:480px; margin-top:10px;">Batch jalan setelah 25 pendaftar tervalidasi. Tidak ada kewajiban bayar sampai batch dikonfirmasi.</p>
+      </div>
+    </section>
+
+    <!-- Kurikulum -->
+    <section class="section-alt">
+      <div class="wrap">
+        <div class="section-kicker">Kurikulum HCA</div>
+        <h2>8 minggu. Dari fiqh ke on-chain.</h2>
+        <p class="muted" style="max-width:540px;">Online, case-based, dengan studi kasus aset yang benar-benar diperdagangkan di Indonesia.</p>
+
+        <div class="feature-grid">
+          <article class="feature-card">
+            <div class="module-tag">Modul 1 — Fiqh Muamalat</div>
+            <h3>Fiqh Muamalat &amp; Crypto Fundamentals</h3>
+            <p>Mal, thamaniyyah, gharar, maysir, dan bagaimana karakteristik aset kripto dinilai dalam ushul fiqh muamalat kontemporer.</p>
+          </article>
+          <article class="feature-card">
+            <div class="module-tag">Modul 2–3 — Klasifikasi aset</div>
+            <h3>Klasifikasi Aset &amp; On-chain Analysis</h3>
+            <p>Bitcoin, Altcoin, Stablecoin, DeFi – bedanya apa secara syariah. Praktik baca on-chain: supply, flows, dan risk signals.</p>
+          </article>
+          <article class="feature-card">
+            <div class="module-tag">Modul 4–5 — Fatwa comparative</div>
+            <h3>Fatwa Comparative + OJK Framework</h3>
+            <p>MUI, Muhammadiyah, AAOIFI – kapan sepakat, kapan berbeda, dan bagaimana mendokumentasikannya. Serta regulasi OJK / Bappebti.</p>
+          </article>
+          <article class="feature-card">
+            <div class="module-tag">Modul 6–8 — Portfolio + Zakat</div>
+            <h3>Portfolio Halal, Zakat &amp; Case Studies</h3>
+            <p>Konstruksi portfolio halal, perhitungan zakat aset kripto, dan case studies real dari institusi keuangan syariah.</p>
+          </article>
+        </div>
+        <p class="output-note"><strong>Output:</strong> mampu menyusun halal-risk report untuk institusi kamu sendiri.</p>
+      </div>
+    </section>
+
+    <!-- Format chips -->
+    <section style="padding-top:52px; padding-bottom:52px;">
+      <div class="wrap">
+        <div class="section-kicker">Format &amp; Benefit</div>
+        <h2 style="font-size: clamp(1.28rem, 3.5vw, 1.56rem);">Dirancang untuk profesional yang sibuk</h2>
+        <div class="audience-chips" role="list">
+          <span class="chip" role="listitem">Online 8 minggu</span>
+          <span class="chip" role="listitem">Rekaman lifetime access</span>
+          <span class="chip" role="listitem">Case study portfolio review</span>
+          <span class="chip" role="listitem">Sertifikat HCA – IFBTC</span>
+          <span class="chip" role="listitem">Member PRO IFBTC diskon 20%</span>
+        </div>
+
+        <div class="fit-grid" style="margin-top:26px;">
+          <div class="fit-card">
+            <h3>✓ Cocok untuk</h3>
+            <ul class="fit-list">
+              <li>Compliance officer syariah</li>
+              <li>Advisor keuangan Islam</li>
+              <li>Pengurus BMT / koperasi syariah</li>
+              <li>Researcher / akademisi keuangan Islam</li>
+            </ul>
+          </div>
+          <div class="fit-card negative">
+            <h3>✕ Bukan untuk</h3>
+            <p style="font-size:14.4px; color:var(--cream-dim); margin:0;">Pencari sinyal cepat kaya. Ini analytical certification. Tidak ada call beli/jual, tidak ada leverage, tidak ada janji return.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pre-reg form -->
+    <section class="section-alt" id="hca-form-anchor">
+      <div class="wrap">
+        <div class="section-kicker">Pre-registration Batch 1</div>
+        <h2>Join Waiting List HCA Batch 1</h2>
+        <p class="muted" style="max-width:520px; margin-bottom:24px;">Lock harga Early Bird. Dapat silabus lengkap + 1 sample case study ke email kamu.</p>
+
+        <div class="signup-card">
+          <div class="signup-intro strong">Pre-registration HCA – Batch 1, Q3 2026</div>
+          <!-- HCA FORM – ganti FORM_ENDPOINT_HCA di <script> untuk online -->
+          <form class="signup-form" id="hca-form" novalidate>
+            <div class="field-grid">
+              <div class="field full">
+                <label for="hca-name">Nama lengkap *</label>
+                <input type="text" id="hca-name" name="nama" autocomplete="name" placeholder="Nama lengkap" required>
+                <span class="field-error" id="err-hca-name">Masukkan nama lengkap.</span>
+              </div>
+              <div class="field">
+                <label for="hca-institusi">Institusi</label>
+                <input type="text" id="hca-institusi" name="institusi" placeholder="BMT / Bank / Kampus / Freelance">
+              </div>
+              <div class="field">
+                <label for="hca-email">Email *</label>
+                <input type="email" id="hca-email" name="email" autocomplete="email" placeholder="email@kamu.com" required>
+                <span class="field-error" id="err-hca-email">Masukkan email yang valid.</span>
+              </div>
+              <div class="field">
+                <label for="hca-wa">WhatsApp *</label>
+                <input type="tel" id="hca-wa" name="whatsapp" autocomplete="tel" placeholder="08xxxxxxxxxx" inputmode="tel" required>
+                <span class="field-error" id="err-hca-wa">Masukkan nomor WhatsApp.</span>
+              </div>
+              <div class="field">
+                <label for="hca-role">Role *</label>
+                <select id="hca-role" name="role" required>
+                  <option value="" selected disabled>Pilih role kamu</option>
+                  <option>Advisor</option>
+                  <option>Compliance Officer</option>
+                  <option>BMT-Koperasi</option>
+                  <option>Researcher</option>
+                  <option>Founder Fintech</option>
+                  <option>Lainnya</option>
+                </select>
+                <span class="field-error" id="err-hca-role">Pilih role kamu.</span>
+              </div>
+              <div class="field full">
+                <label for="hca-question">Pertanyaan terbesar kamu soal crypto syariah?</label>
+                <textarea id="hca-question" name="pertanyaan" placeholder="Contoh: bagaimana menjelaskan ke anggota BMT?"></textarea>
+              </div>
+            </div>
+
+            <label class="consent-row" for="hca-consent">
+              <input type="checkbox" id="hca-consent" name="consent" required>
+              <span>Saya setuju dihubungi IFBTC untuk info Batch 1</span>
+            </label>
+            <span class="field-error" id="err-hca-consent" style="margin-top:-4px;">Centang persetujuan untuk melanjutkan.</span>
+
+            <button class="btn-primary" type="submit" style="margin-top:4px;">Saya mau di Waiting List HCA Batch 1</button>
+            <p class="form-status" id="hca-status" aria-live="polite"></p>
+            <div class="form-note"><strong>Lock harga Early Bird Rp 1.500.000</strong> • Dapat silabus lengkap + 1 sample case study</div>
+          </form>
+
+          <div class="form-success" id="hca-success" role="status" aria-live="polite">
+            <strong>Terima kasih! Kamu masuk waiting list HCA Batch 1.</strong>
+            Kami email silabus lengkap + sample case study ke alamat yang kamu daftarkan. Batch akan dikonfirmasi setelah 25 pendaftar tervalidasi.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section>
+      <div class="wrap">
+        <div class="section-kicker">FAQ Sertifikasi</div>
+        <h2>Pertanyaan umum</h2>
+        <div class="faq-list">
+          <details class="faq">
+            <summary>Ini fatwa resmi?</summary>
+            <div class="faq-body">
+              Bukan. HCA melatih kamu menganalisis dengan rujukan fatwa yang ada. Keputusan halal-haram tetap di lembaga fatwa otoritatif seperti DSN-MUI, Majelis Tarjih Muhammadiyah, dan AAOIFI. IFBTC adalah analytical platform, bukan lembaga fatwa.
+            </div>
+          </details>
+          <details class="faq">
+            <summary>Perlu background IT?</summary>
+            <div class="faq-body">
+              Tidak. On-chain tools diajarkan dari nol. Kamu cukup bisa buka browser dan spreadsheet. Semua dashboard yang dipakai gratis / freemium dan dijelaskan step-by-step.
+            </div>
+          </details>
+          <details class="faq">
+            <summary>Kapan mulai?</summary>
+            <div class="faq-body">
+              Batch 1 akan mulai setelah 25 pre-registration tervalidasi. Estimasi Q3 2026. Pendaftar waiting list akan dihubungi duluan untuk konfirmasi jadwal dan pembayaran Early Bird.
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- Shared Footer -->
+<footer class="site-footer" role="contentinfo">
+  <div class="wrap">
+    <div class="cred-box" style="margin-bottom:28px;">
+      <div class="section-kicker" style="margin-bottom:10px;">Kredibilitas</div>
+      <p><strong style="color:var(--cream); font-weight:600;">IFBTC – crypto-sharia expertise + academic credibility SINTA + community trust + OJK engagement.</strong></p>
+      <p style="margin-bottom:0;">Founder: <strong>Izzuddin Edi Siswanto</strong> – West Bandung / Jakarta</p>
+    </div>
+
+    <p style="max-width:640px; color:#a9b0b9;">
+      Konten IFBTC bersifat edukasi. Bukan nasihat finansial / investasi. Aset kripto berisiko tinggi. IFBTC adalah analytical platform, bukan lembaga fatwa. Patuhi regulasi OJK/Bappebti dan rujuk DSN-MUI / Muhammadiyah / AAOIFI.
+    </p>
+    <p style="margin-top:10px; color:#8d949c; font-size:12.8px;">© 2026 IFBTC – Islamic Finance &amp; Bitcoin Community</p>
+
+    <div class="deploy-box" role="note" aria-label="Cara deploy">
+      <strong>Cara online-kan site ini (2 menit):</strong><br>
+      1. Download file HTML ini • 2. Buka netlify.com/drop • 3. Drag file → dapat link https://namamu.netlify.app langsung online<br>
+      Alternatif: upload ke GitHub Pages / Cloudflare Pages.<br><br>
+      Form sudah jalan mode demo (save lokal). Untuk form online asli: ganti <code>FORM_ENDPOINT</code> di bagian atas <code>&lt;script&gt;</code> dengan URL MailerLite / Tally / Formspree kamu – lihat komentar di kode.
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ===========================================================
+  IFBTC – Combined site
+  Form online setup:
+  - Isi FORM_ENDPOINT_NEWSLETTER dengan URL form kamu (Formspree / MailerLite / Tally / ConvertKit).
+    Contoh Formspree: "https://formspree.io/f/abcxyz"
+    Contoh MailerLite: action URL dari embed form kamu.
+  - Isi FORM_ENDPOINT_HCA dengan URL form HCA kamu.
+  - Jika dikosongkan "", form jalan mode demo: simpan ke localStorage, tampilkan "Terima kasih".
+  - Field names yang dikirim:
+    Newsletter: nama, email
+    HCA: nama, institusi, email, whatsapp, role, pertanyaan, consent
+=========================================================== */
+const FORM_ENDPOINT_NEWSLETTER = ""; // contoh: "https://formspree.io/f/xxxxxx"
+const FORM_ENDPOINT_HCA = "";        // contoh: "https://formspree.io/f/yyyyyy"
+
+/* ---------- Tab / Hash routing ---------- */
+const views = {
+  newsletter: document.getElementById('view-newsletter'),
+  hca: document.getElementById('view-hca')
+};
+const tabs = {
+  newsletter: document.getElementById('tab-newsletter'),
+  hca: document.getElementById('tab-hca')
+};
+
+function setActiveView(name, pushScroll = false) {
+  const key = (name === 'hca') ? 'hca' : 'newsletter';
+  Object.entries(views).forEach(([k, el]) => {
+    if(!el) return;
+    el.hidden = (k !== key);
+  });
+  Object.entries(tabs).forEach(([k, el]) => {
+    if(!el) return;
+    el.classList.toggle('is-active', k === key);
+    if(k === key) { el.setAttribute('aria-current', 'page'); }
+    else { el.removeAttribute('aria-current'); }
+  });
+  if(pushScroll) window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+}
+
+function routeFromHash() {
+  const hash = (location.hash || '').replace('#','');
+  setActiveView(hash === 'hca' ? 'hca' : 'newsletter', false);
+}
+window.addEventListener('hashchange', routeFromHash);
+routeFromHash();
+
+// Tab click: update hash (back button works)
+document.querySelectorAll('.tab-link').forEach(a => {
+  a.addEventListener('click', e => {
+    // let browser update hash, routeFromHash handles view
+  });
+});
+document.getElementById('brand-home')?.addEventListener('click', function(e){
+  // brand goes to newsletter
+  if(location.hash !== '#newsletter'){
+    // allow default
+  }
+});
+
+/* ---------- Form helpers ---------- */
+function setFieldError(input, errorEl, isInvalid) {
+  if(!input) return;
+  input.setAttribute('aria-invalid', isInvalid ? 'true' : 'false');
+  if(errorEl) errorEl.classList.toggle('show', !!isInvalid);
+}
+
+/* Newsletter forms (2 instances, same endpoint/storage) */
+function initNewsletterForm(formId, statusId, successId) {
+  const form = document.getElementById(formId);
+  const statusEl = document.getElementById(statusId);
+  const successEl = document.getElementById(successId);
+  if(!form) return;
+
+  const STORAGE_KEY = 'ifbtc_newsletter_sub';
+  const isDemo = !FORM_ENDPOINT_NEWSLETTER;
+
+  // status pill initial
+  if(statusEl) {
+    statusEl.textContent = isDemo ? 'Mode demo – data tersimpan lokal' : '';
+    statusEl.classList.remove('is-success');
+  }
+
+  // Restore subscribed state
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if(saved && saved.email) {
+      form.classList.add('is-hidden');
+      successEl.classList.add('show');
+      if(statusEl) statusEl.textContent = '';
+      return;
+    }
+  } catch(e){}
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    const nameInput = form.querySelector('input[name="nama"]');
+    const emailInput = form.querySelector('input[name="email"]');
+    const btn = form.querySelector('button[type="submit"]');
+
+    if(!emailInput.checkValidity()){
+      emailInput.reportValidity();
+      return;
+    }
+
+    btn.disabled = true;
+    if(statusEl) { statusEl.textContent = isDemo ? 'Mengirim…' : 'Mengirim…'; statusEl.classList.remove('is-success'); }
+
+    const payload = {
+      nama: nameInput ? nameInput.value.trim() : '',
+      email: emailInput.value.trim(),
+      source: 'ifbtc_weekly_brief',
+      ts: new Date().toISOString()
+    };
+
+    try {
+      if(isDemo) {
+        await new Promise(r => setTimeout(r, 550));
+      } else {
+        const res = await fetch(FORM_ENDPOINT_NEWSLETTER, {
+          method: 'POST',
+          headers: { 'Accept': 'application/json' },
+          body: new FormData(form)
+        });
+        if(!res.ok) throw new Error('Form submit failed');
+      }
+
+      // success
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      // mark all newsletter forms as submitted
+      document.querySelectorAll('[id^="nl-form-"]').forEach(f => f.classList.add('is-hidden'));
+      document.querySelectorAll('[id^="nl-success-"]').forEach(s => s.classList.add('show'));
+      document.querySelectorAll('[id^="nl-status-"]').forEach(s => { s.textContent = 'Terkirim ✓'; s.classList.add('is-success'); });
+
+      // scroll to success in current view
+      successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    } catch(err) {
+      if(statusEl){ statusEl.textContent = 'Gagal mengirim. Coba lagi, atau email ke halo@ifbtc.id'; statusEl.classList.remove('is-success'); }
+      btn.disabled = false;
+    }
+  });
+}
+
+initNewsletterForm('nl-form-1', 'nl-status-1', 'nl-success-1');
+initNewsletterForm('nl-form-2', 'nl-status-2', 'nl-success-2');
+
+/* HCA form */
+(function initHcaForm(){
+  const form = document.getElementById('hca-form');
+  const statusEl = document.getElementById('hca-status');
+  const successEl = document.getElementById('hca-success');
+  if(!form) return;
+
+  const STORAGE_KEY = 'hca_waitlist_v1';
+  const isDemo = !FORM_ENDPOINT_HCA;
+
+  if(statusEl) {
+    statusEl.textContent = isDemo ? 'Mode demo – data tersimpan lokal' : '';
+    statusEl.classList.remove('is-success');
+  }
+
+  // Restore
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if(saved && saved.email){
+      form.classList.add('is-hidden');
+      successEl.classList.add('show');
+      if(statusEl) statusEl.textContent = '';
+    }
+  } catch(e){}
+
+  const fields = {
+    name:  { input: document.getElementById('hca-name'), error: document.getElementById('err-hca-name') },
+    email: { input: document.getElementById('hca-email'), error: document.getElementById('err-hca-email') },
+    wa:    { input: document.getElementById('hca-wa'), error: document.getElementById('err-hca-wa') },
+    role:  { input: document.getElementById('hca-role'), error: document.getElementById('err-hca-role') },
+    consent:{ input: document.getElementById('hca-consent'), error: document.getElementById('err-hca-consent') }
+  };
+
+  Object.values(fields).forEach(({input, error}) => {
+    if(!input) return;
+    const evt = (input.type === 'checkbox' || input.tagName === 'SELECT') ? 'change' : 'input';
+    input.addEventListener(evt, () => setFieldError(input, error, false));
+  });
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    let valid = true;
+
+    const nameOk = fields.name.input.value.trim().length > 1;
+    setFieldError(fields.name.input, fields.name.error, !nameOk); valid = valid && nameOk;
+
+    const emailOk = fields.email.input.checkValidity();
+    setFieldError(fields.email.input, fields.email.error, !emailOk); valid = valid && emailOk;
+
+    const waOk = fields.wa.input.value.trim().length >= 8;
+    setFieldError(fields.wa.input, fields.wa.error, !waOk); valid = valid && waOk;
+
+    const roleOk = !!fields.role.input.value;
+    setFieldError(fields.role.input, fields.role.error, !roleOk); valid = valid && roleOk;
+
+    const consentOk = fields.consent.input.checked;
+    setFieldError(fields.consent.input, fields.consent.error, !consentOk); valid = valid && consentOk;
+
+    if(!valid){
+      const firstInvalid = form.querySelector('[aria-invalid="true"]');
+      if(firstInvalid) firstInvalid.focus();
+      return;
+    }
+
+    const btn = form.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    if(statusEl){ statusEl.textContent = 'Mengirim…'; statusEl.classList.remove('is-success'); }
+
+    const fd = new FormData(form);
+
+    try {
+      if(isDemo){
+        await new Promise(r => setTimeout(r, 650));
+      } else {
+        const res = await fetch(FORM_ENDPOINT_HCA, {
+          method: 'POST',
+          headers: { 'Accept': 'application/json' },
+          body: fd
+        });
+        if(!res.ok) throw new Error('Submit failed');
+      }
+
+      const payload = {
+        nama: fields.name.input.value.trim(),
+        institusi: document.getElementById('hca-institusi').value.trim(),
+        email: fields.email.input.value.trim(),
+        whatsapp: fields.wa.input.value.trim(),
+        role: fields.role.input.value,
+        pertanyaan: document.getElementById('hca-question').value.trim(),
+        ts: new Date().toISOString()
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+
+      form.classList.add('is-hidden');
+      successEl.classList.add('show');
+      if(statusEl){ statusEl.textContent = 'Terkirim ✓'; statusEl.classList.add('is-success'); }
+      successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    } catch(err){
+      if(statusEl){ statusEl.textContent = 'Gagal mengirim. Coba lagi.'; statusEl.classList.remove('is-success'); }
+      btn.disabled = false;
+    }
+  });
+})();
+</script>
+<script>(function(){document.addEventListener("click",function(e){var a=e.target.closest("[data-product-id]");if(!a)return;e.preventDefault();var pid=a.getAttribute("data-product-id");if(pid)parent.postMessage({type:"ecto-artifact-link-click",productId:pid},"*")})})();</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;var a=target.closest?target.closest("a[href]"):null;if(!a||!a.href||!/^https?:\/\//.test(a.href))return;if(a.href.replace(/#.*$/,"")===loc)return;var productId=extractProductId(target)||extractProductId(a);if(!productId)return;e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*")},true)})();</script></body>
+</html>

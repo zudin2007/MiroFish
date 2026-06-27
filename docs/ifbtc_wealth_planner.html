@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IFBTC Wealth System Planner – Millionaires Don't Think in Salaries</title>
+<meta name="color-scheme" content="dark">
+<style>
+:root{
+  --bg:#08121f;
+  --navy:#0f1b2d;
+  --navy-2:#13243a;
+  --card:#111f34;
+  --card-2:#162841;
+  --border:rgba(212,168,75,0.16);
+  --border-strong:rgba(212,168,75,0.30);
+  --gold:#d4a84b;
+  --gold-soft:#e7c98a;
+  --gold-faint:rgba(212,168,75,0.11);
+  --text:#e7edf6;
+  --muted:#8b98ab;
+  --muted-2:#677387;
+  --green:#59c995;
+  --red:#e56b6b;
+  --amber:#e8b44a;
+  --radius:18px;
+  --radius-sm:12px;
+  --shadow:0 18px 55px rgba(0,0,0,.35);
+  --font: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --serif: 'Fraunces', 'Fraunces 144pt', 'Times New Roman', Georgia, serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;}
+body{
+  background:
+    radial-gradient(1100px 700px at 85% -15%, rgba(212,168,75,0.045), transparent 60%),
+    radial-gradient(900px 600px at -10% 0%, rgba(40,80,130,0.11), transparent 55%),
+    var(--bg);
+}
+a{color:var(--gold-soft)}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 18px 88px;}
+@media(min-width:760px){.wrap{padding:48px 32px 90px;}}
+
+/* Header */
+.site-head{
+  display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:28px;
+}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-soft);font-weight:600;
+}
+.eyebrow .dot{width:6px;height:6px;background:var(--gold);border-radius:50%;box-shadow:0 0 14px rgba(212,168,75,.6);}
+h1.head-title{
+  margin:10px 0 8px 0;
+  font-family: var(--serif);
+  font-weight:600;
+  font-size:clamp(32px, 5.2vw, 58px);
+  line-height:1.02;
+  letter-spacing:-.017em;
+  max-width:760px;
+}
+h1.head-title em{
+  font-style:italic;
+  color:var(--gold);
+  font-weight:500;
+}
+.head-sub{
+  color: var(--muted);
+  font-size:15.5px;
+  max-width:520px;
+  line-height:1.6;
+}
+.head-sub strong{color:#c9d4e4;font-weight:600}
+.head-right{
+  text-align:right;min-width:210px;
+}
+.save-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.034);
+  border:1px solid rgba(255,255,255,0.08);
+  padding:8px 13px;border-radius:999px;font-size:12.5px;color:#b8c3d4;
+}
+.save-pill .live-dot{width:7px;height:7px;background:#59c995;border-radius:50%}
+.head-meta{margin-top:10px;font-size:12px;color:var(--muted-2);line-height:1.5}
+
+/* KPI strip */
+.kpi-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0 30px;
+}
+@media(min-width:760px){.kpi-row{grid-template-columns:repeat(4,1fr);gap:16px;}}
+.kpi{
+  background:linear-gradient(180deg, rgba(255,255,255,0.026), rgba(255,255,255,0.012));
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:16px 16px;
+}
+.kpi label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:6px}
+.kpi .val{font-size:clamp(18px,3.6vw,24px);font-weight:700;letter-spacing:-.015em}
+.kpi .sub{font-size:12px;color:var(--muted-2);margin-top:4px}
+.kpi.gold{border-color:rgba(212,168,75,0.33); background: linear-gradient(180deg, rgba(212,168,75,0.07), rgba(212,168,75,0.025));}
+.kpi.gold .val{color:var(--gold-soft)}
+
+/* Layout */
+.grid-2{display:grid;grid-template-columns:1fr;gap:18px}
+@media(min-width:980px){.grid-2{grid-template-columns:1fr 1fr}}
+.section{
+  background:linear-gradient(180deg, rgba(255,255,255,0.023), rgba(255,255,255,0.012));
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:22px 18px;
+}
+@media(min-width:760px){.section{padding:26px 26px}}
+.section h2{
+  margin:0 0 4px 0;
+  font-size:20px;
+  font-weight:700;
+  letter-spacing:-.01em;
+}
+.section .sec-desc{color:var(--muted);font-size:13.7px;margin-bottom:18px;line-height:1.55}
+
+/* Income cards */
+.income-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:14px;
+}
+@media(min-width:640px){.income-grid{grid-template-columns:1fr 1fr}}
+.income-card{
+  background: #13233a;
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:16px;
+  padding:16px 16px 15px;
+  position:relative;
+}
+.income-card.trading{border-color: rgba(229,107,0.22)}
+.income-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:11px}
+.income-ico{
+  width:36px;height:36px;border-radius:10px;
+  background:rgba(212,168,75,0.09);border:1px solid rgba(212,168,75,0.18);
+  display:grid;place-items:center;color:var(--gold-soft);
+}
+.income-card.trading .income-ico{background:rgba(229,107,107,0.09);border-color:rgba(229,107,107,0.18);color:#e89a9a}
+.income-card h3{margin:0;font-size:14.7px;font-weight:700;line-height:1.35}
+.income-card .hint{font-size:12.3px;color:var(--muted-2);line-height:1.45;margin-top:2px}
+.rp-input-wrap{
+  position:relative;margin-top:12px;
+}
+.rp-prefix{
+  position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  color:#9aa7b9;font-size:13.5px;font-weight:600;
+}
+.rp-input{
+  width:100%;
+  background:#0d1b2f;
+  border:1px solid rgba(255,255,255,0.10);
+  color:var(--text);
+  border-radius:12px;
+  padding:13px 14px 13px 40px;
+  font-size:16.5px;
+  font-weight:620;
+  outline:none;
+  transition: border-color .15s;
+}
+.rp-input:focus{border-color:var(--gold)}
+.income-share{
+  font-size:12px;color:var(--muted-2);margin-top:8px
+}
+.total-income-bar{
+  margin-top:16px;
+  background:rgba(255,255,255,0.027);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:15px 16px;
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;
+}
+.total-income-bar .ti-label{font-size:12.8px;color:var(--muted)}
+.total-income-bar .ti-value{font-size:26px;font-weight:800;letter-spacing:-.017em}
+.total-income-bar .ti-tags{display:flex;gap:8px;flex-wrap:wrap}
+.tag{
+  font-size:11.5px;padding:5px 10px;border-radius:999px;
+  background:rgba(255,255,255,0.045);border:1px solid rgba(255,255,255,0.07);color:#b9c5d6;
+}
+.tag.warn{background:rgba(229,107,107,0.09);color:#e8a0a0;border-color:rgba(229,107,107,0.22)}
+.tag.ok{background:rgba(89,201,149,0.09);color:#8edcb7;border-color:rgba(89,201,149,0.2)}
+
+/* Cashflow split */
+.split-shell{display:grid;grid-template-columns:1fr;gap:22px}
+@media(min-width:880px){.split-shell{grid-template-columns:1.2fr .8fr}}
+.split-rows{display:flex;flex-direction:column;gap:12px}
+.split-row{
+  background:#12233a;
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:14px;
+  padding:13px 14px;
+  display:grid;
+  grid-template-columns:auto 84px 1fr;
+  gap:10px;
+  align-items:center;
+}
+@media(max-width:520px){
+  .split-row{grid-template-columns:1fr 84px;}
+  .split-row .split-amt{grid-column:1 / -1; order:3}
+}
+.split-swatch{width:10px;height:10px;border-radius:3px;background:var(--gold)}
+.split-name{font-size:13.6px;font-weight:600}
+.split-desc{font-size:11.9px;color:var(--muted-2)}
+.split-pct{
+  width:84px;
+  background:#0d1b2f;
+  border:1px solid rgba(255,255,255,0.10);
+  color:var(--text);
+  border-radius:10px;
+  padding:10px 10px;
+  text-align:right;
+  font-size:15px;font-weight:700;
+  outline:none;
+}
+.split-pct:focus{border-color:var(--gold)}
+.split-amt{font-size:12.6px;color:#b8c4d6;text-align:right;white-space:nowrap}
+.donut-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.donut{
+  width:180px;height:180px;border-radius:50%;position:relative;
+  background: conic-gradient(#d4a84b 0 50%, #2d6e8f 0 70%, #c98b3a 0 90%, #b47a3d 0 100%);
+  box-shadow:inset 0 0 40px rgba(0,0,0,.35), 0 8px 36px rgba(0,0,0,.25);
+}
+.donut::after{
+  content:"";
+  position:absolute;inset:24px;background:#12243b;border-radius:50%;
+  box-shadow:inset 0 1px 8px rgba(0,0,0,.45);
+}
+.donut-center{
+  position:absolute;inset:0;display:grid;place-items:center;z-index:2;text-align:center;
+}
+.donut-center b{display:block;font-size:11px;color:var(--muted);font-weight:600}
+.donut-center span{font-size:22px;font-weight:800}
+.split-legend{display:flex;flex-wrap:wrap;gap:10px 16px;justify-content:center;font-size:12px;color:#aab6c7}
+.legend-i{display:flex;align-items:center;gap:7px}
+.legend-dot{width:8px;height:8px;border-radius:50%}
+.split-sum-note{
+  margin-top:10px;font-size:12.5px;
+}
+.split-sum-note.bad{color:#eba2a2}
+.split-sum-note.good{color:#8edcb7}
+
+/* Checklists */
+.check-list{display:flex;flex-direction:column;gap:10px}
+.check-item{
+  display:flex;align-items:flex-start;gap:12px;
+  background:#13233a;
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:13px;
+  padding:12px 13px;
+  transition: border-color .15s, background .15s;
+}
+.check-item:hover{border-color:rgba(212,168,75,0.25)}
+.check-item input[type=checkbox]{
+  appearance:none;-webkit-appearance:none;
+  width:20px;height:20px;flex:0 0 20px;margin-top:1px;
+  border-radius:6px;border:1.5px solid #546070;
+  background:#0d1b2f;cursor:pointer;position:relative;
+  transition:.15s;
+}
+.check-item input[type=checkbox]:checked{
+  background:var(--gold);border-color:var(--gold);
+}
+.check-item input[type=checkbox]:checked::after{
+  content:"";position:absolute;left:5px;top:2px;width:6px;height:10px;border:solid #1a2330;border-width:0 2.3px 2.3px 0;transform:rotate(45deg);
+}
+.check-item label{cursor:pointer;font-size:14px;line-height:1.45;color:#dbe4f0}
+.check-item .ck-sub{display:block;font-size:12.3px;color:var(--muted-2);margin-top:2px}
+.check-item.checked{border-color:rgba(212,168,75,0.24); background:rgba(212,168,75,0.043)}
+.check-item.checked label{color:#e7e0cf}
+
+/* Bab tracker compact */
+.bab-progress{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px;
+  font-size:13px;color:#b9c6d6;
+}
+.bab-bar{flex:1;height:7px;background:#0d1b2f;border-radius:99px;overflow:hidden;border:1px solid rgba(255,255,255,0.06)}
+.bab-bar-fill{height:100%;background:linear-gradient(90deg,#d4a84b, #e7c98a);width:10%;transition:.3s}
+.bab-list .check-item{padding:11px 12px}
+
+/* Monthly log */
+.log-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.btn{
+  border:1px solid rgba(212,168,75,0.34);
+  background:linear-gradient(180deg, rgba(212,168,75,0.14), rgba(212,168,75,0.07));
+  color:#f0d9a8;
+  padding:10px 14px;border-radius:11px;font-weight:700;font-size:13.5px;cursor:pointer;
+  transition:.15s;
+}
+.btn:hover{filter:brightness(1.08)}
+.btn.secondary{
+  border-color:rgba(255,255,255,0.13);
+  background:rgba(255,255,255,0.036);
+  color:#c4cfdd;
+}
+.btn.danger{
+  border-color:rgba(229,107,107,0.30);
+  background:rgba(229,107,107,0.06);
+  color:#e7b0b0;
+}
+.log-table-wrap{overflow:auto;border-radius:13px;border:1px solid rgba(255,255,255,0.07)}
+table.log-table{width:100%;border-collapse:collapse;font-size:13.8px;min-width:680px}
+.log-table th{
+  text-align:left;font-weight:700;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;
+  color:#99a7ba;background:#13233a;padding:11px 12px;border-bottom:1px solid rgba(255,255,255,0.07)
+}
+.log-table td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.055);vertical-align:top}
+.log-table tr:last-child td{border-bottom:none}
+.log-table input, .log-table textarea{
+  width:100%;background:#0d1b2f;border:1px solid rgba(255,255,255,0.11);color:var(--text);
+  border-radius:9px;padding:8px 10px;font:inherit;font-size:13.6px;outline:none;
+}
+.log-table input:focus, .log-table textarea:focus{border-color:var(--gold)}
+.log-table textarea{min-height:42px;resize:vertical}
+.icon-btn{
+  border:none;background:transparent;color:#8794a8;cursor:pointer;padding:6px;border-radius:8px;font-size:16px;
+}
+.icon-btn:hover{color:#e8a4a4;background:rgba(229,107,107,0.08)}
+
+/* Mobile log cards */
+.log-cards{display:none}
+@media(max-width:720px){
+  .log-table-wrap{display:none}
+  .log-cards{display:flex;flex-direction:column;gap:10px}
+  .log-card{
+    background:#13233a;border:1px solid rgba(255,255,255,0.07);border-radius:13px;padding:13px;
+  }
+  .log-card-row{display:grid;grid-template-columns:110px 1fr;gap:8px;align-items:center;margin-bottom:8px}
+  .log-card-row label{font-size:11.8px;color:#95a3b7}
+  .log-card-row input, .log-card-row textarea{
+    width:100%;background:#0d1b2f;border:1px solid rgba(255,255,255,0.11);color:var(--text);
+    border-radius:9px;padding:9px 10px;font:inherit;font-size:14px;outline:none;
+  }
+  .log-card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+  .log-card-month{font-weight:700;color:#d8c29a}
+}
+
+/* Footer */
+footer{
+  margin-top:34px;
+  padding-top:24px;
+  border-top:1px solid rgba(255,255,255,0.09);
+  color:#8b98ab;font-size:12.6px;line-height:1.7;
+}
+.footer-grid{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-start}
+.footer-note{max-width:680px}
+.muted{color:var(--muted-2)}
+
+/* Utilities */
+.spacer{height:18px}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.right{margin-left:auto}
+.small{font-size:12.5px;color:var(--muted)}
+.hint-inline{font-size:12.3px;color:var(--muted-2)}
+hr.soft{border:none;border-top:1px solid rgba(255,255,255,0.07);margin:16px 0}
+.empty-state{
+  text-align:center;color:#8a97a8;padding:22px 10px;font-size:13.6px;background:rgba(255,255,255,0.018);border:1px dashed rgba(255,255,255,0.11);border-radius:12px;
+}
+
+@media(max-width:520px){
+  .site-head{margin-bottom:20px}
+  .head-right{text-align:left}
+  .kpi .val{font-size:20px}
+  .total-income-bar .ti-value{font-size:24px}
+  h1.head-title{font-size:34px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <header class="site-head">
+    <div>
+      <div class="eyebrow"><span class="dot"></span> IFBTC Wealth System Planner</div>
+      <h1 class="head-title">Millionaires <em>Don't Think in Salaries</em></h1>
+      <div class="head-sub">
+        <strong>Wealth Machine – IFBTC Edition</strong><br>
+        Build Systems That Pay You for Life
+      </div>
+    </div>
+    <div class="head-right">
+      <div class="save-pill"><span class="live-dot"></span><span id="saveStatus">Tersimpan lokal</span></div>
+      <div class="head-meta">Offline • 100% Privasi • Auto-save ke perangkat ini</div>
+    </div>
+  </header>
+
+  <!-- KPI Strip -->
+  <div class="kpi-row" id="kpiRow">
+    <div class="kpi gold">
+      <label>Total Income / bulan</label>
+      <div class="val" id="kpiTotal">Rp 0</div>
+      <div class="sub" id="kpiTotalSub">4 streams aktif</div>
+    </div>
+    <div class="kpi">
+      <label>Wealth Machine / bulan</label>
+      <div class="val" id="kpiWealth">Rp 0</div>
+      <div class="sub">Alokasi Invest Cashflow</div>
+    </div>
+    <div class="kpi">
+      <label>Salary Trap Ratio</label>
+      <div class="val" id="kpiTrap">0%</div>
+      <div class="sub" id="kpiTrapNote">Target &lt; 30%</div>
+    </div>
+    <div class="kpi">
+      <label>Bab Selesai</label>
+      <div class="val"><span id="kpiBabDone">0</span><span style="color:#778499;font-weight:600"> /14</span></div>
+      <div class="sub">Wealth System Tracker</div>
+    </div>
+  </div>
+
+  <!-- INCOME STREAMS + CASHFLOW SPLIT -->
+  <div class="grid-2" style="margin-bottom:18px">
+    <!-- Income Streams -->
+    <section class="section" aria-labelledby="income-title">
+      <h2 id="income-title">Income Streams</h2>
+      <div class="sec-desc">Pisahkan sumber uang. Orang kaya tidak bergantung pada 1 gaji. Edit angka di bawah ini (Rp / bulan).</div>
+
+      <div class="income-grid">
+        <div class="income-card trading">
+          <div class="income-top">
+            <div>
+              <h3>Active Trading</h3>
+              <div class="hint">Salary Trap – batasi. Uang cepat, bukan mesin.</div>
+            </div>
+            <div class="income-ico" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 17l6-6 4 4 6-8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+          <div class="rp-input-wrap">
+            <span class="rp-prefix">Rp</span>
+            <input class="rp-input income-input" data-key="trading" inputmode="numeric" placeholder="0" autocomplete="off">
+          </div>
+          <div class="income-share" id="share-trading">0% dari total</div>
+        </div>
+
+        <div class="income-card">
+          <div class="income-top">
+            <div>
+              <h3>Staking / Yield / Dividend</h3>
+              <div class="hint">Cashflow saat tidur. Compound bulanan.</div>
+            </div>
+            <div class="income-ico" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/><path d="M12 8v8M8.8 12h6.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </div>
+          <div class="rp-input-wrap">
+            <span class="rp-prefix">Rp</span>
+            <input class="rp-input income-input" data-key="staking" inputmode="numeric" placeholder="0" autocomplete="off">
+          </div>
+          <div class="income-share" id="share-staking">0% dari total</div>
+        </div>
+
+        <div class="income-card">
+          <div class="income-top">
+            <div>
+              <h3>Affiliate / IB / Komunitas</h3>
+              <div class="hint">Leverage trust & network IFBTC.</div>
+            </div>
+            <div class="income-ico" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="10" r="2.8" stroke="currentColor" stroke-width="1.5"/><circle cx="16" cy="7.5" r="2.3" stroke="currentColor" stroke-width="1.5"/><path d="M4.7 18c.6-2.1 2.2-3.2 3.8-3.2 1.6 0 2.8 1.1 3.5 3.2M13.4 18c.45-1.55 1.5-2.4 2.7-2.4 1.2 0 2 .9 2.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            </div>
+          <div class="rp-input-wrap">
+            <span class="rp-prefix">Rp</span>
+            <input class="rp-input income-input" data-key="affiliate" inputmode="numeric" placeholder="0" autocomplete="off">
+          </div>
+          <div class="income-share" id="share-affiliate">0% dari total</div>
+        </div>
+
+        <div class="income-card">
+          <div class="income-top">
+            <div>
+              <h3>Digital Asset / Jasa Edukasi</h3>
+              <div class="hint">Kelas, e-book, tools. Build once, sell forever.</div>
+            </div>
+            <div class="income-ico" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="4" y="4.8" width="16" height="14.4" rx="2.4" stroke="currentColor" stroke-width="1.5"/><path d="M8 9.6h8M8 13.2h5.5" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+          <div class="rp-input-wrap">
+            <span class="rp-prefix">Rp</span>
+            <input class="rp-input income-input" data-key="digital" inputmode="numeric" placeholder="0" autocomplete="off">
+          </div>
+          <div class="income-share" id="share-digital">0% dari total</div>
+        </div>
+      </div>
+
+      <div class="total-income-bar">
+        <div>
+          <div class="ti-label">Total Income Bulanan</div>
+          <div class="ti-value" id="totalIncomeBig">Rp 0</div>
+        </div>
+        <div class="ti-tags">
+          <span class="tag" id="tagStreams">0/4 stream aktif</span>
+          <span class="tag" id="tagTrap">Salary Trap: 0%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cashflow Split -->
+    <section class="section" aria-labelledby="split-title">
+      <h2 id="split-title">Cashflow Split</h2>
+      <div class="sec-desc">Alokasikan setiap rupiah yang masuk. Default IFBTC: 50 / 20 / 20 / 10. Boleh diubah, total harus 100%.</div>
+
+      <div class="split-shell">
+        <div class="split-rows" id="splitRows">
+          <!-- JS inject -->
+        </div>
+
+        <div class="donut-wrap">
+          <div class="donut" id="donutChart">
+            <div class="donut-center"><div><b>Total</b><span id="donutTotalPct">100%</span></div></div>
+          </div>
+          <div class="split-legend" id="splitLegend"></div>
+          <div class="split-sum-note good" id="splitSumNote">Alokasi seimbang. Nice.</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- RISK GUARD + BAB TRACKER -->
+  <div class="grid-2" style="margin-bottom:18px">
+    <section class="section" aria-labelledby="risk-title">
+      <h2 id="risk-title">Risk Guard</h2>
+      <div class="sec-desc">Checklist harian sebelum entry. Lindungi modal, lindungi kepala.</div>
+      <div class="check-list" id="riskList">
+        <!-- JS -->
+      </div>
+      <hr class="soft">
+      <div class="small"><span id="riskCount">0/5</span> checklist aktif • <span class="hint-inline">Tercatat otomatis</span></div>
+    </section>
+
+    <section class="section" aria-labelledby="bab-title">
+      <h2 id="bab-title">14 Bab Wealth System Tracker</h2>
+      <div class="sec-desc">"Millionaires Don't Think in Salaries" — mapping ke aksi IFBTC.</div>
+      <div class="bab-progress">
+        <div class="bab-bar"><div class="bab-bar-fill" id="babBarFill"></div></div>
+        <div><strong id="babCountText">0/14</strong></div>
+      </div>
+      <div class="check-list bab-list" id="babList">
+        <!-- JS -->
+      </div>
+    </section>
+  </div>
+
+  <!-- MONTHLY LOG -->
+  <section class="section" aria-labelledby="log-title">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:6px">
+      <div>
+        <h2 id="log-title" style="margin-bottom:4px">Monthly Wealth Log</h2>
+        <div class="sec-desc" style="margin-bottom:0">Catat progres bulanan. Disiplin mengalahkan motivasi.</div>
+      </div>
+      <div class="row">
+        <button class="btn" id="addLogBtn">+ Tambah Bulan</button>
+        <button class="btn secondary" id="exportBtn" title="Salin ke clipboard">Export CSV</button>
+      </div>
+    </div>
+
+    <div class="log-table-wrap">
+      <table class="log-table" id="logTable">
+        <thead>
+          <tr>
+            <th style="width:150px">Bulan</th>
+            <th style="width:170px">Income</th>
+            <th style="width:190px">Wealth Machine</th>
+            <th>Catatan</th>
+            <th style="width:52px"></th>
+          </tr>
+        </thead>
+        <tbody id="logTbody"></tbody>
+      </table>
+    </div>
+
+    <div class="log-cards" id="logCards"></div>
+    <div id="logEmpty" class="empty-state" style="display:none;margin-top:12px">Belum ada log. Klik “Tambah Bulan” untuk mulai mencatat.</div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-note">
+        <strong style="color:#c9cfd9">Disclaimer IFBTC</strong><br>
+        Ini alat edukasi, bukan nasihat finansial. Trading forex/crypto berisiko tinggi dan dapat menyebabkan kehilangan modal. Ikuti SOP resmi IFBTC dan konsultasi profesional sebelum mengambil keputusan finansial. Performa masa lalu bukan jaminan masa depan.
+      </div>
+      <div style="text-align:right;min-width:210px">
+        <div class="small">Wealth Machine – IFBTC Edition</div>
+        <div class="muted" style="font-size:12px">v1.3 • Local-first • Indonesia</div>
+        <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+          <button class="btn secondary" id="resetAllBtn" style="padding:8px 11px;font-size:12.5px">Reset semua data</button>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+/* ---------- Data Model ---------- */
+const STORAGE_KEY = 'ifbtc-wealth-system-v3';
+const defaultState = {
+  income: { trading: 0, staking: 0, affiliate: 0, digital: 0 },
+  split: { hidup: 50, tradingCapital: 20, wealth: 20, darurat: 10 },
+  risk: [false,false,false,false,false],
+  babs: new Array(14).fill(false),
+  logs: []
+};
+
+let state = loadState();
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return structuredClone(defaultState);
+    const s = JSON.parse(raw);
+    return {
+      income: {...defaultState.income, ...(s.income||{})},
+      split: {...defaultState.split, ...(s.split||{})},
+      risk: Array.isArray(s.risk) && s.risk.length===5 ? s.risk : defaultState.risk.slice(),
+      babs: Array.isArray(s.babs) && s.babs.length===14 ? s.babs : defaultState.babs.slice(),
+      logs: Array.isArray(s.logs) ? s.logs : []
+    };
+  }catch(e){ return structuredClone(defaultState); }
+}
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  flashSaved();
+}
+let saveTimer=null;
+function queueSave(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(saveState, 320);
+}
+function flashSaved(){
+  const el = document.getElementById('saveStatus');
+  el.textContent = 'Tersimpan ✓';
+  setTimeout(()=>{ el.textContent='Tersimpan lokal'; }, 1100);
+}
+
+/* ---------- Formatters ---------- */
+const fmtID = new Intl.NumberFormat('id-ID');
+function fmtRp(n){ return 'Rp ' + fmtID.format(Math.round(n||0)); }
+function parseRp(str){
+  if(typeof str === 'number') return str||0;
+  const digits = String(str||'').replace(/[^\d]/g,'');
+  return digits ? parseInt(digits,10) : 0;
+}
+
+/* ---------- Income Inputs ---------- */
+const incomeFields = document.querySelectorAll('.income-input');
+function renderIncomeInputs(){
+  incomeFields.forEach(el=>{
+    const key = el.dataset.key;
+    const val = state.income[key]||0;
+    el.value = val ? fmtID.format(val) : '';
+  });
+  recalc();
+}
+incomeFields.forEach(el=>{
+  el.addEventListener('focus', ()=>{
+    const raw = parseRp(el.value);
+    el.value = raw ? String(raw) : '';
+    el.select();
+  });
+  el.addEventListener('input', ()=>{
+    // allow only digits
+    el.value = el.value.replace(/[^\d]/g,'');
+    const key = el.dataset.key;
+    state.income[key] = parseRp(el.value);
+    recalc();
+    queueSave();
+  });
+  el.addEventListener('blur', ()=>{
+    const key = el.dataset.key;
+    const v = state.income[key]||0;
+    el.value = v ? fmtID.format(v) : '';
+    recalc();
+  });
+});
+
+/* ---------- Cashflow Split ---------- */
+const splitDefs = [
+  { key:'hidup', label:'Dana Hidup', desc:'Sewa, makan, keluarga', color:'#d4a84b' },
+  { key:'tradingCapital', label:'Trading Capital / Risk Budget', desc:'Hanya ini yang boleh di-risk', color:'#2d6f94' },
+  { key:'wealth', label:'Wealth Machine / Invest Cashflow', desc:'Aset produktif. Jangan diganggu.', color:'#c98b3a' },
+  { key:'darurat', label:'Dana Darurat / Proteksi', desc:'6–12 bulan. Asuransi.', color:'#b97a3a' }
+];
+
+function renderSplitRows(){
+  const container = document.getElementById('splitRows');
+  container.innerHTML = '';
+  splitDefs.forEach(def=>{
+    const row = document.createElement('div');
+    row.className='split-row';
+    row.innerHTML = `
+      <div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="split-swatch" style="background:${def.color}"></span>
+          <span class="split-name">${def.label}</span>
+        </div>
+        <div class="split-desc">${def.desc}</div>
+      </div>
+      <input class="split-pct" type="number" min="0" max="100" step="1" data-split="${def.key}" value="${state.split[def.key]||0}" aria-label="${def.label} persen">
+      <div class="split-amt" id="amt-${def.key}">Rp 0</div>
+    `;
+    container.appendChild(row);
+  });
+  container.querySelectorAll('.split-pct').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      let v = parseInt(inp.value,10);
+      if(isNaN(v)) v=0;
+      v = Math.max(0, Math.min(100, v));
+      state.split[inp.dataset.split] = v;
+      recalc();
+      queueSave();
+    });
+  });
+}
+
+/* ---------- Risk Guard ---------- */
+const riskItems = [
+  "Max risk per trade 1-2%",
+  "Uang kebutuhan tidak untuk trading",
+  "Jurnal tiap hari",
+  "Stop loss wajib",
+  "Follow SOP IFBTC"
+];
+function renderRisk(){
+  const box = document.getElementById('riskList');
+  box.innerHTML = '';
+  riskItems.forEach((text, i)=>{
+    const checked = !!state.risk[i];
+    const row = document.createElement('div');
+    row.className = 'check-item' + (checked ? ' checked':'');
+    row.innerHTML = `<input type="checkbox" id="risk-${i}" ${checked?'checked':''}><label for="risk-${i}">${text}</label>`;
+    const cb = row.querySelector('input');
+    cb.addEventListener('change', ()=>{
+      state.risk[i] = cb.checked;
+      row.classList.toggle('checked', cb.checked);
+      updateRiskCount();
+      queueSave();
+    });
+    box.appendChild(row);
+  });
+  updateRiskCount();
+}
+function updateRiskCount(){
+  const n = state.risk.filter(Boolean).length;
+  document.getElementById('riskCount').textContent = `${n}/5`;
+}
+
+/* ---------- Bab Tracker ---------- */
+const babItems = [
+  { t:"Lepas Salary Trap", s:"Hitung % Active Trading < 30%. Audit pekan ini." },
+  { t:"Owner Mindset", s:"Tulis 3 sistem yang kamu own, bukan job." },
+  { t:"Stop Trading Time for Money", s:"List 1 layanan yang bisa diproduktisasi." },
+  { t:"Build Assets While Sleep", s:"Jalankan 1 cashflow pasif: staking / dividend." },
+  { t:"Multiple Streams", s:"Aktifkan minimal 3 dari 4 stream di atas." },
+  { t:"Knowledge to System", s:"Dokumentasikan SOP trading kamu. 1 halaman." },
+  { t:"Leverage Teknologi", s:"Otomasi jurnal / alert. Gunakan bot IFBTC." },
+  { t:"Leverage Tim", s:"Delegasikan 1 tugas repetitif minggu ini." },
+  { t:"Invest for Cashflow", s:"Alokasikan Wealth Machine ke yield >8%/thn." },
+  { t:"Sistem Jalan Tanpa Kamu", s:"Uji 7 hari tanpa sentuh sistem. Catat hasilnya." },
+  { t:"Protect Wealth", s:"Lengkapi Dana Darurat + SL wajib aktif." },
+  { t:"Psikologi Wealth", s:"Review jurnal emosi. Max 2 loss beruntun = stop." },
+  { t:"Scale What Works", s:"2x budget ke stream dengan ROI terbaik." },
+  { t:"Legacy", s:"Tulis warisan: apa yang jalan 10 tahun tanpa kamu?" }
+];
+function renderBabs(){
+  const box = document.getElementById('babList');
+  box.innerHTML='';
+  babItems.forEach((b,i)=>{
+    const checked = !!state.babs[i];
+    const row = document.createElement('div');
+    row.className = 'check-item' + (checked ? ' checked':'');
+    row.innerHTML = `<input type="checkbox" id="bab-${i}" ${checked?'checked':''}>
+      <label for="bab-${i}">${i+1}. ${b.t}<span class="ck-sub">${b.s}</span></label>`;
+    const cb = row.querySelector('input');
+    cb.addEventListener('change', ()=>{
+      state.babs[i] = cb.checked;
+      row.classList.toggle('checked', cb.checked);
+      updateBabProgress();
+      queueSave();
+    });
+    box.appendChild(row);
+  });
+  updateBabProgress();
+}
+function updateBabProgress(){
+  const done = state.babs.filter(Boolean).length;
+  document.getElementById('babCountText').textContent = `${done}/14`;
+  document.getElementById('kpiBabDone').textContent = done;
+  document.getElementById('babBarFill').style.width = (done/14*100) + '%';
+}
+
+/* ---------- Monthly Log ---------- */
+function uid(){ return Math.random().toString(36).slice(2,9); }
+
+function renderLogs(){
+  const tbody = document.getElementById('logTbody');
+  const cards = document.getElementById('logCards');
+  const empty = document.getElementById('logEmpty');
+  tbody.innerHTML = '';
+  cards.innerHTML = '';
+
+  if(state.logs.length === 0){
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  state.logs.forEach((log)=>{
+    // table row
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="month" value="${log.bulan||''}" data-id="${log.id}" data-field="bulan"></td>
+      <td><input type="text" inputmode="numeric" value="${log.income ? fmtID.format(log.income):''}" data-id="${log.id}" data-field="income" placeholder="0"></td>
+      <td><input type="text" inputmode="numeric" value="${log.wealth ? fmtID.format(log.wealth):''}" data-id="${log.id}" data-field="wealth" placeholder="0"></td>
+      <td><textarea rows="1" data-id="${log.id}" data-field="catatan" placeholder="Catatan singkat...">${log.catatan||''}</textarea></td>
+      <td style="text-align:right"><button class="icon-btn" data-del="${log.id}" title="Hapus">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+
+    // mobile card
+    const card = document.createElement('div');
+    card.className='log-card';
+    card.innerHTML = `
+      <div class="log-card-row"><label>Bulan</label><input type="month" value="${log.bulan||''}" data-id="${log.id}" data-field="bulan"></div>
+      <div class="log-card-row"><label>Income</label><input type="text" inputmode="numeric" value="${log.income ? fmtID.format(log.income):''}" data-id="${log.id}" data-field="income" placeholder="0"></div>
+      <div class="log-card-row"><label>Wealth Machine</label><input type="text" inputmode="numeric" value="${log.wealth ? fmtID.format(log.wealth):''}" data-id="${log.id}" data-field="wealth" placeholder="0"></div>
+      <div class="log-card-row"><label>Catatan</label><textarea rows="2" data-id="${log.id}" data-field="catatan" placeholder="Catatan...">${log.catatan||''}</textarea></div>
+      <div class="log-card-foot"><span class="log-card-month">${log.bulan || '—'}</span><button class="icon-btn" data-del="${log.id}">Hapus</button></div>
+    `;
+    cards.appendChild(card);
+  });
+
+  // bind
+  document.querySelectorAll('#logTbody input, #logTbody textarea, #logCards input, #logCards textarea').forEach(el=>{
+    const isRupiah = el.dataset.field==='income' || el.dataset.field==='wealth';
+    el.addEventListener('focus', ()=>{
+      if(isRupiah){
+        const raw = parseRp(el.value);
+        el.value = raw ? String(raw) : '';
+      }
+    });
+    el.addEventListener('input', ()=>{
+      const id = el.dataset.id;
+      const field = el.dataset.field;
+      const log = state.logs.find(l=>l.id===id);
+      if(!log) return;
+      if(field==='income' || field==='wealth'){
+        el.value = el.value.replace(/[^\d]/g,'');
+        log[field] = parseRp(el.value);
+      } else {
+        log[field] = el.value;
+      }
+      queueSave();
+    });
+    el.addEventListener('blur', ()=>{
+      if(isRupiah){
+        const id = el.dataset.id;
+        const field = el.dataset.field;
+        const log = state.logs.find(l=>l.id===id);
+        if(log) el.value = log[field] ? fmtID.format(log[field]) : '';
+      }
+      // sync month text in mobile card
+      renderLogs();
+    });
+  });
+
+  document.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.del;
+      state.logs = state.logs.filter(l=>l.id !== id);
+      renderLogs();
+      saveState();
+    });
+  });
+}
+
+document.getElementById('addLogBtn').addEventListener('click', ()=>{
+  const now = new Date();
+  const m = now.toISOString().slice(0,7);
+  state.logs.unshift({
+    id: uid(),
+    bulan: state.logs[0]?.bulan ? '' : m,
+    income: totalIncome(),
+    wealth: Math.round(totalIncome() * (state.split.wealth||0) / 100),
+    catatan: ''
+  });
+  renderLogs();
+  saveState();
+});
+
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  if(state.logs.length===0){ alert('Belum ada log untuk di-export.'); return; }
+  let csv = 'Bulan,Income,Wealth Machine,Catatan\n';
+  state.logs.forEach(l=>{
+    const c = (l.catatan||'').replace(/"/g,'""').replace(/\n/g,' ');
+    csv += `${l.bulan||''},${l.income||0},${l.wealth||0},"${c}"\n`;
+  });
+  navigator.clipboard.writeText(csv).then(()=>{
+    const b = document.getElementById('exportBtn');
+    const old = b.textContent;
+    b.textContent = 'Tersalin ✓';
+    setTimeout(()=> b.textContent = old, 1400);
+  }).catch(()=>{
+    alert('CSV:\n\n' + csv);
+  });
+});
+
+/* ---------- Calculations / UI refresh ---------- */
+function totalIncome(){
+  const i = state.income;
+  return (i.trading||0)+(i.staking||0)+(i.affiliate||0)+(i.digital||0);
+}
+
+function recalc(){
+  const total = totalIncome();
+  const trading = state.income.trading||0;
+  const trapPct = total > 0 ? Math.round(trading/total*100) : 0;
+
+  // shares
+  [['trading',trading],['staking',state.income.staking||0],['affiliate',state.income.affiliate||0],['digital',state.income.digital||0]].forEach(([k,v])=>{
+    const pct = total ? Math.round(v/total*100) : 0;
+    const el = document.getElementById('share-'+k);
+    if(el) el.textContent = pct + '% dari total';
+  });
+
+  document.getElementById('totalIncomeBig').textContent = fmtRp(total);
+  document.getElementById('kpiTotal').textContent = fmtRp(total);
+
+  const activeStreams = Object.values(state.income).filter(v=>v>0).length;
+  document.getElementById('kpiTotalSub').textContent = activeStreams + ' stream aktif';
+  document.getElementById('tagStreams').textContent = `${activeStreams}/4 stream aktif`;
+
+  const tagTrap = document.getElementById('tagTrap');
+  tagTrap.textContent = `Salary Trap: ${trapPct}%`;
+  tagTrap.className = 'tag ' + (trapPct > 30 ? 'warn' : (total>0 ? 'ok':''));
+
+  document.getElementById('kpiTrap').textContent = trapPct + '%';
+  const trapNote = document.getElementById('kpiTrapNote');
+  trapNote.textContent = trapPct > 30 ? 'Kebanyakan aktif!' : (trapPct > 0 ? 'Target < 30%' : 'Isi income dulu');
+  trapNote.style.color = trapPct > 30 ? '#e8a0a0' : '';
+
+  // split allocations
+  let sumPct = 0;
+  splitDefs.forEach(def=>{
+    sumPct += state.split[def.key]||0;
+    const amtEl = document.getElementById('amt-'+def.key);
+    if(amtEl){
+      const amt = Math.round(total * (state.split[def.key]||0) / 100);
+      amtEl.textContent = fmtRp(amt) + ' / bln';
+    }
+  });
+
+  const wealthAmt = Math.round(total * (state.split.wealth||0) / 100);
+  document.getElementById('kpiWealth').textContent = fmtRp(wealthAmt);
+
+  // donut
+  const donut = document.getElementById('donutChart');
+  if(donut){
+    let acc = 0;
+    const stops = splitDefs.map(def=>{
+      const pct = state.split[def.key]||0;
+      const start = acc;
+      acc += pct;
+      return `${def.color} ${start}% ${acc}%`;
+    }).join(', ');
+    donut.style.background = `conic-gradient(${stops || '#22344d 0 100%'})`;
+  }
+  document.getElementById('donutTotalPct').textContent = sumPct + '%';
+
+  const note = document.getElementById('splitSumNote');
+  if(sumPct === 100){
+    note.textContent = 'Alokasi seimbang. Nice.';
+    note.className = 'split-sum-note good';
+  } else if(sumPct > 100){
+    note.textContent = `Kelebihan ${sumPct-100}%. Kurangi salah satu.`;
+    note.className = 'split-sum-note bad';
+  } else {
+    note.textContent = `Kurang ${100-sumPct}%. Total harus 100%.`;
+    note.className = 'split-sum-note bad';
+  }
+
+  // legend
+  const legend = document.getElementById('splitLegend');
+  legend.innerHTML = splitDefs.map(d=>`
+    <span class="legend-i"><span class="legend-dot" style="background:${d.color}"></span>${d.label.split(' / ')[0]} ${state.split[d.key]||0}%</span>
+  `).join('');
+}
+
+/* ---------- Reset ---------- */
+document.getElementById('resetAllBtn').addEventListener('click', ()=>{
+  if(!confirm('Hapus semua data Wealth Planner di perangkat ini?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = structuredClone(defaultState);
+  initAll();
+  saveState();
+});
+
+/* ---------- Init ---------- */
+function initAll(){
+  renderIncomeInputs();
+  renderSplitRows();
+  renderRisk();
+  renderBabs();
+  renderLogs();
+  recalc();
+}
+initAll();
+</script>
+<script>(function(){document.addEventListener("click",function(e){var a=e.target.closest("[data-product-id]");if(!a)return;e.preventDefault();var pid=a.getAttribute("data-product-id");if(pid)parent.postMessage({type:"ecto-artifact-link-click",productId:pid},"*")})})();</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;var a=target.closest?target.closest("a[href]"):null;if(!a||!a.href||!/^https?:\/\//.test(a.href))return;if(a.href.replace(/#.*$/,"")===loc)return;var productId=extractProductId(target)||extractProductId(a);if(!productId)return;e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*")},true)})();</script></body>
+</html>

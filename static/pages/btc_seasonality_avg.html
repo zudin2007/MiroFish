@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitcoin Seasonality 2011–2026 + Rata-rata</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', sans-serif; background: #050810; }
+  .glass { backdrop-filter: blur(16px); background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)); }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  table { border-collapse: separate; border-spacing: 0; }
+  th, td { white-space: nowrap; }
+  td { transition: transform 0.15s ease; }
+  tr:hover td { filter: brightness(1.1); }
+  .scrollbar::-webkit-scrollbar { height: 8px; }
+  .scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+  .scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+</style>
+</head>
+<body class="text-slate-100">
+<div class="absolute inset-0 -z-10">
+  <div class="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-orange-600/20 rounded-full blur-[120px]"></div>
+  <div class="absolute bottom-[-20%] right-[-5%] w-[36rem] h-[36rem] bg-amber-500/15 rounded-full blur-[120px]"></div>
+</div>
+
+<div class="max-w-[1400px] mx-auto px-4 py-6 md:py-10">
+  <!-- Header -->
+  <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-6">
+    <div>
+      <div class="inline-flex items-center gap-2 mb-3 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs">
+        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+        LIVE • Update 27 Juni 2026
+      </div>
+      <h1 class="text-[28px] md:text-[42px] font-bold leading-tight tracking-tight">
+        Bitcoin Seasonality
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-orange-400 to-amber-500">2011–2026</span>
+        <span class="text-slate-300"> + Rata-rata</span>
+      </h1>
+      <p class="text-slate-400 mt-2 max-w-2xl">Heatmap return bulanan BTC 2011–2026. Rata-rata 2020–2025 sebagai baseline musiman modern vs performa 2026 yang sedang berjalan. <span class="text-amber-500/70 text-xs">* 2011–2019: data perkiraan historis.</span></p>
+    </div>
+    <div class="text-xs text-slate-400 lg:text-right">
+      <div>2020–2026: screenshot pengguna · 2011–2019: perkiraan historis</div>
+      <div>Diperbarui: 27 Juni 2026, 00:00 WIB</div>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="glass rounded-[28px] border border-white/10 shadow-2xl overflow-hidden">
+    <div class="p-4 md:p-6 border-b border-white/5 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center font-bold text-black">₿</div>
+        <div>
+          <div class="font-semibold">Monthly Returns Heatmap</div>
+          <div class="text-xs text-slate-400">Semua angka dalam %</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="hidden md:flex items-center gap-2 text-[11px] text-slate-300">
+          <span>-25%</span>
+          <div class="w-40 h-2 rounded-full" style="background: linear-gradient(to right, #7f1d1d, #ef4444, #fecaca, #d1fae5, #10b981, #065f46)"></div>
+          <span>+40%</span>
+        </div>
+        <div class="flex items-center gap-2 text-[11px]">
+          <span class="px-2 py-1 rounded bg-amber-500/20 border border-amber-500/30 text-amber-300">2026 highlighted</span>
+          <span class="px-2 py-1 rounded bg-white/10 border border-white/20">Avg bold</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto scrollbar">
+      <table id="btcTable" class="w-full text-[13px] md:text-[14px]">
+        <thead class="bg-white/[0.03] backdrop-blur sticky top-0 z-10">
+          <tr class="text-slate-300 text-[11px] uppercase tracking-wider">
+            <th class="text-left px-4 py-3 font-medium sticky left-0 bg-[#0a0f1c] z-20">Tahun</th>
+            <th class="px-3 py-3 font-medium">Jan</th>
+            <th class="px-3 py-3 font-medium">Feb</th>
+            <th class="px-3 py-3 font-medium">Mar</th>
+            <th class="px-3 py-3 font-medium">Apr</th>
+            <th class="px-3 py-3 font-medium">Mei</th>
+            <th class="px-3 py-3 font-medium">Jun</th>
+            <th class="px-3 py-3 font-medium">Jul</th>
+            <th class="px-3 py-3 font-medium">Ags</th>
+            <th class="px-3 py-3 font-medium">Sep</th>
+            <th class="px-3 py-3 font-medium">Okt</th>
+            <th class="px-3 py-3 font-medium">Nov</th>
+            <th class="px-3 py-3 font-medium">Des</th>
+            <th class="px-3 py-3 font-medium text-amber-300">Year</th>
+          </tr>
+        </thead>
+        <tbody id="tbody" class="divide-y divide-white/5">
+        </tbody>
+      </table>
+    </div>
+
+    <div class="px-4 md:px-6 py-4 bg-white/[0.02] border-t border-white/5 text-[11px] text-slate-400 flex flex-wrap gap-3 justify-between">
+      <div>Heatmap: hijau = positif, merah = negatif. Intensitas berdasarkan magnitude.</div>
+      <div class="md:hidden flex items-center gap-2">
+        <span>-25%</span>
+        <div class="w-24 h-1.5 rounded-full" style="background: linear-gradient(to right, #7f1d1d, #ef4444, #fecaca, #d1fae5, #10b981, #065f46)"></div>
+        <span>+30%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comparison -->
+  <div class="grid lg:grid-cols-3 gap-4 mt-6">
+    <div class="lg:col-span-2 glass rounded-[24px] border border-white/10 p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-semibold text-lg">2026 vs Rata-rata 2020–2025</h2>
+        <span class="text-[11px] px-2 py-1 rounded bg-red-500/20 text-red-300 border border-red-500/30">Underperform YTD</span>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-3" id="deltaCards"></div>
+      <div class="mt-4 p-3 rounded-xl bg-white/5 border border-white/10 text-xs text-slate-300">
+        H1 2026 mayoritas underperform historis. Q1 anomali besar: Jan delta <span class="text-red-400 font-medium">-23.90pp</span>, Feb delta <span class="text-red-400 font-medium">-25.71pp</span>, Mar delta <span class="text-red-400 font-medium">-6.46pp</span>. Apr +11.85% (delta <span class="text-emerald-400 font-medium">+9.08pp</span>) & Mei -3.75% (delta <span class="text-emerald-400 font-medium">+0.81pp</span>) mendekati rata-rata. Jun MTD -13.0% vs rata-rata -6.43% (delta <span class="text-red-400 font-medium">-6.57pp</span>). YTD live ~-25%.
+      </div>
+    </div>
+
+    <div class="glass rounded-[24px] border border-white/10 p-5">
+      <h3 class="font-semibold mb-3">Rata-rata Musiman</h3>
+      <div class="space-y-2.5 text-sm" id="avgList"></div>
+      <div class="mt-4 pt-4 border-t border-white/10">
+        <div class="text-xs text-slate-400">Rata-rata tahunan 2020–2025</div>
+        <div class="text-2xl font-bold text-emerald-400 mono">+96.88%</div>
+        <div class="text-[11px] text-slate-500 mt-1">Oktober terbaik (+18.15%), Juni terburuk (-6.43%)</div>
+        <div class="text-[11px] text-slate-500 mt-2 pt-2 border-t border-white/10">2026 YTD live ~-25% (Jun MTD)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center text-[11px] text-slate-500 mt-8">
+    Visualisasi independen. Bukan nasihat keuangan. 2020–2026: data screenshot pengguna. 2011–2019 (~): perkiraan historis berdasarkan harga BTC publik yang dikenal — verifikasi ke CoinGecko/CoinMarketCap untuk akurasi penuh.
+  </div>
+</div>
+
+<script>
+// Data 2011–2019: perkiraan historis berdasarkan harga BTC publik yang dikenal.
+// Pre-2016 data dapat memiliki deviasi ±5–15%; verifikasi ke CoinGecko/CoinMarketCap untuk akurasi.
+const data = [
+  {year:2011, jan:57.1, feb:66.7, mar:-3.8, apr:115.4, may:354.5, jun:107.7, jul:-61.9, aug:59.5, sep:-39.8, oct:-35.3, nov:-7.4, dec:65.5, y:1473.0, approx:true},
+  {year:2012, jan:8.5, feb:22.0, mar:2.8, apr:-6.1, may:0.6, jun:-8.0, jul:6.2, aug:14.4, sep:20.3, oct:12.8, nov:65.5, dec:6.0, y:186.5, approx:true},
+  {year:2013, jan:48.2, feb:61.2, mar:183.6, apr:53.4, may:34.2, jun:-28.8, jul:8.5, aug:31.1, sep:13.5, oct:57.9, nov:453.6, dec:-34.0, y:5507.0, approx:true},
+  {year:2014, jan:8.6, feb:-31.0, mar:-21.5, apr:-1.8, may:11.5, jun:11.9, jul:5.0, aug:-20.9, sep:-22.8, oct:-10.2, nov:9.3, dec:-16.0, y:-57.9, approx:true},
+  {year:2015, jan:-31.1, feb:17.5, mar:0.0, apr:-11.0, may:3.1, jun:11.5, jul:6.1, aug:-17.3, sep:2.6, oct:39.6, nov:10.1, dec:19.1, y:36.5, approx:true},
+  {year:2016, jan:-13.5, feb:16.6, mar:-4.8, apr:8.2, may:19.2, jun:26.2, jul:-3.7, aug:-10.8, sep:5.9, oct:14.5, nov:5.1, dec:30.4, y:124.2, approx:true},
+  {year:2017, jan:5.7, feb:17.5, mar:-9.5, apr:25.0, may:54.5, jun:19.1, jul:15.8, aug:64.1, sep:-7.4, oct:40.1, nov:60.3, dec:40.9, y:1342.0, approx:true},
+  {year:2018, jan:-27.3, feb:4.1, mar:-32.0, apr:33.2, may:-19.0, jun:-14.4, jul:28.3, aug:-14.4, sep:-5.9, oct:-3.9, nov:-36.6, dec:-7.4, y:-73.1, approx:true},
+  {year:2019, jan:-7.6, feb:11.6, mar:6.0, apr:30.2, may:64.1, jun:23.6, jul:-11.2, aug:0.0, sep:-13.6, oct:10.8, nov:-17.6, dec:-4.9, y:92.3, approx:true},
+  {year:2020, jan:29.95, feb:-8.60, mar:-25.00, apr:34.26, may:9.51, jun:-3.32, jul:24.03, aug:2.83, sep:-7.51, oct:27.70, nov:42.95, dec:46.92, y:301.30},
+  {year:2021, jan:14.51, feb:36.79, mar:29.84, apr:-1.66, may:-35.31, jun:-5.95, jul:18.46, aug:13.52, sep:-7.03, oct:39.93, nov:-7.11, dec:-18.90, y:59.70},
+  {year:2022, jan:-16.68, feb:12.21, mar:5.39, apr:-17.30, may:-15.59, jun:-37.28, jul:16.80, aug:-13.88, sep:-3.12, oct:5.56, nov:-16.23, dec:-3.64, y:-64.30},
+  {year:2023, jan:39.63, feb:0.05, mar:22.96, apr:2.83, may:-7.01, jun:11.98, jul:-4.02, aug:-11.29, sep:3.91, oct:28.52, nov:8.86, dec:12.18, y:155.70},
+  {year:2024, jan:0.62, feb:43.55, mar:16.81, apr:-14.76, may:11.07, jun:-6.96, jul:2.95, aug:-8.60, sep:7.29, oct:10.76, nov:37.29, dec:-3.19, y:119.68},
+  {year:2025, jan:14.11, feb:-18.00, mar:-0.74, apr:13.25, may:9.97, jun:2.95, jul:7.66, aug:-5.68, sep:4.42, oct:-3.57, nov:-19.26, dec:-2.23, y:9.20},
+  {year:2026, jan:-10.21, feb:-14.71, mar:1.75, apr:11.85, may:-3.75, jun:-13.0, jul:null, aug:null, sep:null, oct:null, nov:null, dec:null, y:null},
+];
+
+const avg = {year:'Rata-rata 2020-2025', jan:13.69, feb:11.00, mar:8.21, apr:2.77, may:-4.56, jun:-6.43, jul:10.98, aug:-3.85, sep:-0.34, oct:18.15, nov:7.75, dec:5.19, y:96.88};
+
+const months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec','y'];
+const monthNames = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des','Year'];
+
+function heatmap(v){
+  if(v===null || v===undefined) return {bg:'rgba(15,23,42,0.6)', fg:'#64748b', border:'rgba(255,255,255,0.06)'};
+  if(v>=30) return {bg:'#052e24', fg:'#a7f3d0', border:'#064e3b'};
+  if(v>=20) return {bg:'#064e3b', fg:'#d1fae5', border:'#047857'};
+  if(v>=10) return {bg:'#047857', fg:'white', border:'#059669'};
+  if(v>=5) return {bg:'#0d9488', fg:'white', border:'#14b8a6'};
+  if(v>=0) return {bg:'rgba(16,185,129,0.18)', fg:'#6ee7b7', border:'rgba(16,185,129,0.3)'};
+  if(v>-5) return {bg:'rgba(248,113,113,0.15)', fg:'#fecaca', border:'rgba(248,113,113,0.25)'};
+  if(v>-10) return {bg:'rgba(239,68,68,0.25)', fg:'#fecaca', border:'rgba(239,68,68,0.4)'};
+  if(v>-20) return {bg:'#991b1b', fg:'white', border:'#dc2626'};
+  return {bg:'#450a0a', fg:'#fecaca', border:'#7f1d1d'};
+}
+
+function fmt(v){
+  if(v===null || v===undefined) return '—';
+  const s = v>0?'+':'';
+  return s + v.toFixed(2) + '%';
+}
+
+const tbody = document.getElementById('tbody');
+
+function renderRow(d, is2026=false, isAvg=false){
+  const isApprox = !!d.approx;
+  const tr = document.createElement('tr');
+  tr.className = is2026 ? 'relative' : '';
+  if(is2026) tr.style.boxShadow = 'inset 0 0 0 2px rgba(245,158,11,0.7)';
+  if(isAvg) tr.className += ' font-semibold';
+  if(isApprox) tr.style.opacity = '0.85';
+
+  const yearTd = document.createElement('td');
+  yearTd.className = 'sticky left-0 z-10 px-4 py-2.5 mono text-[13px] border-r border-white/5';
+  yearTd.style.background = isAvg ? '#1f2937' : is2026 ? '#0f172a' : '#0a0f1c';
+  yearTd.innerHTML = isAvg
+    ? `<span class="text-amber-300">${d.year}</span>`
+    : is2026
+      ? `<span class="text-amber-400 flex items-center gap-1.5">${d.year} <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30">YTD</span></span>`
+      : isApprox
+        ? `<span class="flex items-center gap-1.5">${d.year}<span class="text-[9px] text-slate-500" title="Data perkiraan historis">~</span></span>`
+        : d.year;
+  tr.appendChild(yearTd);
+  
+  months.forEach(m => {
+    const v = d[m];
+    const td = document.createElement('td');
+    td.className = 'px-3 py-2.5 text-center mono';
+    const h = heatmap(v);
+    td.style.backgroundColor = h.bg;
+    td.style.color = h.fg;
+    td.style.borderLeft = `1px solid ${h.border}`;
+    td.textContent = fmt(v);
+    
+    if(is2026 && v!==null){
+      const delta = v - avg[m];
+      td.title = `${monthNames[months.indexOf(m)]} 2026: ${fmt(v)} vs Rata-rata ${fmt(avg[m])} (Δ ${delta>0?'+':''}${delta.toFixed(2)}pp)`;
+      td.style.cursor = 'help';
+      td.style.boxShadow = 'inset 0 -2px 0 rgba(245,158,11,0.5)';
+    }
+    if(isApprox && v!==null){
+      td.title = `${monthNames[months.indexOf(m)]} ${d.year}: ${fmt(v)} (perkiraan historis)`;
+      td.style.cursor = 'help';
+    }
+    if(isAvg){
+      td.style.outline = '1px solid rgba(255,255,255,0.08)';
+      td.style.outlineOffset = '-1px';
+    }
+    tr.appendChild(td);
+  });
+  tbody.appendChild(tr);
+}
+
+data.forEach(d => renderRow(d, d.year===2026, false));
+renderRow(avg, false, true);
+
+// Delta cards
+const deltaCards = document.getElementById('deltaCards');
+['jan','feb','mar','apr','may','jun'].forEach(m => {
+  const v2026 = data.find(d=>d.year===2026)[m];
+  const vAvg = avg[m];
+  const delta = v2026 - vAvg;
+  const isJun = m === 'jun';
+  const card = document.createElement('div');
+  card.className = 'p-4 rounded-xl bg-white/[0.04] border border-white/10 hover:bg-white/[0.06] transition';
+  card.innerHTML = `
+    <div class="flex items-center justify-between mb-2">
+      <div class="text-sm font-medium text-slate-200">${monthNames[months.indexOf(m)]} 2026${isJun ? ' <span class="text-[10px] text-amber-400">MTD</span>' : ''}</div>
+      <div class="text-[11px] px-2 py-0.5 rounded-full ${delta<0?'bg-red-500/20 text-red-300 border border-red-500/30':'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'}">${delta>0?'+':''}${delta.toFixed(2)}pp</div>
+    </div>
+    <div class="flex items-end gap-3">
+      <div>
+        <div class="text-[11px] text-slate-400">2026</div>
+        <div class="text-xl font-bold mono ${v2026>=0?'text-emerald-400':'text-red-400'}">${fmt(v2026)}</div>
+      </div>
+      <div class="text-slate-600">vs</div>
+      <div>
+        <div class="text-[11px] text-slate-400">Rata-rata</div>
+        <div class="text-xl font-bold mono ${vAvg>=0?'text-emerald-400':'text-red-400'}">${fmt(vAvg)}</div>
+      </div>
+    </div>
+    <div class="mt-2 text-[11px] text-slate-400">Delta <span class="mono">${delta>0?'+':''}${delta.toFixed(2)}pp</span> ${delta<0?'(tertinggal)':'(unggul)'}</div>
+  `;
+  deltaCards.appendChild(card);
+});
+
+// Avg list
+const avgList = document.getElementById('avgList');
+const topMonths = [
+  {m:'oct', name:'Oktober'},
+  {m:'jan', name:'Januari'},
+  {m:'feb', name:'Februari'},
+  {m:'jul', name:'Juli'},
+];
+topMonths.forEach(item=>{
+  const v = avg[item.m];
+  const div = document.createElement('div');
+  div.className = 'flex items-center justify-between p-2.5 rounded-lg bg-white/5 border border-white/10';
+  div.innerHTML = `<span class="text-slate-300">${item.name}</span><span class="mono font-medium text-emerald-400">+${v.toFixed(2)}%</span>`;
+  avgList.appendChild(div);
+});
+</script>
+<script>(function(){document.addEventListener("click",function(e){var a=e.target.closest("[data-product-id]");if(!a)return;e.preventDefault();var pid=a.getAttribute("data-product-id");if(pid)parent.postMessage({type:"ecto-artifact-link-click",productId:pid},"*")})})();</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;var a=target.closest?target.closest("a[href]"):null;if(!a||!a.href||!/^https?:\/\//.test(a.href))return;if(a.href.replace(/#.*$/,"")===loc)return;var productId=extractProductId(target)||extractProductId(a);if(!productId)return;e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*")},true)})();</script></body>
+</html>

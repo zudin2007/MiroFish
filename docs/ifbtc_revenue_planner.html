@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IFBTC Revenue System Planner v3 – Scenario Edition</title>
+<meta name="description" content="IFBTC Revenue & Sustainability Framework - Proposal v1.0 - Scenario Edition">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Fraunces:opsz,ital,wght@9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy: #0f1b2d;
+  --navy-2: #162840;
+  --navy-soft: #1d324d;
+  --gold: #d4a84b;
+  --gold-strong: #c79838;
+  --gold-pale: #f6edd8;
+  --gold-pale-2: #fbf5e8;
+  --cream: #f8f5ef;
+  --paper: #fffdf9;
+  --line: #e4ddd0;
+  --line-strong: #d3c9b6;
+  --muted: #606b7a;
+  --muted-2: #7a8596;
+  --text: #172333;
+  --green: #1a7f4b;
+  --green-bg: #e6f4ec;
+  --red: #b5453a;
+  --red-bg: #fdf0ee;
+  --radius-xl: 22px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --shadow-s: 0 2px 14px rgba(15,27,45,0.06);
+  --shadow-m: 0 10px 40px rgba(15,27,45,0.08);
+  --max: 1100px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  background: var(--cream);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.55;
+}
+a{color:inherit}
+.container{max-width:var(--max); margin:0 auto; padding:0 20px}
+@media (min-width: 768px){ .container{padding:0 32px} }
+
+/* Header */
+.site-header{
+  background: radial-gradient(1200px 600px at 70% -20%, #1d3150 0%, var(--navy) 55%);
+  color:#e9e4d9;
+  position:relative;
+  overflow:hidden;
+}
+.site-header::before{
+  content:"";
+  position:absolute; inset:0;
+  background-image: 
+    repeating-linear-gradient(45deg, rgba(212,168,75,0.035) 0 1.5px, transparent 1.5px 22px),
+    repeating-linear-gradient(-45deg, rgba(212,168,75,0.025) 0 1.5px, transparent 1.5px 22px);
+  pointer-events:none;
+}
+.hdr-inner{position:relative; padding:36px 0 30px}
+.topline{
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  color:#cbb891; font-size:12.5px; font-weight:600; letter-spacing:.02em;
+}
+.badge-live{
+  background: rgba(212,168,75,0.11);
+  border:1px solid rgba(212,168,75,.32);
+  color:#e4c37a;
+  padding:5px 11px; border-radius:999px; font-size:11.5px; font-weight:700;
+}
+h1.brand{
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(28px, 5.4vw, 48px);
+  font-weight:700;
+  line-height:1.08;
+  margin:14px 0 10px;
+  color:#f5f0e6;
+  letter-spacing:-0.015em;
+}
+.brand .gold{color:var(--gold)}
+.brand-sub{
+  color:#bba98a; font-size:13.5px; line-height:1.6; max-width:680px;
+}
+.tagline-wrap{
+  margin-top:22px; padding-top:20px; border-top:1px solid rgba(212,168,75,.18);
+  display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:space-between;
+}
+.tagline{
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-weight:500;
+  font-size: clamp(18px, 3vw, 24px);
+  color:#e9d3a7;
+}
+.hdr-meta{font-size:12.5px; color:#9e8c6e}
+.quick-nav{
+  display:flex; gap:9px; flex-wrap:wrap; margin-top:18px;
+}
+.quick-nav a{
+  font-size:12px; font-weight:600; color:#d2be96; text-decoration:none;
+  border:1px solid rgba(212,168,75,.22); padding:6px 12px; border-radius:999px;
+  transition:.18s;
+}
+.quick-nav a:hover{background:rgba(212,168,75,.10); color:#f2dfb8}
+
+/* --- Scenario Toggle Bar --- */
+.scenario-bar{
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background: rgba(255,253,249,0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid #e2d6c1;
+  box-shadow: 0 4px 20px rgba(15,27,45,.06);
+}
+.scenario-inner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:12px 20px;
+  flex-wrap: wrap;
+}
+@media(min-width:768px){ .scenario-inner{ padding:12px 32px; } }
+.scenario-left{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  min-width: 180px;
+}
+.scenario-label{
+  font-weight:800;
+  font-size:13.8px;
+  color:#233044;
+}
+.scenario-hint{
+  font-size:11.7px;
+  color:#7b8696;
+}
+.scenario-pills{
+  display:flex;
+  background:#f1e7d2;
+  padding:4px;
+  border-radius:999px;
+  gap:3px;
+  flex: 1 1 auto;
+  max-width: 520px;
+  justify-content: center;
+}
+.s-pill{
+  border:0;
+  background: transparent;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 13.4px;
+  color:#8a6930;
+  padding:9px 18px;
+  border-radius:999px;
+  cursor:pointer;
+  transition: .16s ease;
+  flex:1;
+  text-align:center;
+  white-space:nowrap;
+}
+.s-pill:hover{ color:#5e4014;}
+.s-pill.active{
+  background: var(--navy);
+  color:#f3dcb2;
+  box-shadow: 0 2px 10px rgba(15,27,45,.18);
+}
+.scenario-right-note{
+  font-size:11.6px;
+  color:#6f7b8b;
+  display:none;
+}
+@media(min-width:980px){
+  .scenario-right-note{ display:block; }
+}
+
+/* Sections */
+main{padding:28px 0 64px}
+.section{margin-top:34px}
+.section-head{
+  display:flex; align-items:end; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap;
+}
+.section-title{
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(22px, 3.2vw, 30px);
+  margin:0; color:#192638; letter-spacing:-.01em;
+}
+.section-kicker{
+  text-transform:uppercase; letter-spacing:.11em; font-size:11px; font-weight:800; color: var(--gold-strong);
+  margin-bottom:4px;
+}
+.section-desc{font-size:13.8px; color:var(--muted); max-width:620px; margin:4px 0 0}
+
+/* Card base */
+.card{
+  background: var(--paper);
+  border:1px solid var(--line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-s);
+}
+.card.pad{padding:18px}
+@media(min-width:700px){ .card.pad{padding:24px 26px} }
+
+/* Revenue layers */
+.layers-grid{
+  display:grid; gap:14px;
+}
+@media(min-width:880px){ .layers-grid{grid-template-columns:repeat(3,1fr)} }
+.layer-card{
+  background: linear-gradient(180deg, #fffdf9 0%, #faf6ef 100%);
+  border:1.2px solid var(--line);
+  border-radius:20px;
+  padding:20px 18px 18px;
+  position:relative;
+  box-shadow: var(--shadow-s);
+}
+.layer-card.feature{ border-color:#deca9c; box-shadow: 0 10px 32px rgba(185,138,54,.10); }
+.layer-tag{
+  display:inline-flex; align-items:center; gap:7px;
+  font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+  color:#92703a; background: var(--gold-pale); border:1px solid #e6d2a9;
+  padding:5px 10px; border-radius:999px; margin-bottom:12px;
+}
+.layer-card h3{margin:0 0 10px; font-size:17.5px; font-weight:800; color:#1b283a}
+.layer-list{list-style:none; margin:0; padding:0; font-size:14px; color:#394759}
+.layer-list li{
+  padding:10px 0; border-bottom:1px dashed #e3d8c5;
+  display:flex; flex-direction:column; gap:2px;
+}
+.layer-list li:last-child{border-bottom:0}
+.layer-list strong{font-weight:700; color:#1a2738}
+.layer-list .price{font-weight:700; color:#946b26}
+.layer-note{margin-top:10px; font-size:12.3px; color:var(--muted)}
+
+/* Calculator */
+.calc-grid{display:grid; gap:18px}
+@media(min-width:900px){ .calc-grid{grid-template-columns: 1.15fr .85fr} }
+.calc-topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; flex-wrap:wrap;
+}
+.calc-topbar h3{margin:0; font-size:15.5px; font-weight:800; color:#2a384b}
+.tier-row{
+  display:grid;
+  grid-template-columns: 1fr 120px;
+  gap:10px;
+  align-items:center;
+  padding:12px 0;
+  border-bottom:1px solid #ede5d6;
+}
+.tier-row:last-child{border-bottom:0}
+.tier-label strong{display:block; font-size:15px}
+.tier-label span{font-size:12.7px; color:var(--muted)}
+.input-wrap{
+  position:relative;
+}
+.input-wrap input{
+  width:100%; background:#f9f4e8; border:1.5px solid #e2cfab;
+  padding:12px 12px; border-radius:12px; font-weight:700; font-size:16px; color:#1c293b;
+  text-align:right; font-family: inherit;
+}
+.input-wrap input:focus{outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(212,168,75,.18)}
+.input-suffix{position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#a38a5e; font-size:12.5px; font-weight:700}
+.calc-side{
+  background: linear-gradient(165deg, #14243a 0%, #0f1b2d 100%);
+  color:#eadcc2;
+  border-radius:18px;
+  padding:22px 20px;
+  position:relative;
+  overflow:hidden;
+}
+.calc-side::after{
+  content:""; position:absolute; right:-30px; top:-30px; width:110px; height:110px; border-radius:50%;
+  background: radial-gradient(circle, rgba(212,168,75,.16), transparent 70%);
+}
+.mrr-label{font-size:12.5px; color:#c5ad80; text-transform:uppercase; letter-spacing:.08em; font-weight:700}
+.mrr-value{font-family:'Fraunces', serif; font-size: clamp(30px, 4.5vw, 40px); margin:4px 0 8px; color:#f4e0b3}
+.mrr-break{display:grid; gap:7px; font-size:13.6px; color:#d7c3a1; margin-top:12px; border-top:1px solid rgba(212,168,75,.2); padding-top:12px}
+.mrr-break div{display:flex; justify-content:space-between}
+.target-box{
+  margin-top:16px; background:rgba(212,168,75,.11); border:1px solid rgba(212,168,75,.28);
+  padding:12px 14px; border-radius:12px; font-size:13px; color:#efd3a2;
+}
+.target-box strong{color:#f8e1b6}
+
+/* Cashflow projection */
+.proj-wrap{display:grid; gap:18px}
+@media(min-width:920px){ .proj-wrap{grid-template-columns: 1fr 1.35fr} }
+.proj-table{width:100%; border-collapse:separate; border-spacing:0; font-size:14px}
+.proj-table th{ text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:#8a7960; padding:0 0 8px}
+.proj-table td{padding:11px 0; border-top:1px solid #e9e1d1}
+.proj-table tr td:last-child{text-align:right; font-weight:700}
+.proj-meta{display:flex; flex-wrap:wrap; gap:14px 24px; margin-top:14px; font-size:13.4px; color:#4a5768}
+.proj-meta strong{color:#223147}
+.chart-card{padding:18px 18px 10px}
+.chart-title{font-weight:700; font-size:14px; margin-bottom:14px; color:#2a384b}
+.bars{
+  display:grid; grid-template-columns: repeat(5,1fr); gap:12px; align-items:end; min-height:196px;
+}
+.bar-col{display:flex; flex-direction:column; align-items:center; gap:8px; height:100%; justify-content:flex-end}
+.bar{
+  width:100%; max-width:84px;
+  border-radius:10px 10px 6px 6px;
+  background: linear-gradient(180deg, #eac37a 0%, #c99034 100%);
+  position:relative;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
+  transition: height .5s ease;
+  min-height:18px;
+}
+.bar em{
+  position:absolute; top:-22px; left:50%; transform:translateX(-50%);
+  font-style:normal; font-size:11.5px; font-weight:800; color:#7b5b24; white-space:nowrap;
+}
+.bar-label{font-size:11.7px; color:#6e7a8b; text-align:center; line-height:1.35}
+.bar-axis{border-top:1px solid #e1d5c0; margin-top:8px; padding-top:8px; display:flex; justify-content:space-between; font-size:11px; color:#9a8a71 }
+
+/* --- Assumptions / Revenue Mix --- */
+.assumptions-grid{
+  display:grid; gap:18px;
+}
+@media(min-width:920px){ .assumptions-grid{ grid-template-columns: 1fr 1.18fr; } }
+.mix-list{ display:grid; gap:12px; margin-top:10px;}
+.mix-row{}
+.mix-row-head{ display:flex; justify-content:space-between; font-size:13.5px; font-weight:700; color:#2b3849; margin-bottom:6px;}
+.mix-row-head span:last-child{ color:#8a6a2e;}
+.mix-track{ height:9px; background:#efe3c9; border-radius:99px; overflow:hidden;}
+.mix-fill{ height:100%; border-radius:99px; background: linear-gradient(90deg, #d4a84b, #b97f2a); }
+
+.assump-cards{
+  display:grid; gap:10px;
+}
+@media(min-width:560px){ .assump-cards{ grid-template-columns: 1fr 1fr; } }
+.assump-card{
+  border:1px solid #e6d5b7;
+  background:#fffdf8;
+  border-radius:14px;
+  padding:14px 14px;
+}
+.assump-kicker{
+  font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:#b28532; margin-bottom:5px;
+}
+.assump-val{ font-size:14px; font-weight:700; color:#243142; line-height:1.45; }
+.assump-sub{ font-size:12.6px; color:#62708a; margin-top:4px;}
+
+/* Book mapping */
+.mapping-grid{display:grid; gap:10px}
+@media(min-width:740px){ .mapping-grid{grid-template-columns:1fr 1fr} }
+.map-item{
+  display:flex; gap:12px; align-items:flex-start;
+  background: #fffdf9; border:1px solid var(--line); border-radius:14px; padding:12px 13px;
+  transition:.15s;
+}
+.map-item.checked{background:#faf5e9; border-color:#e3cf9f}
+.map-check{
+  width:22px; height:22px; border-radius:7px; border:1.7px solid #cdb588; background:#fff;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; cursor:pointer;
+  transition:.15s;
+}
+.map-item.checked .map-check{background:#d4a84b; border-color:#d4a84b; color:#fff}
+.map-check svg{opacity:0}
+.map-item.checked .map-check svg{opacity:1}
+.map-body strong{display:block; font-size:13.8px}
+.map-body span{font-size:13.2px; color:#556271}
+.map-progress{
+  display:flex; align-items:center; gap:10px; font-size:13px; color:#5a6778; margin-bottom:10px; flex-wrap:wrap;
+}
+.map-progress .pbar{flex:1; min-width:140px; height:8px; background:#ebe2cf; border-radius:99px; overflow:hidden}
+.map-progress .pbar i{display:block; height:100%; background:linear-gradient(90deg, #d4a84b, #b9842c); border-radius:99px; width:0%}
+
+/* Split */
+.split-grid{display:grid; gap:18px}
+@media(min-width:900px){ .split-grid{grid-template-columns: 1fr 1fr} }
+.split-row{
+  display:grid; grid-template-columns: 1fr 120px 66px; gap:10px; align-items:center; padding:12px 0; border-bottom:1px solid #ece3d3;
+}
+.split-row:last-child{border-bottom:0}
+.split-name{font-weight:700; font-size:14.4px}
+.split-name small{display:block; font-weight:500; color:var(--muted); font-size:12.3px}
+.split-row input[type=number]{
+  width:100%; background:#f9f4e8; border:1.5px solid #e2cfab; border-radius:10px; padding:10px 10px; text-align:right; font-weight:700; font-size:15.5px; color:#1b2a3d;
+}
+.split-row input:focus{outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(212,168,75,.16)}
+.pct{font-weight:700; color:#8c6a2d; text-align:right}
+.split-viz{
+  background:#fbf7ee; border:1.3px solid #e7d8bb; border-radius:16px; padding:18px;
+}
+.split-bar{
+  height:18px; border-radius:999px; overflow:hidden; background:#efe3cc; display:flex;
+}
+.split-bar i{display:block; height:100%}
+.split-legend{display:grid; grid-template-columns:1fr 1fr; gap:10px 16px; margin-top:14px; font-size:13.2px; color:#4a5566}
+.legend-dot{width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:7px; vertical-align:middle}
+.split-total{margin-top:14px; font-size:13.6px; font-weight:700}
+.split-total.ok{color:var(--green)}
+.split-total.bad{color:var(--red)}
+.split-hint{font-size:12.5px; color:var(--muted); margin-top:6px}
+
+/* Roadmap */
+.roadmap-grid{display:grid; gap:14px}
+@media(min-width:900px){ .roadmap-grid{grid-template-columns: repeat(2,1fr)} }
+.phase{
+  border:1px solid var(--line); border-radius:18px; background:#fffdf9; padding:18px 17px;
+}
+.phase h4{margin:0 0 4px; font-size:16px}
+.phase .phase-when{font-size:12.2px; color:#a07b3a; font-weight:700; margin-bottom:10px}
+.checklist{list-style:none; margin:0; padding:0}
+.checklist li{
+  display:flex; gap:10px; align-items:flex-start; padding:9px 0; border-top:1px dashed #eadcc4; font-size:14px; color:#3b485a;
+}
+.checklist li:first-child{border-top:0}
+.cbox{
+  width:20px; height:20px; border-radius:6px; border:1.6px solid #cdb588; flex-shrink:0; margin-top:2px; background:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+.cbox.on{background:#d4a84b; border-color:#d4a84b; color:#fff}
+.cbox svg{opacity:0}
+.cbox.on svg{opacity:1}
+.checklist li.done span{text-decoration: line-through; color:#8a97a6}
+
+/* Risks */
+.risk-grid{display:grid; gap:10px}
+@media(min-width:860px){ .risk-grid{grid-template-columns:1fr 1fr} }
+.risk{
+  background:#fffdf9; border:1px solid var(--line); border-radius:14px; padding:14px 15px;
+}
+.risk-top{display:flex; align-items:center; justify-content:space-between; gap:12px; cursor:pointer}
+.risk-name{font-weight:700; font-size:14.6px}
+.risk-tag{font-size:11px; font-weight:800; padding:4px 9px; border-radius:999px; background:#f2e7cf; color:#8a5d1c}
+.risk-mit{font-size:13.4px; color:#51606f; margin-top:9px; display:none}
+.risk.open .risk-mit{display:block}
+.risk.open{border-color:#dfc796; background:#fcf7ec}
+
+/* Monthly log */
+.log-toolbar{display:flex; flex-wrap:wrap; gap:10px; align-items:end; margin-bottom:14px}
+.log-toolbar .f{ display:flex; flex-direction:column; gap:6px}
+.log-toolbar label{font-size:11.8px; font-weight:700; color:#6b7686}
+.log-toolbar input, .log-toolbar select{
+  border:1.5px solid #dbc79f; background:#fcf8ef; border-radius:10px; padding:10px 11px; font-family:inherit; font-size:14px; color:#253348; min-width:0;
+}
+.log-toolbar .grow{flex:1 1 180px}
+.btn{
+  border:0; background: var(--navy); color:#f2e3c3; font-weight:700; padding:11px 16px; border-radius:11px; cursor:pointer; font-family:inherit; font-size:14px;
+}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:#f1e6cf; color:#6a4b18}
+.btn.small{padding:8px 12px; font-size:13px}
+.table-wrap{overflow:auto; border:1px solid var(--line); border-radius:14px; background:#fff}
+.log-table{width:100%; border-collapse:collapse; font-size:13.7px; min-width:620px}
+.log-table th{background:#f8f1df; text-align:left; padding:11px 12px; font-size:11.6px; text-transform:uppercase; letter-spacing:.05em; color:#86612a}
+.log-table td{padding:11px 12px; border-top:1px solid #f0e5cf}
+.log-table tr:hover td{background:#fffaf0}
+.empty-log{padding:20px; text-align:center; color:#7a8696; font-size:14px}
+
+/* Footer */
+footer{
+  margin-top:36px;
+  padding:28px 0 42px;
+  border-top:1px solid #e1d5bf;
+  background:#f3ece0;
+  color:#5a6574;
+  font-size:13.2px;
+}
+.foot-disclaimer{
+  background:#fff9ef; border:1px solid #ecd3aa; color:#6a5530; padding:14px 16px; border-radius:14px; font-size:13.2px; line-height:1.6;
+}
+.foot-bottom{display:flex; flex-wrap:wrap; gap:12px 24px; justify-content:space-between; align-items:center; margin-top:18px; font-size:12.7px; color:#7b8796}
+
+/* Utilities */
+.row-between{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap}
+.chip{font-size:11.5px; font-weight:700; background:#f0e3c7; color:#845c19; padding:4px 9px; border-radius:999px}
+.chip.navy{ background:#162840; color:#e8d0a7;}
+.muted{color:var(--muted)}
+hr.soft{border:0; border-top:1px solid #e9dfca; margin:16px 0}
+
+/* Responsive niceties */
+@media (max-width: 520px){
+  .tier-row{grid-template-columns:1fr 108px}
+  .split-row{grid-template-columns:1fr 92px 44px}
+  .bars{gap:7px}
+  .bar em{font-size:10.5px}
+  .scenario-inner{ gap:10px; }
+  .scenario-pills{ width:100%; max-width:none; }
+  .s-pill{ padding:8px 10px; font-size:12.8px;}
+}
+
+/* Print */
+@media print{
+  .quick-nav, .btn, .cbox, .map-check, .scenario-bar {display:none !important}
+  body{background:#fff}
+  .card, .layer-card, .phase, .risk{box-shadow:none}
+  .site-header{color:#111}
+}
+</style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container hdr-inner">
+      <div class="topline">
+        <span class="badge-live">Proposal v1.0 — Juni 2026</span>
+        <span>Revenue & Sustainability Framework</span>
+      </div>
+      <h1 class="brand">IFBTC – <span class="gold">Islamic Finance & Bitcoin Community</span></h1>
+      <div class="brand-sub">
+        IFBTC – Islamic Finance & Bitcoin Community <br>
+        Founder: Izzuddin Edi Siswanto
+      </div>
+      <div class="tagline-wrap">
+        <div class="tagline">Build Systems That Pay You for Life</div>
+        <div class="hdr-meta">IFBTC Revenue System Planner v3 – <strong style="color:#e7cd9c">Scenario Edition</strong></div>
+      </div>
+      <nav class="quick-nav" aria-label="Navigasi cepat">
+        <a href="#revenue">Revenue</a>
+        <a href="#calculator">Kalkulator</a>
+        <a href="#cashflow">Cashflow</a>
+        <a href="#assumptions">Asumsi</a>
+        <a href="#mapping">Book Mapping</a>
+        <a href="#split">Split</a>
+        <a href="#roadmap">Roadmap</a>
+        <a href="#risiko">Risiko</a>
+        <a href="#log">Monthly Log</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Scenario Toggle Bar -->
+  <div class="scenario-bar" id="scenarioBar">
+    <div class="container scenario-inner">
+      <div class="scenario-left">
+        <span class="scenario-label">Skenario Perencanaan</span>
+        <span class="scenario-hint">Mengubah angka di seluruh planner</span>
+      </div>
+      <div class="scenario-pills" role="tablist" aria-label="Pilih skenario">
+        <button class="s-pill active" data-scenario="konservatif" role="tab" aria-selected="true">Konservatif</button>
+        <button class="s-pill" data-scenario="basis" role="tab" aria-selected="false">Basis</button>
+        <button class="s-pill" data-scenario="optimis" role="tab" aria-selected="false">Optimis</button>
+      </div>
+      <div class="scenario-right-note">Kalkulator, cashflow, mix & asumsi ikut berubah</div>
+    </div>
+  </div>
+
+  <main class="container">
+    <!-- 2. LAPISAN REVENUE -->
+    <section id="revenue" class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">Lapisan Monetisasi</div>
+          <h2 class="section-title">3 Lapisan Revenue IFBTC</h2>
+          <p class="section-desc">Urutkan sesuai fase, jangan lompat. Quick Wins biayai Core Engine, Core Engine biayai Scale.</p>
+        </div>
+        <div class="chip" id="scenarioChipRevenue">Skenario: Konservatif</div>
+      </div>
+
+      <div class="layers-grid">
+        <!-- L1 -->
+        <article class="layer-card">
+          <div class="layer-tag">Lapisan 1 — Quick Wins B1–3</div>
+          <h3>Validasi & Cash Awal</h3>
+          <ul class="layer-list">
+            <li>
+              <strong>Konsultasi Halal-Haram Kripto</strong>
+              <span class="price">Rp 300.000 – 500.000 / sesi</span>
+              <span>Individual</span>
+            </li>
+            <li>
+              <strong>Konsultasi Institusi</strong>
+              <span class="price">Rp 1.500.000 – 3.000.000</span>
+              <span>Per sesi / advisory awal</span>
+            </li>
+            <li>
+              <strong>Premium Content / Newsletter</strong>
+              <span class="price">Rp 99.000 / bln — Individual</span>
+              <span class="price">Rp 499.000 / bln — Institusi</span>
+            </li>
+          </ul>
+          <div class="layer-note">Tujuan: cashflow cepat, list building, uji pricing.</div>
+        </article>
+
+        <!-- L2 -->
+        <article class="layer-card feature">
+          <div class="layer-tag">Lapisan 2 — Core Engine B3–8</div>
+          <h3>Recurring & Authority</h3>
+          <ul class="layer-list">
+            <li>
+              <strong>Workshop</strong>
+              <span class="price">Rp 75.000 – 150.000</span>
+              <span>Workshop Intensif <span class="price">Rp 350.000 – 750.000</span></span>
+            </li>
+            <li>
+              <strong>Sertifikasi HCA – Halal Crypto Analyst</strong>
+              <span class="price">Rp 1.500.000 – 3.500.000</span>
+            </li>
+            <li>
+              <strong>Membership IFBTC</strong>
+              <span>FREE — Komunitas & Weekly Brief</span>
+              <span>BASIC <strong class="price">Rp 99.000 / bln</strong></span>
+              <span>PRO <strong class="price">Rp 299.000 / bln</strong></span>
+              <span>INSTITUSI <strong class="price">Rp 999.000 / bln</strong></span>
+            </li>
+          </ul>
+          <div class="layer-note">Ini mesin utama. Push MRR di sini.</div>
+        </article>
+
+        <!-- L3 -->
+        <article class="layer-card">
+          <div class="layer-tag">Lapisan 3 — Scale B6–18</div>
+          <h3>Institutional & SaaS</h3>
+          <ul class="layer-list">
+            <li>
+              <strong>Institutional Research</strong>
+              <span class="price">Rp 5.000.000 – 25.000.000 / proyek</span>
+              <span>White-label screening, fatwa brief</span>
+            </li>
+            <li>
+              <strong>SaaS Halal Crypto Monitoring</strong>
+              <span class="price">Rp 49.000 – 99.000 / bln</span>
+              <span>API Access <span class="price">Rp 500.000 – 2.000.000 / bln</span></span>
+            </li>
+          </ul>
+          <div class="layer-note">Baru dieksekusi setelah cashflow Core Engine stabil.</div>
+        </article>
+      </div>
+    </section>
+
+    <!-- 3. MEMBERSHIP CALCULATOR -->
+    <section id="calculator" class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">MRR Engine</div>
+          <h2 class="section-title">Membership Calculator</h2>
+          <p class="section-desc">Hitung recurring IFBTC. Edit jumlah member, auto-hitung real-time. Angka default ikut skenario aktif.</p>
+        </div>
+      </div>
+
+      <div class="card pad calc-grid">
+        <div>
+          <div class="calc-topbar">
+            <h3>Jumlah Member Aktif</h3>
+            <span class="chip navy" id="calcScenarioBadge">Konservatif</span>
+          </div>
+
+          <div class="tier-row">
+            <div class="tier-label">
+              <strong>BASIC</strong>
+              <span>Rp 99.000 / member / bulan — Laporan bulanan</span>
+            </div>
+            <div class="input-wrap">
+              <span class="input-suffix">org</span>
+              <input type="number" min="0" step="1" id="basicCount" value="30" inputmode="numeric" aria-label="Jumlah member Basic">
+            </div>
+          </div>
+          <div class="tier-row">
+            <div class="tier-label">
+              <strong>PRO</strong>
+              <span>Rp 299.000 / member / bulan — Brief + Q&A</span>
+            </div>
+            <div class="input-wrap">
+              <span class="input-suffix">org</span>
+              <input type="number" min="0" step="1" id="proCount" value="15" inputmode="numeric" aria-label="Jumlah member Pro">
+            </div>
+          </div>
+          <div class="tier-row">
+            <div class="tier-label">
+              <strong>INSTITUSI</strong>
+              <span>Rp 999.000 / akun / bulan — Multi-seat</span>
+            </div>
+            <div class="input-wrap">
+              <span class="input-suffix">akun</span>
+              <input type="number" min="0" step="1" id="instCount" value="3" inputmode="numeric" aria-label="Jumlah akun Institusi">
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px;">
+            <button class="btn ghost small" id="resetMrrBtn" type="button">Reset ke default skenario</button>
+            <span style="font-size:12.4px; color:#728095" id="calcHint">Default Konservatif: Basic 30 / Pro 15 / Institusi 3</span>
+          </div>
+        </div>
+
+        <div class="calc-side" aria-live="polite">
+          <div class="mrr-label">Total Recurring / Bulan</div>
+          <div class="mrr-value" id="mrrTotal">Rp 10.452.000</div>
+          <div class="mrr-break" id="mrrBreak">
+            <div><span>Basic × 30</span><strong>Rp 2.970.000</strong></div>
+            <div><span>Pro × 15</span><strong>Rp 4.485.000</strong></div>
+            <div><span>Institusi × 3</span><strong>Rp 2.997.000</strong></div>
+          </div>
+          <div class="target-box">
+            <div id="mrrTargetLabel">Target Konservatif: <strong>Rp 10.452.000 / bln</strong></div>
+            <span id="mrrDelta" style="opacity:.92">Status: sesuai target</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. CASHFLOW PROYEKSI -->
+    <section id="cashflow" class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">Runway</div>
+          <h2 class="section-title">Cashflow Proyeksi Tahun 1</h2>
+          <p class="section-desc">Angka ikut skenario aktif. Konservatif = validasi, Basis = realistis, Optimis = eksekusi agresif.</p>
+        </div>
+        <div class="chip" id="cfScenarioChip">Konservatif</div>
+      </div>
+
+      <div class="proj-wrap">
+        <div class="card pad">
+          <table class="proj-table" aria-label="Proyeksi Cashflow Tahun 1">
+            <thead>
+              <tr><th>Bulan</th><th style="text-align:right">Revenue / Bulan</th></tr>
+            </thead>
+            <tbody id="cfTableBody">
+              <!-- JS -->
+            </tbody>
+          </table>
+          <div class="proj-meta" id="cfMeta">
+            <div>Total Y1: <strong>Rp 200 – 250 jt</strong></div>
+            <div>Opex Y1: <strong>Rp 50 – 60 jt</strong></div>
+            <div>Breakeven: <strong>Bulan 6 – 9</strong></div>
+            <div>Net margin: <strong>70 – 80%</strong></div>
+          </div>
+        </div>
+
+        <div class="card pad chart-card">
+          <div class="chart-title" id="cfChartTitle">Proyeksi Revenue — Konservatif</div>
+          <div class="bars" id="cfBars" aria-hidden="true">
+            <!-- bars injected by JS -->
+          </div>
+          <div class="bar-axis" id="cfAxis"><span>Rp 0</span><span>Rp 50 jt</span></div>
+          <div style="font-size:12px; color:#8290a2; margin-top:8px">Angka adalah hipotesis untuk perencanaan, wajib validasi pasar.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NEW: Assumptions / Revenue Mix -->
+    <section id="assumptions" class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">Skenario Aktif</div>
+          <h2 class="section-title">Revenue Mix & Asumsi Operasional</h2>
+          <p class="section-desc">Komposisi pendapatan dan asumsi HCA / Workshop / Konsultasi untuk skenario <strong id="assumpScenarioName">Konservatif</strong>.</p>
+        </div>
+      </div>
+
+      <div class="assumptions-grid">
+        <div class="card pad">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+            <h3 style="margin:0; font-size:16px; color:#253246;">Revenue Mix Tahunan</h3>
+            <span class="chip" id="mixScenarioChip">Konservatif</span>
+          </div>
+          <div class="mix-list" id="mixList">
+            <!-- JS -->
+          </div>
+          <p style="font-size:12.3px; color:#738194; margin:14px 0 0;">Mix bergeser ke Institutional + SaaS saat naik ke skenario Optimis.</p>
+        </div>
+
+        <div class="card pad">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px">
+            <h3 style="margin:0; font-size:16px; color:#253246;">Asumsi Operasional</h3>
+            <span class="chip navy" id="assumpScenarioChip">Konservatif</span>
+          </div>
+          <div class="assump-cards" id="assumpCards">
+            <!-- JS -->
+          </div>
+          <p style="font-size:12.2px; color:#738194; margin:12px 0 0;">Asumsi ini untuk forecasting internal, bukan janji hasil. Wajib uji pasar tiap kuartal.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. BOOK MAPPING -->
+    <section id="mapping" class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">Millionaires Don't Think in Salaries</div>
+          <h2 class="section-title">Book Mapping — 14 Bab → IFBTC</h2>
+          <p class="section-desc">Checklist eksekusi. Klik untuk menandai selesai, progress tersimpan lokal.</p>
+        </div>
+      </div>
+
+      <div class="card pad">
+        <div class="map-progress">
+          <strong id="mapProgressText">0 / 14 selesai</strong>
+          <div class="pbar" aria-hidden="true"><i id="mapProgressBar"></i></div>
+          <button class="btn ghost small" id="resetMapBtn" type="button">Reset</button>
+        </div>
+        <div class="mapping-grid" id="mappingGrid">
+          <!-- JS injects -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. CASHFLOW SPLIT -->
+    <section id="split" class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">Treasury Discipline</div>
+          <h2 class="section-title">Cashflow Split IFBTC</h2>
+          <p class="section-desc">Alokasikan setiap rupiah masuk. Harus total 100%. Bisa diedit sesuai fase.</p>
+        </div>
+      </div>
+
+      <div class="card pad split-grid">
+        <div id="splitInputs">
+          <div class="split-row" data-key="ops">
+            <div class="split-name">Operasional<small>Tooling, domain, admin</small></div>
+            <input type="number" min="0" max="100" value="25" aria-label="Operasional persen" id="splitOps">
+            <div class="pct">%</div>
+          </div>
+          <div class="split-row" data-key="content">
+            <div class="split-name">Content Production<small>Research, editing, desain</small></div>
+            <input type="number" min="0" max="100" value="20" aria-label="Content persen" id="splitContent">
+            <div class="pct">%</div>
+          </div>
+          <div class="split-row" data-key="growth">
+            <div class="split-name">Growth / Marketing<small>Ads, collab, event</small></div>
+            <input type="number" min="0" max="100" value="15" aria-label="Growth persen" id="splitGrowth">
+            <div class="pct">%</div>
+          </div>
+          <div class="split-row" data-key="reserve">
+            <div class="split-name">Reserve<small>Emergency & runway</small></div>
+            <input type="number" min="0" max="100" value="40" aria-label="Reserve persen" id="splitReserve">
+            <div class="pct">%</div>
+          </div>
+          <div class="split-hint">Rekomendasi awal: Operasional 20–30%, Content 20%, Growth 15%, Reserve 35%</div>
+        </div>
+
+        <div class="split-viz">
+          <div class="split-bar" id="splitBar" aria-hidden="true"></div>
+          <div class="split-legend" id="splitLegend"></div>
+          <div class="split-total ok" id="splitTotal">Total: 100% — Alokasi valid</div>
+          <div style="font-size:12.6px; color:#6a7686; margin-top:10px">Gunakan Reserve 35% untuk menjaga independensi riset dan menahan guncangan fatwa/regulasi.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. ROADMAP -->
+    <section id="roadmap" class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">Eksekusi</div>
+          <h2 class="section-title">Roadmap Checklist</h2>
+        </div>
+        <div class="chip" id="roadmapProgress">0% selesai</div>
+      </div>
+
+      <div class="roadmap-grid" id="roadmapGrid">
+        <!-- JS inject -->
+      </div>
+    </section>
+
+    <!-- 8. RISIKO -->
+    <section id="risiko" class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">Risk Management</div>
+          <h2 class="section-title">Risiko Tracker & Mitigasi</h2>
+          <p class="section-desc">Tap kartu untuk melihat mitigasi lengkap.</p>
+        </div>
+      </div>
+
+      <div class="risk-grid" id="riskGrid">
+        <!-- JS inject -->
+      </div>
+    </section>
+
+    <!-- 9. MONTHLY LOG -->
+    <section id="log" class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">Accountability</div>
+          <h2 class="section-title">Monthly Log</h2>
+          <p class="section-desc">Catat revenue aktual tiap bulan. Tersimpan di browser Anda (localStorage).</p>
+        </div>
+      </div>
+
+      <div class="card pad">
+        <form id="logForm" class="log-toolbar" autocomplete="off">
+          <div class="f">
+            <label for="logMonth">Bulan</label>
+            <input type="month" id="logMonth" required>
+          </div>
+          <div class="f">
+            <label for="logRevenue">Revenue (Rp)</label>
+            <input type="number" id="logRevenue" placeholder="15000000" min="0" required>
+          </div>
+          <div class="f">
+            <label for="logStream">Stream dominan</label>
+            <select id="logStream" required>
+              <option value="Konsultasi">Konsultasi</option>
+              <option value="Newsletter">Newsletter</option>
+              <option value="Workshop">Workshop</option>
+              <option value="Membership">Membership</option>
+              <option value="HCA">HCA</option>
+              <option value="Institutional">Institutional</option>
+              <option value="SaaS">SaaS</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
+          <div class="f grow">
+            <label for="logNote">Catatan</label>
+            <input type="text" id="logNote" placeholder="Mis. Webinar Bitcoin 2026, 87 pendaftar">
+          </div>
+          <div class="f">
+            <label>&nbsp;</label>
+            <button class="btn" type="submit">Simpan</button>
+          </div>
+        </form>
+
+        <div class="table-wrap">
+          <table class="log-table" id="logTable" aria-label="Monthly revenue log">
+            <thead>
+              <tr>
+                <th>Bulan</th>
+                <th>Revenue</th>
+                <th>Stream</th>
+                <th>Catatan</th>
+                <th style="width:72px"></th>
+              </tr>
+            </thead>
+            <tbody id="logTbody">
+            </tbody>
+          </table>
+          <div id="logEmpty" class="empty-log" style="display:none">Belum ada data. Tambahkan log pertama Anda di atas.</div>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap">
+          <button class="btn ghost small" id="exportLogBtn" type="button">Export CSV</button>
+          <button class="btn ghost small" id="clearLogBtn" type="button">Hapus semua log</button>
+        </div>
+      </div>
+    </section>
+
+    <div style="margin-top:28px" class="foot-disclaimer">
+      <strong>Proposal Working v1.0 – IFBTC Wealth System</strong><br>
+      Proposal Working v1.0 – angka adalah hipotesis, bukan guaranteed. Validasi pasar wajib. Bukan nasihat finansial/investasi. Ikuti regulasi OJK/Bappebti dan fatwa otoritatif MUI/Muhammadiyah/AAOIFI.
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="foot-bottom">
+        <div>© 2026 IFBTC – Islamic Finance & Bitcoin Community • Founder: Izzuddin Edi Siswanto</div>
+        <div>IFBTC Revenue System Planner v3 – Scenario Edition • Juni 2026</div>
+      </div>
+    </div>
+  </footer>
+
+<script>
+/* ========= SCENARIO DATA ========= */
+const SCENARIOS = {
+  konservatif: {
+    key: 'konservatif',
+    label: 'Konservatif',
+    membership: { basic: 30, pro: 15, inst: 3 },
+    cashflow: [
+      { label: 'Bulan 1–2', val: 5 },
+      { label: 'Bulan 3–4', val: 15 },
+      { label: 'Bulan 5–6', val: 25 },
+      { label: 'Bulan 7–9', val: 40 },
+      { label: 'Bulan 10–12', val: 50 },
+    ],
+    cfMeta: { total: 'Rp 200 – 250 jt', opex: 'Rp 50 – 60 jt', breakeven: 'Bulan 6 – 9', margin: '70 – 80%' },
+    mix: [
+      { label: 'Membership + Newsletter', pct: 45 },
+      { label: 'HCA + Workshop', pct: 30 },
+      { label: 'Konsultasi', pct: 20 },
+      { label: 'Institutional', pct: 5 },
+    ],
+    assumptions: {
+      hca: { kicker: 'HCA', val: '1 batch × 20 orang', sub: '@ Rp 1,5 jt / peserta' },
+      webinar: { kicker: 'Workshop / Webinar', val: '30 peserta / event', sub: 'Rp 75k – 350k' },
+      konsultasi: { kicker: 'Konsultasi', val: '4 sesi / bulan', sub: 'Rp 300k – 500k / sesi' },
+      institutional: { kicker: 'Institutional', val: '1 klien Q4', sub: 'Research / advisory' },
+    }
+  },
+  basis: {
+    key: 'basis',
+    label: 'Basis',
+    membership: { basic: 50, pro: 25, inst: 5 },
+    cashflow: [
+      { label: 'Bulan 1–2', val: 8 },
+      { label: 'Bulan 3–4', val: 22 },
+      { label: 'Bulan 5–6', val: 35 },
+      { label: 'Bulan 7–9', val: 55 },
+      { label: 'Bulan 10–12', val: 70 },
+    ],
+    cfMeta: { total: 'Rp 320 – 380 jt', opex: 'Rp 70 – 85 jt', breakeven: 'Bulan 4 – 5', margin: '72 – 78%' },
+    mix: [
+      { label: 'Membership', pct: 40 },
+      { label: 'HCA + Workshop', pct: 35 },
+      { label: 'Konsultasi', pct: 15 },
+      { label: 'Institutional', pct: 10 },
+    ],
+    assumptions: {
+      hca: { kicker: 'HCA', val: '2 batch × 25 orang', sub: '@ Rp 2,5 jt / peserta' },
+      webinar: { kicker: 'Workshop / Webinar', val: '60 peserta / event', sub: 'Rp 75k – 750k' },
+      konsultasi: { kicker: 'Konsultasi', val: '8 sesi / bulan', sub: 'Individual + Institusi' },
+      institutional: { kicker: 'Institutional', val: '2 klien / tahun', sub: 'Research / screening' },
+    }
+  },
+  optimis: {
+    key: 'optimis',
+    label: 'Optimis',
+    membership: { basic: 80, pro: 40, inst: 8 },
+    cashflow: [
+      { label: 'Bulan 1–2', val: 12 },
+      { label: 'Bulan 3–4', val: 32 },
+      { label: 'Bulan 5–6', val: 50 },
+      { label: 'Bulan 7–9', val: 75 },
+      { label: 'Bulan 10–12', val: 95 },
+    ],
+    cfMeta: { total: 'Rp 480 – 550 jt', opex: 'Rp 90 – 110 jt', breakeven: 'Bulan 3 – 4', margin: '75 – 80%' },
+    mix: [
+      { label: 'Membership', pct: 35 },
+      { label: 'HCA + Workshop', pct: 30 },
+      { label: 'Konsultasi', pct: 15 },
+      { label: 'Institutional + SaaS', pct: 20 },
+    ],
+    assumptions: {
+      hca: { kicker: 'HCA', val: '3 batch × 30 orang', sub: '@ Rp 2,5 jt / peserta' },
+      webinar: { kicker: 'Workshop / Webinar', val: '100 peserta / event', sub: 'Intensif + recording' },
+      konsultasi: { kicker: 'Konsultasi', val: '12 sesi / bulan', sub: 'Individual + Institusi' },
+      institutional: { kicker: 'Institutional + SaaS', val: '3 klien + SaaS pilot', sub: 'API / monitoring' },
+    }
+  }
+};
+
+const LS = 'ifbtc_ws_v3_';
+const rupiah = n => new Intl.NumberFormat('id-ID').format(Math.round(n||0));
+
+let currentScenarioKey = localStorage.getItem(LS+'scenario') || 'konservatif';
+function S(){ return SCENARIOS[currentScenarioKey]; }
+
+/* ---------- Scenario Toggle ---------- */
+const scenarioPills = document.querySelectorAll('.s-pill');
+function applyScenario(key, applyMembershipDefaults = true){
+  currentScenarioKey = key;
+  localStorage.setItem(LS+'scenario', key);
+  const sc = S();
+
+  // Toggle UI
+  scenarioPills.forEach(p=>{
+    const active = p.dataset.scenario === key;
+    p.classList.toggle('active', active);
+    p.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+
+  // Update chips / labels
+  document.getElementById('scenarioChipRevenue').textContent = 'Skenario: ' + sc.label;
+  document.getElementById('calcScenarioBadge').textContent = sc.label;
+  document.getElementById('cfScenarioChip').textContent = sc.label;
+  document.getElementById('assumpScenarioName').textContent = sc.label;
+  document.getElementById('mixScenarioChip').textContent = sc.label;
+  document.getElementById('assumpScenarioChip').textContent = sc.label;
+
+  // Membership defaults
+  if(applyMembershipDefaults){
+    basicEl.value = sc.membership.basic;
+    proEl.value   = sc.membership.pro;
+    instEl.value  = sc.membership.inst;
+    localStorage.setItem(LS+'mrr', JSON.stringify({b: sc.membership.basic, p: sc.membership.pro, i: sc.membership.inst}));
+  }
+  calcMRR();
+
+  // Cashflow
+  renderCashflow();
+
+  // Mix & Assumptions
+  renderMixAssumptions();
+
+  // Calculator hint
+  document.getElementById('calcHint').textContent =
+    `Default ${sc.label}: Basic ${sc.membership.basic} / Pro ${sc.membership.pro} / Institusi ${sc.membership.inst}`;
+}
+
+scenarioPills.forEach(p=>{
+  p.addEventListener('click', ()=> applyScenario(p.dataset.scenario, true));
+});
+
+/* ---------- 3. Membership Calculator ---------- */
+const basicEl = document.getElementById('basicCount');
+const proEl = document.getElementById('proCount');
+const instEl = document.getElementById('instCount');
+
+const PRICE_BASIC = 99000;
+const PRICE_PRO = 299000;
+const PRICE_INST = 999000;
+
+function calcMRR(save=true){
+  const b = parseInt(basicEl.value)||0;
+  const p = parseInt(proEl.value)||0;
+  const i = parseInt(instEl.value)||0;
+  const vb = b * PRICE_BASIC;
+  const vp = p * PRICE_PRO;
+  const vi = i * PRICE_INST;
+  const total = vb + vp + vi;
+
+  document.getElementById('mrrTotal').textContent = 'Rp ' + rupiah(total);
+  document.getElementById('mrrBreak').innerHTML = `
+    <div><span>Basic × ${b}</span><strong>Rp ${rupiah(vb)}</strong></div>
+    <div><span>Pro × ${p}</span><strong>Rp ${rupiah(vp)}</strong></div>
+    <div><span>Institusi × ${i}</span><strong>Rp ${rupiah(vi)}</strong></div>
+  `;
+
+  const sc = S();
+  const target = sc.membership.basic * PRICE_BASIC + sc.membership.pro * PRICE_PRO + sc.membership.inst * PRICE_INST;
+  document.getElementById('mrrTargetLabel').innerHTML = `Target ${sc.label}: <strong>Rp ${rupiah(target)} / bln</strong>`;
+  const delta = total - target;
+  const deltaEl = document.getElementById('mrrDelta');
+  if(total >= target){
+    deltaEl.textContent = `Status: target tercapai. Surplus Rp ${rupiah(delta)}`;
+  } else {
+    deltaEl.textContent = `Status: kurang Rp ${rupiah(Math.abs(delta))} dari target ${sc.label}`;
+  }
+  if(save){
+    localStorage.setItem(LS+'mrr', JSON.stringify({b,p,i}));
+  }
+}
+[basicEl, proEl, instEl].forEach(el=>{
+  el.addEventListener('input', ()=>calcMRR(true));
+});
+
+/* ---------- 4. Cashflow Chart / Table ---------- */
+function renderCashflow(){
+  const sc = S();
+  const data = sc.cashflow;
+  const maxVal = Math.max(...data.map(d=>d.val));
+
+  // Table
+  document.getElementById('cfTableBody').innerHTML = data.map(d =>
+    `<tr><td>${d.label}</td><td>Rp ${d.val} jt</td></tr>`
+  ).join('');
+
+  // Meta
+  document.getElementById('cfMeta').innerHTML = `
+    <div>Total Y1: <strong>${sc.cfMeta.total}</strong></div>
+    <div>Opex Y1: <strong>${sc.cfMeta.opex}</strong></div>
+    <div>Breakeven: <strong>${sc.cfMeta.breakeven}</strong></div>
+    <div>Net margin: <strong>${sc.cfMeta.margin}</strong></div>
+  `;
+
+  // Chart
+  document.getElementById('cfChartTitle').textContent = 'Proyeksi Revenue — ' + sc.label;
+  document.getElementById('cfBars').innerHTML = data.map(d=>{
+    const h = Math.round(d.val / maxVal * 100);
+    return `<div class="bar-col">
+      <div class="bar" style="height:${h}%">
+        <em>Rp ${d.val}jt</em>
+      </div>
+      <div class="bar-label">${d.label}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('cfAxis').innerHTML = `<span>Rp 0</span><span>Rp ${maxVal} jt</span>`;
+}
+
+/* ---------- Mix & Assumptions ---------- */
+function renderMixAssumptions(){
+  const sc = S();
+  // Mix
+  document.getElementById('mixList').innerHTML = sc.mix.map(m=>`
+    <div class="mix-row">
+      <div class="mix-row-head"><span>${m.label}</span><span>${m.pct}%</span></div>
+      <div class="mix-track"><div class="mix-fill" style="width:${m.pct}%"></div></div>
+    </div>
+  `).join('');
+
+  // Assumptions
+  const a = sc.assumptions;
+  const cards = [
+    a.hca, a.webinar, a.konsultasi, a.institutional
+  ];
+  document.getElementById('assumpCards').innerHTML = cards.map(c=>`
+    <div class="assump-card">
+      <div class="assump-kicker">${c.kicker}</div>
+      <div class="assump-val">${c.val}</div>
+      <div class="assump-sub">${c.sub}</div>
+    </div>
+  `).join('');
+}
+
+/* ---------- 5. Book Mapping ---------- */
+const mapItems = [
+  {t:'Lepas Salary Trap', d:'Jangan jual waktu 1-on-1 terus, bangun Membership'},
+  {t:'Owner Mindset', d:'IFBTC sebagai analytical platform, bukan fatwa'},
+  {t:'Stop Trading Time', d:'Newsletter & HCA recorded'},
+  {t:'Assets While Sleep', d:'Monthly Report recurring Rp 99k'},
+  {t:'Multiple Streams', d:'3 Lapisan, jangan lompat ke SaaS dulu'},
+  {t:'Knowledge to System', d:'Paper SINTA → versi TikTok + Newsletter'},
+  {t:'Leverage Teknologi', d:'Substack / MailerLite, Xendit / Midtrans recurring'},
+  {t:'Leverage Tim', d:'Research fellows, kurangi founder-dependency'},
+  {t:'Invest for Cashflow', d:'Profit konsultasi → fund content production'},
+  {t:'Sistem Jalan Tanpa Kamu', d:'LMS HCA evergreen'},
+  {t:'Protect Wealth', d:'Frame fatwa hati-hati, kutip MUI / Muhammadiyah / AAOIFI'},
+  {t:'Psikologi', d:'Trust-building 3–6 bulan dulu, jangan hard sell'},
+  {t:'Scale What Works', d:'Pricing harus diuji pasar, data beats assumption'},
+  {t:'Legacy', d:'Halal Crypto Monitoring Platform'},
+];
+const mapGrid = document.getElementById('mappingGrid');
+let mapState = JSON.parse(localStorage.getItem(LS+'map') || '{}');
+
+function renderMap(){
+  mapGrid.innerHTML = mapItems.map((m, idx)=>{
+    const checked = !!mapState[idx];
+    return `<div class="map-item ${checked?'checked':''}" data-mi="${idx}">
+      <div class="map-check" role="checkbox" aria-checked="${checked}" tabindex="0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+      <div class="map-body"><strong>Bab ${idx+1}. ${m.t}</strong><span>${m.d}</span></div>
+    </div>`;
+  }).join('');
+  const done = Object.values(mapState).filter(Boolean).length;
+  document.getElementById('mapProgressText').textContent = `${done} / 14 selesai`;
+  document.getElementById('mapProgressBar').style.width = (done/14*100)+'%';
+}
+mapGrid.addEventListener('click', e=>{
+  const card = e.target.closest('.map-item');
+  if(!card) return;
+  const idx = card.dataset.mi;
+  mapState[idx] = !mapState[idx];
+  localStorage.setItem(LS+'map', JSON.stringify(mapState));
+  renderMap();
+});
+document.getElementById('resetMapBtn').addEventListener('click', ()=>{
+  mapState = {}; localStorage.removeItem(LS+'map'); renderMap();
+});
+
+/* ---------- 6. Cashflow Split ---------- */
+const splitInputs = {
+  ops: document.getElementById('splitOps'),
+  content: document.getElementById('splitContent'),
+  growth: document.getElementById('splitGrowth'),
+  reserve: document.getElementById('splitReserve')
+};
+const splitMeta = {
+  ops:{name:'Operasional', color:'#c88b2c'},
+  content:{name:'Content Production', color:'#d4a84b'},
+  growth:{name:'Growth / Marketing', color:'#e2c27a'},
+  reserve:{name:'Reserve', color:'#1d324d'}
+};
+function updateSplit(){
+  const vals = {
+    ops: parseInt(splitInputs.ops.value)||0,
+    content: parseInt(splitInputs.content.value)||0,
+    growth: parseInt(splitInputs.growth.value)||0,
+    reserve: parseInt(splitInputs.reserve.value)||0,
+  };
+  const total = vals.ops + vals.content + vals.growth + vals.reserve;
+  const bar = document.getElementById('splitBar');
+  bar.innerHTML = Object.keys(vals).map(k=>`<i style="width:${vals[k]}%; background:${splitMeta[k].color}"></i>`).join('');
+  document.getElementById('splitLegend').innerHTML = Object.keys(vals).map(k=> 
+    `<div><span class="legend-dot" style="background:${splitMeta[k].color}"></span>${splitMeta[k].name} — ${vals[k]}%</div>`
+  ).join('');
+  const totalEl = document.getElementById('splitTotal');
+  if(total === 100){
+    totalEl.textContent = 'Total: 100% — Alokasi valid';
+    totalEl.className = 'split-total ok';
+  } else {
+    totalEl.textContent = `Total: ${total}% — Harus 100% ${total < 100 ? '(kurang '+(100-total)+'%)' : '(kelebihan '+(total-100)+'%)'}`;
+    totalEl.className = 'split-total bad';
+  }
+  localStorage.setItem(LS+'split', JSON.stringify(vals));
+}
+Object.values(splitInputs).forEach(inp=> inp.addEventListener('input', updateSplit));
+
+/* ---------- 7. Roadmap ---------- */
+const roadmapPhases = [
+  {title:'PHASE 0 — Pondasi', when:'Minggu 1–4', items:[
+    'Setup payment Xendit / Midtrans',
+    'Landing page IFBTC + waitlist',
+    'Weekly Brief gratis (cadence)',
+    '3–5 konten anchor (Bitcoin halal framework)'
+  ]},
+  {title:'PHASE 1 — Monetisasi Awal', when:'Bulan 2–3', items:[
+    'Konsultasi soft launch (5 slot awal)',
+    'Webinar Bitcoin 2026',
+    'Monthly Report early adopter Rp 99k'
+  ]},
+  {title:'PHASE 2 — Core Engine', when:'Bulan 4–6', items:[
+    'Membership tiers launch (Basic / Pro / Institusi)',
+    'Pre-reg HCA – Halal Crypto Analyst',
+    'Outreach institusi / kampus'
+  ]},
+  {title:'PHASE 3 — Scale', when:'Bulan 7–12', items:[
+    'HCA Batch 1–2 jalan',
+    'Institutional consulting aktif',
+    'SaaS dev setelah cashflow stabil'
+  ]}
+];
+let roadmapState = JSON.parse(localStorage.getItem(LS+'roadmap')||'{}');
+const roadmapGrid = document.getElementById('roadmapGrid');
+
+function renderRoadmap(){
+  let total=0, done=0;
+  roadmapGrid.innerHTML = roadmapPhases.map((ph, pi)=>{
+    return `<div class="phase">
+      <h4>${ph.title}</h4>
+      <div class="phase-when">${ph.when}</div>
+      <ul class="checklist">
+        ${ph.items.map((it, ii)=>{
+          const key = pi+'-'+ii; total++;
+          const isDone = !!roadmapState[key]; if(isDone) done++;
+          return `<li class="${isDone?'done':''}">
+            <div class="cbox ${isDone?'on':''}" data-rk="${key}" role="checkbox" aria-checked="${isDone}" tabindex="0"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+            <span>${it}</span>
+          </li>`
+        }).join('')}
+      </ul>
+    </div>`;
+  }).join('');
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById('roadmapProgress').textContent = `${pct}% selesai`;
+}
+roadmapGrid.addEventListener('click', e=>{
+  const box = e.target.closest('.cbox');
+  if(!box) return;
+  const key = box.dataset.rk;
+  roadmapState[key] = !roadmapState[key];
+  localStorage.setItem(LS+'roadmap', JSON.stringify(roadmapState));
+  renderRoadmap();
+});
+
+/* ---------- 8. Risiko ---------- */
+const risks = [
+  {name:'Brand belum dikenal', tag:'Market', mit:'Konten gratis 6–12 bulan konsisten. Weekly Brief + Twitter threads + kolaborasi kampus. Trust dulu, jual kemudian.'},
+  {name:'Fatwa berubah', tag:'Syariah', mit:'Frame selalu analytical, bukan fatwa. Kutip MUI, Muhammadiyah, AAOIFI dengan jelas. Update Monthly Report bila ada perubahan.'},
+  {name:'OJK / regulasi shift', tag:'Regulasi', mit:'Justru opportunity. IFBTC jadi jembatan syariah–crypto yang compliant. Pantau POJK rutin, siapkan policy brief.'},
+  {name:'Competitor masuk', tag:'Kompetisi', mit:'First-mover di niche Islamic Crypto Analyst ID. Moat: data screening + HCA certified community + institutional trust.'},
+  {name:'Founder-dependency', tag:'Operasional', mit:'Bangun tim research fellows sejak Phase 2. Dokumentasikan SOP riset. LMS HCA evergreen agar bisa jalan tanpa founder full-time.'},
+];
+const riskGrid = document.getElementById('riskGrid');
+riskGrid.innerHTML = risks.map(r=>`
+  <div class="risk" tabindex="0" role="button" aria-expanded="false">
+    <div class="risk-top">
+      <div class="risk-name">${r.name}</div>
+      <span class="risk-tag">${r.tag}</span>
+    </div>
+    <div class="risk-mit">${r.mit}</div>
+  </div>
+`).join('');
+riskGrid.addEventListener('click', e=>{
+  const card = e.target.closest('.risk');
+  if(!card) return;
+  card.classList.toggle('open');
+  card.setAttribute('aria-expanded', card.classList.contains('open'));
+});
+
+/* ---------- 9. Monthly Log ---------- */
+const logForm = document.getElementById('logForm');
+const logTbody = document.getElementById('logTbody');
+const logEmpty = document.getElementById('logEmpty');
+
+function getLogs(){ try{ return JSON.parse(localStorage.getItem(LS+'logs')||'[]')}catch(e){return []} }
+function saveLogs(arr){ localStorage.setItem(LS+'logs', JSON.stringify(arr)) }
+
+function renderLogs(){
+  const logs = getLogs().sort((a,b)=> b.month.localeCompare(a.month));
+  if(!logs.length){
+    logTbody.innerHTML = '';
+    logEmpty.style.display = 'block';
+    document.getElementById('logTable').style.display='none';
+    return;
+  }
+  logEmpty.style.display = 'none';
+  document.getElementById('logTable').style.display='';
+  logTbody.innerHTML = logs.map((l) => {
+    const realIdx = getLogs().findIndex(x=>x.id===l.id);
+    return `<tr>
+      <td><strong>${formatMonthID(l.month)}</strong></td>
+      <td>Rp ${rupiah(l.revenue)}</td>
+      <td>${l.stream}</td>
+      <td style="color:#546372">${escapeHtml(l.note||'—')}</td>
+      <td><button class="btn ghost small" data-del="${realIdx}" type="button">Hapus</button></td>
+    </tr>`;
+  }).join('');
+}
+function formatMonthID(ym){
+  const [y,m] = ym.split('-');
+  const bl = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][parseInt(m,10)-1] || m;
+  return bl + ' ' + y;
+}
+function escapeHtml(s){ return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) }
+
+logForm.addEventListener('submit', e=>{
+  e.preventDefault();
+  const month = document.getElementById('logMonth').value;
+  const revenue = parseInt(document.getElementById('logRevenue').value)||0;
+  const stream = document.getElementById('logStream').value;
+  const note = document.getElementById('logNote').value.trim();
+  if(!month) return;
+  const logs = getLogs();
+  const existing = logs.findIndex(l=>l.month===month);
+  const entry = {id: Date.now()+Math.random(), month, revenue, stream, note};
+  if(existing >= 0){ logs[existing] = {...logs[existing], revenue, stream, note}; }
+  else { logs.push(entry); }
+  saveLogs(logs);
+  logForm.reset();
+  const now = new Date();
+  document.getElementById('logMonth').value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  renderLogs();
+});
+logTbody.addEventListener('click', e=>{
+  const btn = e.target.closest('button[data-del]');
+  if(!btn) return;
+  const idx = parseInt(btn.dataset.del,10);
+  const logs = getLogs();
+  logs.splice(idx,1);
+  saveLogs(logs);
+  renderLogs();
+});
+document.getElementById('clearLogBtn').addEventListener('click', ()=>{
+  if(confirm('Hapus semua log bulanan?')){ localStorage.removeItem(LS+'logs'); renderLogs(); }
+});
+document.getElementById('exportLogBtn').addEventListener('click', ()=>{
+  const logs = getLogs();
+  if(!logs.length){ alert('Belum ada data.'); return; }
+  const rows = [['Bulan','Revenue','Stream','Catatan'], ...logs.map(l=>[l.month, l.revenue, l.stream, (l.note||'').replace(/"/g,'""')])];
+  const csv = rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ifbtc-monthly-log.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+/* ---------- Init ---------- */
+function initApp(){
+  // Restore split
+  try{
+    const s = JSON.parse(localStorage.getItem(LS+'split')||'null');
+    if(s){
+      splitInputs.ops.value = s.ops ?? 25;
+      splitInputs.content.value = s.content ?? 20;
+      splitInputs.growth.value = s.growth ?? 15;
+      splitInputs.reserve.value = s.reserve ?? 40;
+    }
+  }catch(e){}
+  updateSplit();
+
+  // Render static modules
+  renderMap();
+  renderRoadmap();
+  renderLogs();
+
+  // Scenario init (sets calculator, cashflow, mix)
+  applyScenario(currentScenarioKey, true);
+
+  // Then try restore saved membership edits (overrides scenario defaults on first load only)
+  try{
+    const savedMrr = JSON.parse(localStorage.getItem(LS+'mrr')||'null');
+    if(savedMrr){
+      basicEl.value = savedMrr.b ?? S().membership.basic;
+      proEl.value   = savedMrr.p ?? S().membership.pro;
+      instEl.value  = savedMrr.i ?? S().membership.inst;
+      calcMRR(false);
+    }
+  }catch(e){}
+
+  // Reset MRR button
+  document.getElementById('resetMrrBtn').addEventListener('click', ()=>{
+    applyScenario(currentScenarioKey, true);
+  });
+
+  // Set default month input
+  const now = new Date();
+  document.getElementById('logMonth').value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+}
+
+initApp();
+</script>
+<script>(function(){document.addEventListener("click",function(e){var a=e.target.closest("[data-product-id]");if(!a)return;e.preventDefault();var pid=a.getAttribute("data-product-id");if(pid)parent.postMessage({type:"ecto-artifact-link-click",productId:pid},"*")})})();</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;var a=target.closest?target.closest("a[href]"):null;if(!a||!a.href||!/^https?:\/\//.test(a.href))return;if(a.href.replace(/#.*$/,"")===loc)return;var productId=extractProductId(target)||extractProductId(a);if(!productId)return;e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*")},true)})();</script></body>
+</html>
