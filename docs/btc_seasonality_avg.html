@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bitcoin Seasonality 2020–2026 + Rata-rata</title>
+<title>Bitcoin Seasonality 2011–2026 + Rata-rata</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,13 +37,13 @@
       </div>
       <h1 class="text-[28px] md:text-[42px] font-bold leading-tight tracking-tight">
         Bitcoin Seasonality
-        <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-orange-400 to-amber-500">2020–2026</span>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-orange-400 to-amber-500">2011–2026</span>
         <span class="text-slate-300"> + Rata-rata</span>
       </h1>
-      <p class="text-slate-400 mt-2 max-w-2xl">Heatmap return bulanan BTC. Rata-rata 2020–2025 sebagai baseline musiman vs performa 2026 yang sedang berjalan.</p>
+      <p class="text-slate-400 mt-2 max-w-2xl">Heatmap return bulanan BTC 2011–2026. Rata-rata 2020–2025 sebagai baseline musiman modern vs performa 2026 yang sedang berjalan. <span class="text-amber-500/70 text-xs">* 2011–2019: data perkiraan historis.</span></p>
     </div>
     <div class="text-xs text-slate-400 lg:text-right">
-      <div>Sumber data: 4 screenshot pengguna</div>
+      <div>2020–2026: screenshot pengguna · 2011–2019: perkiraan historis</div>
       <div>Diperbarui: 27 Juni 2026, 00:00 WIB</div>
     </div>
   </div>
@@ -132,12 +132,23 @@
   </div>
 
   <div class="text-center text-[11px] text-slate-500 mt-8">
-    Visualisasi independen. Bukan nasihat keuangan. Data dari screenshot pengguna, sudah divalidasi silang dengan histori publik.
+    Visualisasi independen. Bukan nasihat keuangan. 2020–2026: data screenshot pengguna. 2011–2019 (~): perkiraan historis berdasarkan harga BTC publik yang dikenal — verifikasi ke CoinGecko/CoinMarketCap untuk akurasi penuh.
   </div>
 </div>
 
 <script>
+// Data 2011–2019: perkiraan historis berdasarkan harga BTC publik yang dikenal.
+// Pre-2016 data dapat memiliki deviasi ±5–15%; verifikasi ke CoinGecko/CoinMarketCap untuk akurasi.
 const data = [
+  {year:2011, jan:57.1, feb:66.7, mar:-3.8, apr:115.4, may:354.5, jun:107.7, jul:-61.9, aug:59.5, sep:-39.8, oct:-35.3, nov:-7.4, dec:65.5, y:1473.0, approx:true},
+  {year:2012, jan:8.5, feb:22.0, mar:2.8, apr:-6.1, may:0.6, jun:-8.0, jul:6.2, aug:14.4, sep:20.3, oct:12.8, nov:65.5, dec:6.0, y:186.5, approx:true},
+  {year:2013, jan:48.2, feb:61.2, mar:183.6, apr:53.4, may:34.2, jun:-28.8, jul:8.5, aug:31.1, sep:13.5, oct:57.9, nov:453.6, dec:-34.0, y:5507.0, approx:true},
+  {year:2014, jan:8.6, feb:-31.0, mar:-21.5, apr:-1.8, may:11.5, jun:11.9, jul:5.0, aug:-20.9, sep:-22.8, oct:-10.2, nov:9.3, dec:-16.0, y:-57.9, approx:true},
+  {year:2015, jan:-31.1, feb:17.5, mar:0.0, apr:-11.0, may:3.1, jun:11.5, jul:6.1, aug:-17.3, sep:2.6, oct:39.6, nov:10.1, dec:19.1, y:36.5, approx:true},
+  {year:2016, jan:-13.5, feb:16.6, mar:-4.8, apr:8.2, may:19.2, jun:26.2, jul:-3.7, aug:-10.8, sep:5.9, oct:14.5, nov:5.1, dec:30.4, y:124.2, approx:true},
+  {year:2017, jan:5.7, feb:17.5, mar:-9.5, apr:25.0, may:54.5, jun:19.1, jul:15.8, aug:64.1, sep:-7.4, oct:40.1, nov:60.3, dec:40.9, y:1342.0, approx:true},
+  {year:2018, jan:-27.3, feb:4.1, mar:-32.0, apr:33.2, may:-19.0, jun:-14.4, jul:28.3, aug:-14.4, sep:-5.9, oct:-3.9, nov:-36.6, dec:-7.4, y:-73.1, approx:true},
+  {year:2019, jan:-7.6, feb:11.6, mar:6.0, apr:30.2, may:64.1, jun:23.6, jul:-11.2, aug:0.0, sep:-13.6, oct:10.8, nov:-17.6, dec:-4.9, y:92.3, approx:true},
   {year:2020, jan:29.95, feb:-8.60, mar:-25.00, apr:34.26, may:9.51, jun:-3.32, jul:24.03, aug:2.83, sep:-7.51, oct:27.70, nov:42.95, dec:46.92, y:301.30},
   {year:2021, jan:14.51, feb:36.79, mar:29.84, apr:-1.66, may:-35.31, jun:-5.95, jul:18.46, aug:13.52, sep:-7.03, oct:39.93, nov:-7.11, dec:-18.90, y:59.70},
   {year:2022, jan:-16.68, feb:12.21, mar:5.39, apr:-17.30, may:-15.59, jun:-37.28, jul:16.80, aug:-13.88, sep:-3.12, oct:5.56, nov:-16.23, dec:-3.64, y:-64.30},
@@ -174,15 +185,23 @@ function fmt(v){
 const tbody = document.getElementById('tbody');
 
 function renderRow(d, is2026=false, isAvg=false){
+  const isApprox = !!d.approx;
   const tr = document.createElement('tr');
   tr.className = is2026 ? 'relative' : '';
   if(is2026) tr.style.boxShadow = 'inset 0 0 0 2px rgba(245,158,11,0.7)';
   if(isAvg) tr.className += ' font-semibold';
-  
+  if(isApprox) tr.style.opacity = '0.85';
+
   const yearTd = document.createElement('td');
   yearTd.className = 'sticky left-0 z-10 px-4 py-2.5 mono text-[13px] border-r border-white/5';
   yearTd.style.background = isAvg ? '#1f2937' : is2026 ? '#0f172a' : '#0a0f1c';
-  yearTd.innerHTML = isAvg ? `<span class="text-amber-300">${d.year}</span>` : is2026 ? `<span class="text-amber-400 flex items-center gap-1.5">${d.year} <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30">YTD</span></span>` : d.year;
+  yearTd.innerHTML = isAvg
+    ? `<span class="text-amber-300">${d.year}</span>`
+    : is2026
+      ? `<span class="text-amber-400 flex items-center gap-1.5">${d.year} <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30">YTD</span></span>`
+      : isApprox
+        ? `<span class="flex items-center gap-1.5">${d.year}<span class="text-[9px] text-slate-500" title="Data perkiraan historis">~</span></span>`
+        : d.year;
   tr.appendChild(yearTd);
   
   months.forEach(m => {
@@ -200,6 +219,10 @@ function renderRow(d, is2026=false, isAvg=false){
       td.title = `${monthNames[months.indexOf(m)]} 2026: ${fmt(v)} vs Rata-rata ${fmt(avg[m])} (Δ ${delta>0?'+':''}${delta.toFixed(2)}pp)`;
       td.style.cursor = 'help';
       td.style.boxShadow = 'inset 0 -2px 0 rgba(245,158,11,0.5)';
+    }
+    if(isApprox && v!==null){
+      td.title = `${monthNames[months.indexOf(m)]} ${d.year}: ${fmt(v)} (perkiraan historis)`;
+      td.style.cursor = 'help';
     }
     if(isAvg){
       td.style.outline = '1px solid rgba(255,255,255,0.08)';
