@@ -33,7 +33,7 @@
     <div>
       <div class="inline-flex items-center gap-2 mb-3 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs">
         <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-        LIVE • Update 7 Juni 2026
+        LIVE • Update 27 Juni 2026
       </div>
       <h1 class="text-[28px] md:text-[42px] font-bold leading-tight tracking-tight">
         Bitcoin Seasonality
@@ -44,7 +44,7 @@
     </div>
     <div class="text-xs text-slate-400 lg:text-right">
       <div>Sumber data: 4 screenshot pengguna</div>
-      <div>Diperbarui: 7 Juni 2026, 13:42 WIB</div>
+      <div>Diperbarui: 27 Juni 2026, 00:00 WIB</div>
     </div>
   </div>
 
@@ -115,7 +115,7 @@
       </div>
       <div class="grid sm:grid-cols-2 gap-3" id="deltaCards"></div>
       <div class="mt-4 p-3 rounded-xl bg-white/5 border border-white/10 text-xs text-slate-300">
-        Historis Q1 adalah kuartal terkuat Bitcoin (Jan +13.69%, Feb +11.00%). 2026 mencatat anomali: Januari -10.21% vs rata-rata +13.69% (delta <span class="text-red-400 font-medium">-23.90pp</span>), Februari -14.71% vs +11.00% (delta <span class="text-red-400 font-medium">-25.71pp</span>). Awal tahun terlemah dalam 6 tahun terakhir.
+        H1 2026 mayoritas underperform historis. Q1 anomali besar: Jan delta <span class="text-red-400 font-medium">-23.90pp</span>, Feb delta <span class="text-red-400 font-medium">-25.71pp</span>, Mar delta <span class="text-red-400 font-medium">-6.46pp</span>. Apr +11.85% (delta <span class="text-emerald-400 font-medium">+9.08pp</span>) & Mei -3.75% (delta <span class="text-emerald-400 font-medium">+0.81pp</span>) mendekati rata-rata. Jun MTD -13.0% vs rata-rata -6.43% (delta <span class="text-red-400 font-medium">-6.57pp</span>). YTD live ~-25%.
       </div>
     </div>
 
@@ -126,6 +126,7 @@
         <div class="text-xs text-slate-400">Rata-rata tahunan 2020–2025</div>
         <div class="text-2xl font-bold text-emerald-400 mono">+96.88%</div>
         <div class="text-[11px] text-slate-500 mt-1">Oktober terbaik (+18.15%), Juni terburuk (-6.43%)</div>
+        <div class="text-[11px] text-slate-500 mt-2 pt-2 border-t border-white/10">2026 YTD live ~-25% (Jun MTD)</div>
       </div>
     </div>
   </div>
@@ -143,7 +144,7 @@ const data = [
   {year:2023, jan:39.63, feb:0.05, mar:22.96, apr:2.83, may:-7.01, jun:11.98, jul:-4.02, aug:-11.29, sep:3.91, oct:28.52, nov:8.86, dec:12.18, y:155.70},
   {year:2024, jan:0.62, feb:43.55, mar:16.81, apr:-14.76, may:11.07, jun:-6.96, jul:2.95, aug:-8.60, sep:7.29, oct:10.76, nov:37.29, dec:-3.19, y:119.68},
   {year:2025, jan:14.11, feb:-18.00, mar:-0.74, apr:13.25, may:9.97, jun:2.95, jul:7.66, aug:-5.68, sep:4.42, oct:-3.57, nov:-19.26, dec:-2.23, y:9.20},
-  {year:2026, jan:-10.21, feb:-14.71, mar:null, apr:null, may:null, jun:null, jul:null, aug:null, sep:null, oct:null, nov:null, dec:null, y:null},
+  {year:2026, jan:-10.21, feb:-14.71, mar:1.75, apr:11.85, may:-3.75, jun:-13.0, jul:null, aug:null, sep:null, oct:null, nov:null, dec:null, y:null},
 ];
 
 const avg = {year:'Rata-rata 2020-2025', jan:13.69, feb:11.00, mar:8.21, apr:2.77, may:-4.56, jun:-6.43, jul:10.98, aug:-3.85, sep:-0.34, oct:18.15, nov:7.75, dec:5.19, y:96.88};
@@ -214,38 +215,31 @@ renderRow(avg, false, true);
 
 // Delta cards
 const deltaCards = document.getElementById('deltaCards');
-['jan','feb'].forEach(m => {
+['jan','feb','mar','apr','may','jun'].forEach(m => {
   const v2026 = data.find(d=>d.year===2026)[m];
   const vAvg = avg[m];
   const delta = v2026 - vAvg;
+  const isJun = m === 'jun';
   const card = document.createElement('div');
   card.className = 'p-4 rounded-xl bg-white/[0.04] border border-white/10 hover:bg-white/[0.06] transition';
   card.innerHTML = `
     <div class="flex items-center justify-between mb-2">
-      <div class="text-sm font-medium text-slate-200">${monthNames[months.indexOf(m)]} 2026</div>
-      <div class="text-[11px] px-2 py-0.5 rounded-full ${delta<0?'bg-red-500/20 text-red-300 border-red-500/30':'bg-emerald-500/20 text-emerald-300'}">${delta>0?'+':''}${delta.toFixed(2)}pp</div>
+      <div class="text-sm font-medium text-slate-200">${monthNames[months.indexOf(m)]} 2026${isJun ? ' <span class="text-[10px] text-amber-400">MTD</span>' : ''}</div>
+      <div class="text-[11px] px-2 py-0.5 rounded-full ${delta<0?'bg-red-500/20 text-red-300 border border-red-500/30':'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'}">${delta>0?'+':''}${delta.toFixed(2)}pp</div>
     </div>
     <div class="flex items-end gap-3">
       <div>
         <div class="text-[11px] text-slate-400">2026</div>
-        <div class="text-xl font-bold mono text-red-400">${fmt(v2026)}</div>
+        <div class="text-xl font-bold mono ${v2026>=0?'text-emerald-400':'text-red-400'}">${fmt(v2026)}</div>
       </div>
       <div class="text-slate-600">vs</div>
       <div>
         <div class="text-[11px] text-slate-400">Rata-rata</div>
-        <div class="text-xl font-bold mono text-emerald-400">${fmt(vAvg)}</div>
+        <div class="text-xl font-bold mono ${vAvg>=0?'text-emerald-400':'text-red-400'}">${fmt(vAvg)}</div>
       </div>
     </div>
     <div class="mt-2 text-[11px] text-slate-400">Delta <span class="mono">${delta>0?'+':''}${delta.toFixed(2)}pp</span> ${delta<0?'(tertinggal)':'(unggul)'}</div>
   `;
-  deltaCards.appendChild(card);
-});
-
-// Add placeholder for upcoming months
-[['mar','Mar'],['apr','Apr'],['mei','Mei']].forEach(([k,l])=>{
-  const card = document.createElement('div');
-  card.className = 'sm:col-span-2 p-3 rounded-xl bg-white/[0.02] border border-dashed border-white/10 text-[12px] text-slate-400 flex items-center justify-between';
-  card.innerHTML = `<span>${l}–Jun 2026: data berjalan, update menyusul.</span><span class="text-[10px]">7 Juni 2026</span>`;
   deltaCards.appendChild(card);
 });
 
