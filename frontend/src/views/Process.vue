@@ -481,8 +481,7 @@ const goHome = () => {
 }
 
 const goToNextStep = () => {
-  // TODO: 进入环境搭建步骤
-  alert('环境搭建功能开发中...')
+  router.push({ name: 'Process', params: { projectId: currentProjectId.value }, query: { step: 2 } })
 }
 
 const toggleFullScreen = () => {

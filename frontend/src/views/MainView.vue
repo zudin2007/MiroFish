@@ -95,7 +95,7 @@ const { t, tm } = useI18n()
 const viewMode = ref('split') // graph | split | workbench
 
 // Step State
-const currentStep = ref(1) // 1: 图谱构建, 2: 环境搭建, 3: 开始模拟, 4: 报告生成, 5: 深度互动
+const currentStep = ref(Number(route.query.step) || 1) // 1: 图谱构建, 2: 环境搭建, 3: 开始模拟, 4: 报告生成, 5: 深度互动
 const stepNames = computed(() => tm('main.stepNames'))
 
 // Data State
