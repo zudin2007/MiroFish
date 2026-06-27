@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="id">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laporan Keuangan Zudin — 2019 · 2026 YTD</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg: #0f1115;
+    --card: #181b23;
+    --card-2: #1a1d24;
+    --line: #272b35;
+    --muted: #9499a6;
+    --text: #e8e9ee;
+    --income: #f5c542;
+    --expense: #ff6b6b;
+    --net-pos: #4ade80;
+    --net-neg: #f87171;
+  }
+  html, body { background: var(--bg); color: var(--text); }
+  body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  .display { font-family: 'Fraunces', Georgia, serif; }
+  .card {
+    background: linear-gradient(180deg, #1b1e26 0%, #181b23 100%);
+    border: 1px solid #252934;
+    border-radius: 24px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.025);
+  }
+  .kpi-card {
+    background: #191c24;
+    border: 1px solid #252934;
+    border-radius: 22px;
+    padding: 18px 18px 16px;
+  }
+  .soft-divider { height:1px; background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.08), rgba(255,255,255,0)); }
+  .chip {
+    background: #1b1f29;
+    border: 1px solid #2a2f3b;
+    color: #c7cbd6;
+    border-radius: 999px;
+    padding: 7px 13px;
+    font-size: 12.5px;
+    font-weight: 540;
+    display: inline-flex; align-items: center; gap: 7px;
+    white-space: nowrap;
+  }
+  .chip-dot { width:7px; height:7px; border-radius:50%; }
+  .pill-toggle {
+    background: #151821;
+    border: 1px solid #2a2f3b;
+    border-radius: 999px;
+    padding: 3px;
+    display: inline-flex;
+    gap: 2px;
+  }
+  .pill-toggle button {
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #a0a6b5;
+    transition: all .18s ease;
+  }
+  .pill-toggle button.active { background: #232838; color: #f1f3f7; }
+  .year-chip {
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border:1px solid #2b3040;
+    color: #a7adbb;
+    background: #151821;
+    transition: .15s;
+  }
+  .year-chip:hover, .year-chip.active { border-color: #3a4052; color: #fff; background: #1e2330; }
+  .insight-box {
+    background: #171a22;
+    border: 1px dashed #2d3240;
+    border-radius: 16px;
+    padding: 12px 14px;
+    color: #aeb4c3;
+    font-size: 13.2px;
+    line-height: 1.55;
+  }
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tbl-wrap::-webkit-scrollbar { display:none; }
+  table.fin { width:100%; min-width: 600px; border-collapse: collapse; }
+  table.fin th { text-align:left; font-size:11.5px; text-transform: uppercase; letter-spacing: .06em; color:#8f95a5; font-weight: 600; padding: 10px 12px; border-bottom: 1px solid #262b37;}
+  table.fin td { padding: 13px 12px; border-bottom: 1px solid #1f2330; font-size: 13.7px; }
+  table.fin tr:last-child td { border-bottom: 0; }
+  .sr-badge { font-size: 11.7px; padding: 4px 9px; border-radius: 999px; font-weight: 650; }
+  .sr-pos { background: rgba(74,222,128,.10); color:#6ee7a0; }
+  .sr-neg { background: rgba(248,113,.10); color:#ff9b9b; }
+  .sr-neutral { background: #232736; color:#b8bcc8; }
+  /* Chart.js tooltip styling hook */
+  #chartjs-tooltip {
+    background: #141821ee !important;
+    border: 1px solid #2f3546 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 14px 40px rgba(0,0,0,.45) !important;
+    color: #e8e9ee !important;
+    padding: 10px 12px !important;
+    backdrop-filter: blur(8px);
+    font-family: 'Inter', sans-serif !important;
+    pointer-events: none;
+  }
+  /* Projection helpers */
+  .proj-row { display:flex; justify-content:space-between; align-items:center; font-size:13.25px; color:#a9afbe; }
+  .proj-row b { color:#dfe3ec; font-weight: 600; }
+  .proj-tag { font-size:11px; padding:4px 9px; border-radius:999px; background:#232736; color:#aab0be; border:1px solid #2a2f3d; white-space:nowrap; }
+  .proj-tag-green { background: rgba(74,222,128,.10); color:#7beaad; border-color: rgba(74,222,128,.22); }
+  /* Monthly budget tracker */
+  .budget-table td:nth-child(2),
+  .budget-table td:nth-child(3),
+  .budget-table td:nth-child(4) { white-space: nowrap; }
+  .budget-total td { font-weight: 700 !important; color: #e8e9ee !important; }
+  .budget-total td:first-child { font-size: 14px; }
+  .mini-stat {
+    background: #191c24;
+    border: 1px solid #252934;
+    border-radius: 18px;
+    padding: 16px 16px 15px;
+  }
+  .month-card {
+    background: #171a22;
+    border: 1px solid #252a36;
+    border-radius: 18px;
+    padding: 15px 15px 13px;
+    transition: border-color .18s ease;
+  }
+  .month-card:hover { border-color: #303646; }
+  .month-card-head {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom: 11px;
+  }
+  .month-name { font-weight: 700; font-size: 15.5px; color:#e8e9ee; letter-spacing: -0.01em; }
+  .month-tag {
+    font-size: 11px; padding: 3px 9px; border-radius: 999px;
+    background: #212532; color: #8d93a4; border: 1px solid #2a3040;
+  }
+  .month-row {
+    display:flex; justify-content:space-between; align-items:center;
+    font-size: 12.85px; color:#9aa1b1; padding: 4px 0;
+  }
+  .month-row b { color:#d6dae5; font-weight: 600; }
+  .month-net-row { border-top: 1px solid #232734; margin-top: 6px; padding-top: 8px; }
+  .month-net-row b { color:#6fe79f; }
+  .month-status {
+    display:flex; align-items:center; justify-content:space-between;
+    gap: 8px; margin-top: 11px; padding-top: 11px;
+    border-top: 1px dashed #2b3040;
+    font-size: 12.4px; color:#9096a6;
+  }
+  .month-status label { display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none; }
+  .month-status input[type="checkbox"] {
+    accent-color:#4ade80;
+    width: 16px; height: 16px;
+    background:#1b1f29;
+    cursor:pointer;
+  }
+  .month-status .check-text { font-weight: 550; }
+  .month-status input[type="checkbox"]:checked ~ .check-text { color:#7beaad; }
+  /* Mobile type scale tightening */
+  @media (max-width: 390px){
+    .kpi-value { font-size: 1.55rem; }
+    .month-card { padding: 13px 12px 12px; }
+  }
+</style>
+</head>
+<body class="antialiased">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 pt-9 sm:pt-14">
+    
+    <!-- Header -->
+    <header class="mb-7 sm:mb-10">
+      <div class="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <div class="text-[12.5px] tracking-wider uppercase text-zinc-400 mb-2">Laporan Pribadi</div>
+          <h1 class="display text-[34px] sm:text-[46px] leading-[1.05] tracking-[-0.015em] text-[#f2f3f7]">Laporan Keuangan<br class="sm:hidden"> Zudin</h1>
+          <p class="text-zinc-400 mt-3 text-[15px]">Periode 2019 — Jun 2026 · 8 tahun perjalanan</p>
+        </div>
+        <div class="flex items-center gap-3 pt-1">
+          <div class="w-11 h-11 rounded-full bg-[#212532] border border-[#2d3344] flex items-center justify-center text-[15px] font-[650] text-[#e7c06a]">Z</div>
+          <div class="hidden sm:block text-right">
+            <div class="text-[11.5px] text-zinc-400">Terakhir diperbarui</div>
+            <div class="text-[13.5px] text-zinc-300 font-medium">26 Jun 2026</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-2 mt-5">
+        <span class="chip"><span class="chip-dot" style="background:#ff7a7a"></span>Net kumulatif: <b class="text-zinc-200 font-[650]">-Rp 833 jt</b></span>
+        <span class="chip">8 tahun tercatat</span>
+        <span class="chip">4 tahun positif</span>
+        <span class="chip">IDR · Pajak belum termasuk</span>
+      </div>
+    </header>
+
+    <!-- KPI Grid -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8" aria-label="Ringkasan utama">
+      <div class="kpi-card">
+        <div class="text-[11.5px] text-zinc-400 mb-1.5">Total Pemasukan 8 thn</div>
+        <div class="kpi-value display text-[26px] sm:text-[28px] text-[#f2d07a] tracking-[-0.015em]">Rp 3,50 M</div>
+        <div class="text-[12.3px] text-zinc-400 mt-1">Rata-rata Rp 437 jt / thn</div>
+      </div>
+      <div class="kpi-card">
+        <div class="text-[11.5px] text-zinc-400 mb-1.5">Total Net</div>
+        <div class="kpi-value display text-[26px] sm:text-[28px] text-[#ff8b8b] tracking-[-0.015em]">-Rp 866 jt</div>
+        <div class="text-[12.3px] text-zinc-400 mt-1">Akumulasi 2019–2026</div>
+      </div>
+      <div class="kpi-card">
+        <div class="text-[11.5px] text-zinc-400 mb-1.5">Tahun Terbaik</div>
+        <div class="kpi-value display text-[26px] sm:text-[28px] text-[#6ee7a0] tracking-[-0.015em]">2023</div>
+        <div class="text-[12.3px] text-zinc-400 mt-1">Net +Rp 144 jt · SR 21,1%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="text-[11.5px] text-zinc-400 mb-1.5">Tahun Terberat</div>
+        <div class="kpi-value display text-[26px] sm:text-[28px] text-[#ff8b8b] tracking-[-0.015em]">2024</div>
+        <div class="text-[12.3px] text-zinc-400 mt-1">Net -Rp 488 jt · beban besar</div>
+      </div>
+    </section>
+
+    <!-- Charts grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6">
+      
+      <!-- Chart 1: Income vs Expense vs Net -->
+      <section class="card lg:col-span-12 p-5 sm:p-7">
+        <div class="flex flex-wrap items-start justify-between gap-3 mb-3">
+          <div>
+            <h2 class="display text-[22px] sm:text-[26px] text-zinc-100">Arus Tahunan</h2>
+            <p class="text-[13.5px] text-zinc-400 mt-1">Pemasukan, pengeluaran, dan net per tahun. Ketuk batang untuk detail.</p>
+          </div>
+          <div class="flex items-center gap-4 text-[12px] text-zinc-400">
+            <span class="inline-flex items-center gap-1.5"><i class="w-3 h-3 rounded-sm" style="background:#f5c542"></i> Pemasukan</span>
+            <span class="inline-flex items-center gap-1.5"><i class="w-3 h-3 rounded-sm" style="background:#ff6b6b"></i> Pengeluaran</span>
+            <span class="inline-flex items-center gap-1.5"><i class="w-3 h-3 rounded-sm" style="background:#4ade80"></i> Net</span>
+          </div>
+        </div>
+        <div class="relative h-[300px] sm:h-[340px] w-full">
+          <canvas id="chartAnnual"></canvas>
+        </div>
+        <div class="soft-divider my-4"></div>
+        <div class="flex flex-wrap gap-[8px]" id="yearChips">
+          <!-- JS inject -->
+        </div>
+        <div id="annualDetail" class="insight-box mt-3 hidden"></div>
+      </section>
+
+      <!-- Chart 2: Net cash flow timeline -->
+      <section class="card lg:col-span-7 p-5 sm:p-7">
+        <div class="flex items-start justify-between gap-3 mb-2">
+          <div>
+            <h3 class="display text-[21px] sm:text-[24px] text-zinc-100">Tren Net Cash Flow</h3>
+            <p class="text-[13.2px] text-zinc-400 mt-1">Area hijau saat surplus, merah saat defisit.</p>
+          </div>
+        </div>
+        <div class="relative h-[260px] sm:h-[280px] w-full">
+          <canvas id="chartNet"></canvas>
+        </div>
+        <div class="insight-box mt-4">
+          4 dari 8 periode berakhir positif. Pemulihan kuat di 2023 dan stabil di 2025–2026 YTD setelah tekanan berat di 2024.
+        </div>
+      </section>
+
+      <!-- Chart 3: Housing cycle -->
+      <section class="card lg:col-span-5 p-5 sm:p-7">
+        <h3 class="display text-[21px] sm:text-[24px] text-zinc-100">Siklus Housing</h3>
+        <p class="text-[13.2px] text-zinc-400 mt-1 mb-3">Biaya tempat tinggal tahunan — volatilitas tinggi.</p>
+        <div class="relative h-[260px] sm:h-[280px] w-full">
+          <canvas id="chartHousing"></canvas>
+        </div>
+        <div class="mt-3 text-[12.6px] text-zinc-400 leading-relaxed">
+          Puncak 2019: <b class="text-zinc-200 font-semibold">Rp 224 jt</b> · Terendah 2023: <b class="text-zinc-200 font-semibold">Rp 7,7 jt</b> · Lonjakan 2024: <b class="text-zinc-200 font-semibold">Rp 201 jt</b>
+        </div>
+      </section>
+
+      <!-- Chart 4: Category stacked -->
+      <section class="card lg:col-span-12 p-5 sm:p-7">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <div>
+            <h3 class="display text-[21px] sm:text-[24px] text-zinc-100">Komposisi Pengeluaran per Kategori</h3>
+            <p class="text-[13.2px] text-zinc-400 mt-1">Stacked. Nilai negatif 2020 ditampilkan absolut untuk visual.</p>
+          </div>
+          <div class="pill-toggle" role="tablist" aria-label="Filter kategori">
+            <button id="btnTop5" class="active" type="button">Top 5</button>
+            <button id="btnAll" type="button">Semua 11</button>
+          </div>
+        </div>
+        <div class="relative h-[330px] sm:h-[360px] w-full">
+          <canvas id="chartCategories"></canvas>
+        </div>
+        <p class="text-[11.8px] text-zinc-500 mt-3">Catatan: Tahun 2020 beberapa pos seperti Financial expenses, Investments, dan Others tercatat sebagai kredit. Di grafik, nilainya ditampilkan absolut, lihat tooltip untuk penanda kredit.</p>
+      </section>
+
+      <!-- Table -->
+      <section class="card lg:col-span-12 p-5 sm:p-7">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="display text-[21px] sm:text-[24px] text-zinc-100">Ringkasan Tahunan</h3>
+          <span class="text-[11.8px] text-zinc-400 sm:hidden">Geser →</span>
+        </div>
+        <div class="tbl-wrap rounded-xl border border-[#232736]">
+          <table class="fin">
+            <thead>
+              <tr>
+                <th>Tahun</th>
+                <th>Pemasukan</th>
+                <th>Pengeluaran</th>
+                <th>Net</th>
+                <th>Saving rate</th>
+              </tr>
+            </thead>
+            <tbody id="summaryBody">
+              <!-- JS inject -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      
+      <!-- MONTHLY 2026 BREAKDOWN — INJECTED -->
+      <section class="card lg:col-span-12 p-5 sm:p-7" id="monthly-2026">
+        <div class="flex flex-wrap items-start justify-between gap-3 mb-5">
+          <div>
+            <h2 class="display text-[22px] sm:text-[26px] text-zinc-100">Breakdown Bulanan 2026</h2>
+            <p class="text-[13.4px] text-zinc-400 mt-1">Jan – Jun 2026 full. Tap kategori untuk filter.</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span class="chip">Net Jan-Jun: <b class="text-zinc-200 font-[600]">Rp 40,6 jt</b></span>
+            <span class="chip">Saving Jun: <b class="text-[#7beaad] font-[600]">41,9%</b></span>
+          </div>
+        </div>
+
+        <!-- Category filter chips -->
+        <div class="mb-4" style="overflow-x:auto; white-space:nowrap; padding-bottom:4px" id="catChipWrap">
+          <button class="year-chip active" data-cat="ALL" style="margin-right:6px">Semua</button>
+          <button class="year-chip" data-cat="Households" style="margin-right:6px">Households</button>
+          <button class="year-chip" data-cat="Shopping" style="margin-right:6px">Shopping</button>
+          <button class="year-chip" data-cat="Housing" style="margin-right:6px">Housing</button>
+          <button class="year-chip" data-cat="Transportation" style="margin-right:6px">Transportation</button>
+          <button class="year-chip" data-cat="Vehicle" style="margin-right:6px">Vehicle</button>
+          <button class="year-chip" data-cat="Life & Entertainment" style="margin-right:6px">Life & Ent.</button>
+          <button class="year-chip" data-cat="Communication" style="margin-right:6px">Communication</button>
+          <button class="year-chip" data-cat="Financial" style="margin-right:6px">Financial</button>
+          <button class="year-chip" data-cat="Investments" style="margin-right:6px">Investments</button>
+          <button class="year-chip" data-cat="Infaq" style="margin-right:6px">Infaq</button>
+        </div>
+
+        <!-- KPI strip for selected category -->
+        <div id="catKpi" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 hidden">
+          <div class="mini-stat"><div class="text-[11.6px] text-zinc-400 mb-1">Total Jan-Mei</div><div id="catTotal" class="text-[18px] font-[650] text-zinc-100">-</div></div>
+          <div class="mini-stat"><div class="text-[11.6px] text-zinc-400 mb-1">Rata-rata /bln</div><div id="catAvg" class="text-[18px] font-[650] text-zinc-100">-</div></div>
+          <div class="mini-stat"><div class="text-[11.6px] text-zinc-400 mb-1">Bulan tertinggi</div><div id="catPeak" class="text-[18px] font-[650] text-zinc-100">-</div></div>
+          <div class="mini-stat"><div class="text-[11.6px] text-zinc-400 mb-1">% dari expense</div><div id="catPct" class="text-[18px] font-[650] text-zinc-100">-</div></div>
+        </div>
+
+        <!-- Monthly trend chart -->
+        <div class="relative h-[280px] sm:h-[300px] w-full mb-5">
+          <canvas id="chartMonthly2026"></canvas>
+        </div>
+
+        <!-- Sub-category detail table -->
+        <div id="catDetailWrap" class="hidden mb-5">
+          <h4 class="text-[14.5px] font-[620] text-zinc-200 mb-2" id="catDetailTitle">Detail sub-kategori</h4>
+          <div class="tbl-wrap rounded-xl border border-[#232736]">
+            <table class="fin" id="catDetailTable">
+              <thead><tr><th>Sub-pos</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>Mei</th><th>Jun*</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Monthly cards grid -->
+        <h3 class="text-[15.5px] font-[620] text-zinc-200 mb-3">Tracker Jan – Jun 2026</h3>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-2">
+          
+    <div class="month-card">
+      <div class="month-card-head">
+        <div class="month-name">Januari</div>
+        <span class="month-tag">M1</span>
+      </div>
+      <div class="month-row">Income <b>Rp 55.6 jt</b></div>
+      <div class="month-row">Expense <b>Rp 52.0 jt</b></div>
+      <div class="month-row month-net-row">Net <b style="color:#6fe79f">Rp 3.5 jt</b></div>
+    </div>
+
+    <div class="month-card">
+      <div class="month-card-head">
+        <div class="month-name">Februari</div>
+        <span class="month-tag">M2</span>
+      </div>
+      <div class="month-row">Income <b>Rp 51.5 jt</b></div>
+      <div class="month-row">Expense <b>Rp 42.6 jt</b></div>
+      <div class="month-row month-net-row">Net <b style="color:#6fe79f">Rp 8.9 jt</b></div>
+    </div>
+
+    <div class="month-card">
+      <div class="month-card-head">
+        <div class="month-name">Maret</div>
+        <span class="month-tag">M3</span>
+      </div>
+      <div class="month-row">Income <b>Rp 68.4 jt</b></div>
+      <div class="month-row">Expense <b>Rp 75.7 jt</b></div>
+      <div class="month-row month-net-row">Net <b style="color:#ff9b9b">Rp -7.3 jt</b></div>
+    </div>
+
+    <div class="month-card">
+      <div class="month-card-head">
+        <div class="month-name">April</div>
+        <span class="month-tag">M4</span>
+      </div>
+      <div class="month-row">Income <b>Rp 52.5 jt</b></div>
+      <div class="month-row">Expense <b>Rp 47.0 jt</b></div>
+      <div class="month-row month-net-row">Net <b style="color:#6fe79f">Rp 5.5 jt</b></div>
+    </div>
+
+    <div class="month-card">
+      <div class="month-card-head">
+        <div class="month-name">Mei</div>
+        <span class="month-tag">M5</span>
+      </div>
+      <div class="month-row">Income <b>Rp 53.3 jt</b></div>
+      <div class="month-row">Expense <b>Rp 44.4 jt</b></div>
+      <div class="month-row month-net-row">Net <b style="color:#6fe79f">Rp 8.9 jt</b></div>
+    </div>
+
+    <div class="month-card">
+      <div class="month-card-head">
+        <div class="month-name">Juni</div>
+        <span class="month-tag">M6</span>
+      </div>
+      <div class="month-row">Income <b>Rp 46,9 jt</b></div>
+      <div class="month-row">Expense <b>Rp 24,1 jt</b></div>
+      <div class="month-row month-net-row">Net <b style="color:#6fe79f">Rp 26,3 jt</b></div>
+    </div>
+        </div>
+        <p class="text-[12.2px] text-zinc-500 mt-2">Jun synced 26 Jun 2026 — Financial expenses Rp 5jt tercatat. Net YTD Jan-Jun: Rp 40,6 jt</p>
+      </section>
+      <!-- /MONTHLY 2026 BREAKDOWN -->
+
+      <!-- PROYEKSI 2026 -->
+      <section class="card lg:col-span-12 p-5 sm:p-7">
+        <div class="flex flex-wrap items-start justify-between gap-3 mb-5">
+          <div>
+            <h2 class="display text-[22px] sm:text-[26px] text-zinc-100">Proyeksi 2026</h2>
+            <p class="text-[13.4px] text-zinc-400 mt-1">Berdasarkan data YTD 26 Juni 2026 — synced</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span class="chip">YTD Income: <b class="text-zinc-200 font-[600]">Rp 331,7 jt</b></span>
+            <span class="chip sm:hidden">YTD Net: <b class="text-zinc-200 font-[600]">Rp 40,6 jt</b></span>
+            <span class="chip hidden sm:inline-flex">YTD Net: <b class="text-zinc-200 font-[600]">Rp 40,6 jt</b></span>
+          </div>
+        </div>
+
+        <!-- Scenario cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+          <!-- Konservatif -->
+          <div class="kpi-card !p-[18px] sm:!p-5 flex flex-col">
+            <div class="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <div class="text-[15.5px] font-[650] text-zinc-100">Konservatif</div>
+                <div class="text-[12.1px] text-zinc-400 mt-1">Run-rate Jan-Jun × 2</div>
+              </div>
+              <span class="proj-tag">H1 x2</span>
+            </div>
+            <div class="space-y-[10px] mt-1">
+              <div class="proj-row">Income <b>Rp 562,6 jt</b></div>
+              <div class="proj-row">Expenses <b>Rp 537,5 jt</b></div>
+            </div>
+            <div class="soft-divider my-3.5"></div>
+            <div class="flex items-end justify-between mt-auto">
+              <div>
+                <div class="text-[11.2px] text-zinc-400">Net</div>
+                <div class="display text-[26px] text-[#6fe79f] tracking-[-0.01em]">Rp 25,0 jt</div>
+              </div>
+              <div class="text-right">
+                <div class="text-[11.2px] text-zinc-400">Savings</div>
+                <div class="text-[17px] font-[650] text-zinc-100">4,5%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Base -->
+          <div class="kpi-card !p-[18px] sm:!p-5 flex flex-col">
+            <div class="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <div class="text-[15.5px] font-[650] text-zinc-100">Base</div>
+                <div class="text-[12.1px] text-zinc-400 mt-1">Samakan 2025</div>
+              </div>
+              <span class="proj-tag">= 2025</span>
+            </div>
+            <div class="space-y-[10px] mt-1">
+              <div class="proj-row">Income <b>Rp 627,4 jt</b></div>
+              <div class="proj-row">Expenses <b>Rp 608,0 jt</b></div>
+            </div>
+            <div class="soft-divider my-3.5"></div>
+            <div class="flex items-end justify-between mt-auto">
+              <div>
+                <div class="text-[11.2px] text-zinc-400">Net</div>
+                <div class="display text-[26px] text-[#6fe79f] tracking-[-0.01em]">Rp 19,4 jt</div>
+              </div>
+              <div class="text-right">
+                <div class="text-[11.2px] text-zinc-400">Savings</div>
+                <div class="text-[17px] font-[650] text-zinc-100">3,1%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Optimis -->
+          <div class="kpi-card !p-[18px] sm:!p-5 flex flex-col" style="border-color: rgba(74,222,128,.30); box-shadow: inset 0 0 0 1px rgba(74,222,128,.04), 0 10px 40px rgba(0,0,0,.28);">
+            <div class="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <div class="text-[15.5px] font-[650] text-zinc-100">Optimis</div>
+                <div class="text-[12.1px] text-zinc-400 mt-1">Savings rate 2023 (21,1%)</div>
+              </div>
+              <span class="proj-tag proj-tag-green">SR 21,1%</span>
+            </div>
+            <div class="space-y-[10px] mt-1">
+              <div class="proj-row">Income <b>Rp 562,6 jt</b> <span class="text-[11.3px] text-zinc-500 ml-2">run-rate</span></div>
+              <div class="proj-row">Expenses <b>Rp 443,9 jt</b></div>
+            </div>
+            <div class="soft-divider my-3.5"></div>
+            <div class="flex items-end justify-between mt-auto">
+              <div>
+                <div class="text-[11.2px] text-zinc-400">Net</div>
+                <div class="display text-[26px] text-[#6fe79f] tracking-[-0.01em]">Rp 140,0 jt</div>
+              </div>
+              <div class="text-right">
+                <div class="text-[11.2px] text-zinc-400">Savings</div>
+                <div class="text-[17px] font-[650] text-zinc-100">21,1%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="soft-divider my-6"></div>
+
+        <!-- Projection chart -->
+        <div>
+          <h3 class="display text-[20px] sm:text-[22px] text-zinc-100">Proyeksi Net 2026 vs Tahun Sebelumnya</h3>
+          <p class="text-[12.9px] text-zinc-400 mt-1 mb-3">Net aktual 2021–2025, dalam juta rupiah. Tiga batang kanan adalah skenario 2026.</p>
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] text-zinc-400 mb-3">
+            <span class="inline-flex items-center gap-1.5"><i class="w-3 h-3 rounded-sm" style="background:#4ade80"></i> Net positif (aktual)</span>
+            <span class="inline-flex items-center gap-1.5"><i class="w-3 h-3 rounded-sm" style="background:#f87171"></i> Net negatif (aktual)</span>
+            <span class="inline-flex items-center gap-1.5"><i class="w-3 h-3 rounded-sm" style="background:#e9c25c"></i> Proyeksi 2026</span>
+          </div>
+          <div class="relative h-[300px] sm:h-[330px] w-full">
+            <canvas id="chartProjection2026"></canvas>
+          </div>
+          <p class="text-[12.2px] text-zinc-400 mt-3 leading-relaxed">Proyeksi Konservatif pakai run-rate Jan-Jun ×2. YTD Jun: Income Rp 331,7 jt, Expense Rp 291,1 jt, Net Rp 40,6 jt · Synced 26 Jun 2026</p>
+        </div>
+      </section>
+
+      <!-- TARGET BULANAN JUL – DES 2026 -->
+      <section id="target-bulanan" class="card lg:col-span-12 p-5 sm:p-7">
+        <div class="flex flex-wrap items-start justify-between gap-3 mb-4 sm:mb-5">
+          <div>
+            <h2 class="display text-[22px] sm:text-[26px] text-zinc-100">Target Bulanan Jul – Des 2026</h2>
+            <p class="text-[13.4px] text-zinc-400 mt-1">Skenario Optimis – Net Rp 118,7 jt / tahun</p>
+          </div>
+        </div>
+
+        <!-- Summary chips -->
+        <div class="flex flex-wrap gap-2 mb-5">
+          <span class="chip">Sisa Income target: <b class="text-zinc-200 font-[600]">Rp 331,8 jt</b></span>
+          <span class="chip">Sisa Expense budget: <b class="text-zinc-200 font-[600]">Rp 237,6 jt</b></span>
+          <span class="chip">Net yang harus dikejar: <b class="text-[#7beaad] font-[650]">Rp 94,2 jt</b></span>
+        </div>
+
+        <!-- Budget table -->
+        <div class="mb-5">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-[15px] font-[620] text-zinc-200">Alokasi Budget / Kategori</h3>
+            <span class="text-[11.6px] text-zinc-500 sm:hidden">Geser →</span>
+          </div>
+          <div class="tbl-wrap rounded-xl border border-[#232736]">
+            <table class="fin budget-table">
+              <thead>
+                <tr>
+                  <th>Kategori</th>
+                  <th>H1 rata/bln</th>
+                  <th>Budget /bln</th>
+                  <th>Total Jul-Des</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="text-zinc-200">Investments</td>
+                  <td class="text-zinc-300">Rp 12,8 jt</td>
+                  <td class="text-zinc-300">Rp 12,8 jt</td>
+                  <td class="text-zinc-300">Rp 77,0 jt</td>
+                </tr>
+                <tr>
+                  <td class="text-zinc-200">Households</td>
+                  <td class="text-zinc-300">Rp 6,6 jt</td>
+                  <td class="text-zinc-300">Rp 5,5 jt</td>
+                  <td class="text-zinc-300">Rp 33,0 jt</td>
+                </tr>
+                <tr>
+                  <td class="text-zinc-200">Shopping</td>
+                  <td class="text-zinc-300">Rp 5,9 jt</td>
+                  <td class="text-amber-200/90">Rp 3,0 jt</td>
+                  <td class="text-zinc-300">Rp 18,0 jt</td>
+                </tr>
+                <tr>
+                  <td class="text-zinc-200">Life &amp; Entertainment</td>
+                  <td class="text-zinc-300">Rp 4,4 jt</td>
+                  <td class="text-zinc-300">Rp 2,5 jt</td>
+                  <td class="text-zinc-300">Rp 15,0 jt</td>
+                </tr>
+                <tr>
+                  <td class="text-zinc-200">Financial expenses</td>
+                  <td class="text-zinc-300">Rp 4,1 jt</td>
+                  <td class="text-zinc-300">Rp 2,0 jt</td>
+                  <td class="text-zinc-300">Rp 12,0 jt</td>
+                </tr>
+                <tr>
+                  <td class="text-zinc-200">Housing</td>
+                  <td class="text-zinc-300">Rp 3,6 jt</td>
+                  <td class="text-zinc-300">Rp 2,0 jt</td>
+                  <td class="text-zinc-300">Rp 12,0 jt</td>
+                </tr>
+                <tr>
+                  <td class="text-zinc-200">Others</td>
+                  <td class="text-zinc-300">Rp 2,9 jt</td>
+                  <td class="text-zinc-300">Rp 1,3 jt</td>
+                  <td class="text-zinc-300">Rp 8,0 jt</td>
+                </tr>
+                <tr class="budget-total" style="border-top:2px solid #2c3241;">
+                  <td>Total</td>
+                  <td>Rp 47,7 jt</td>
+                  <td style="color:#f2d07a">Rp 29,2 jt</td>
+                  <td>Rp 175,1 jt</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Mini stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+          <div class="mini-stat">
+            <div class="text-[11.6px] text-zinc-400 mb-1.5">Income / bln</div>
+            <div class="display text-[22px] sm:text-[24px] text-[#f2d07a] tracking-[-0.01em]">Rp 55,3 jt</div>
+            <div class="text-[12.2px] text-zinc-400 mt-1">run-rate Jan-Jun</div>
+          </div>
+          <div class="mini-stat">
+            <div class="text-[11.6px] text-zinc-400 mb-1.5">Expense / bln</div>
+            <div class="display text-[22px] sm:text-[24px] text-zinc-100 tracking-[-0.01em]">Rp 39,6 jt</div>
+            <div class="text-[12.2px] text-[#7beaad] mt-1">turun 17% vs H1</div>
+          </div>
+          <div class="mini-stat">
+            <div class="text-[11.6px] text-zinc-400 mb-1.5">Net / bln</div>
+            <div class="display text-[22px] sm:text-[24px] text-[#6ee7a0] tracking-[-0.01em]">Rp 15,7 jt</div>
+            <div class="text-[12.2px] text-zinc-400 mt-1">naik dari Rp 7,6 jt</div>
+          </div>
+        </div>
+
+        <!-- 6-month tracker -->
+        <div class="mb-4">
+          <h3 class="text-[15.5px] font-[620] text-zinc-200 mb-3">Tracker Jul – Des</h3>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <!-- Jul -->
+            <div class="month-card">
+              <div class="month-card-head">
+                <div class="month-name">Jul</div>
+                <span class="month-tag">M7</span>
+              </div>
+              <div class="month-row">Income <b>Rp 55,3 jt</b></div>
+              <div class="month-row">Expense <b>Rp 39,6 jt</b></div>
+              <div class="month-row month-net-row">Net <b>Rp 15,7 jt</b></div>
+              <div class="month-status">
+                <label>
+                  <input type="checkbox" id="chk-jul">
+                  <span class="check-text">Tandai ✓</span>
+                </label>
+                <span class="text-zinc-500">✓ / ✗</span>
+              </div>
+            </div>
+            <!-- Agu -->
+            <div class="month-card">
+              <div class="month-card-head">
+                <div class="month-name">Agu</div>
+                <span class="month-tag">M8</span>
+              </div>
+              <div class="month-row">Income <b>Rp 55,3 jt</b></div>
+              <div class="month-row">Expense <b>Rp 39,6 jt</b></div>
+              <div class="month-row month-net-row">Net <b>Rp 15,7 jt</b></div>
+              <div class="month-status">
+                <label>
+                  <input type="checkbox" id="chk-agu">
+                  <span class="check-text">Tandai ✓</span>
+                </label>
+                <span class="text-zinc-500">✓ / ✗</span>
+              </div>
+            </div>
+            <!-- Sep -->
+            <div class="month-card">
+              <div class="month-card-head">
+                <div class="month-name">Sep</div>
+                <span class="month-tag">M9</span>
+              </div>
+              <div class="month-row">Income <b>Rp 55,3 jt</b></div>
+              <div class="month-row">Expense <b>Rp 39,6 jt</b></div>
+              <div class="month-row month-net-row">Net <b>Rp 15,7 jt</b></div>
+              <div class="month-status">
+                <label>
+                  <input type="checkbox" id="chk-sep">
+                  <span class="check-text">Tandai ✓</span>
+                </label>
+                <span class="text-zinc-500">✓ / ✗</span>
+              </div>
+            </div>
+            <!-- Okt -->
+            <div class="month-card">
+              <div class="month-card-head">
+                <div class="month-name">Okt</div>
+                <span class="month-tag">M10</span>
+              </div>
+              <div class="month-row">Income <b>Rp 55,3 jt</b></div>
+              <div class="month-row">Expense <b>Rp 39,6 jt</b></div>
+              <div class="month-row month-net-row">Net <b>Rp 15,7 jt</b></div>
+              <div class="month-status">
+                <label>
+                  <input type="checkbox" id="chk-okt">
+                  <span class="check-text">Tandai ✓</span>
+                </label>
+                <span class="text-zinc-500">✓ / ✗</span>
+              </div>
+            </div>
+            <!-- Nov -->
+            <div class="month-card">
+              <div class="month-card-head">
+                <div class="month-name">Nov</div>
+                <span class="month-tag">M11</span>
+              </div>
+              <div class="month-row">Income <b>Rp 55,3 jt</b></div>
+              <div class="month-row">Expense <b>Rp 39,6 jt</b></div>
+              <div class="month-row month-net-row">Net <b>Rp 15,7 jt</b></div>
+              <div class="month-status">
+                <label>
+                  <input type="checkbox" id="chk-nov">
+                  <span class="check-text">Tandai ✓</span>
+                </label>
+                <span class="text-zinc-500">✓ / ✗</span>
+              </div>
+            </div>
+            <!-- Des -->
+            <div class="month-card">
+              <div class="month-card-head">
+                <div class="month-name">Des</div>
+                <span class="month-tag">M12</span>
+              </div>
+              <div class="month-row">Income <b>Rp 55,3 jt</b></div>
+              <div class="month-row">Expense <b>Rp 39,6 jt</b></div>
+              <div class="month-row month-net-row">Net <b>Rp 15,7 jt</b></div>
+              <div class="month-status">
+                <label>
+                  <input type="checkbox" id="chk-des">
+                  <span class="check-text">Tandai ✓</span>
+                </label>
+                <span class="text-zinc-500">✓ / ✗</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-box">
+          Centang manual tiap bulan. Kalau 6 bulan ini disiplin, tutup 2026 di Net <b class="text-zinc-200">Rp 140,0 jt</b> – hampir menyamai tahun terbaik 2023. Catatan: Loan Jun Rp 5jt belum tercatat.
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Footer note -->
+    <footer class="mt-10 text-center text-[12.4px] text-zinc-500 leading-relaxed px-4">
+      Data pribadi Zudin, 2019 — 2026 YTD. Angka dibulatkan untuk keterbacaan.<br>
+      Analisis umum, bukan nasihat keuangan profesional.
+    </footer>
+  </div>
+
+<script>
+const YEARS = ["2019","2020","2021","2022","2023","2024","2025","2026 YTD"];
+const INCOME = [0, 21855065, 568996712, 640322634, 682499794, 676157630, 627442112, 331746961];
+const EXPENSES = [384932936, 183639308, 531508378, 684837878, 538685079, 1163971219, 608030382, 291103588];
+const NET = [-384932936, -161784243, 37488335, -44515243, 143814715, -487813589, 19411730, 40643373];
+
+const CATEGORIES_RAW = {
+  "Households": [0, 38829800, 110541432, 97956170, 108037568, 116940993, 99134046, 45690500],
+  "Shopping": [0, 27252297, 70921620, 107747680, 131810757, 359401970, 62392666, 42415655],
+  "Housing": [223537805, 189605765, 187985672, 108702173, 7727082, 200564076, 146153600, 24123208],
+  "Transportation": [0, 160000, 0, 2718000, 8648199, 11065617, 0, 8030000],
+  "Vehicle": [3610000, 17924156, 39377758, 117276590, 89048391, 62277850, 28400000, 12050300],
+  "Life & Entertainment": [1000000, 9509800, 45760533, 130346133, 95860356, 127265566, 39700000, 26853715],
+  "Communication, gadget": [7778797, 2560010, 13376757, 14000066, 16470827, 149666118, 18600000, 6269777],
+  "Financial expenses": [0, -2478553, 8187545, 16295472, 4260483, 23253657, 84300000, 29457402],
+  "Investments": [6862560, -72461486, 30713002, 47535991, 29751484, 89909160, 102000000, 78563031],
+  "Others": [142143774, -28713726, 16531700, 25919582, 10470344, 22900000, 15300000, 17650000],
+  "Unknown Expense": [0, 1451245, 8128859, 16340020, 36599589, 726212, 0, 0]
+};
+
+const CAT_COLORS = {
+  "Shopping": "#60a5fa",
+  "Housing": "#ff9f43",
+  "Life & Entertainment": "#c084fc",
+  "Households": "#f4c84b",
+  "Investments": "#34d399",
+  "Vehicle": "#fb7185",
+  "Communication, gadget": "#7dd3fc",
+  "Financial expenses": "#fbbf24",
+  "Others": "#94a3b8",
+  "Unknown Expense": "#7f8aa3",
+  "Transportation": "#a3bffa"
+};
+
+const nfID = new Intl.NumberFormat('id-ID');
+
+function fmtFull(n){
+  const sign = n < 0 ? "-Rp " : "Rp ";
+  return sign + nfID.format(Math.abs(Math.round(n)));
+}
+function fmtShort(n){
+  const abs = Math.abs(n);
+  const sign = n < 0 ? "-" : "";
+  if(abs >= 1_000_000_000){
+    return sign + "Rp " + (abs/1_000_000_000).toLocaleString('id-ID',{maximumFractionDigits:1, minimumFractionDigits:0}) + " M";
+  }
+  if(abs >= 1_000_000){
+    return sign + "Rp " + Math.round(abs/1_000_000).toLocaleString('id-ID') + " jt";
+  }
+  if(abs >= 1000){
+    return sign + "Rp " + Math.round(abs/1000).toLocaleString('id-ID') + " rb";
+  }
+  return sign + "Rp " + nfID.format(Math.round(abs));
+}
+
+// Summary table
+const savingRates = INCOME.map((inc,i) => inc > 0 ? (NET[i]/inc*100) : null);
+const tbody = document.getElementById('summaryBody');
+YEARS.forEach((y, i) => {
+  const sr = savingRates[i];
+  let badge = `<span class="sr-badge sr-neutral">—</span>`;
+  if(sr !== null){
+    const cls = sr >= 0 ? 'sr-pos' : 'sr-neg';
+    const txt = (sr >= 0 ? '+' : '') + sr.toFixed(1).replace('.',',') + '%';
+    badge = `<span class="sr-badge ${cls}">${txt}</span>`;
+  }
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="font-[600] text-zinc-200">${y}</td>
+    <td class="text-zinc-300">${fmtShort(INCOME[i])}</td>
+    <td class="text-zinc-300">${fmtShort(EXPENSES[i])}</td>
+    <td class="font-[650]" style="color:${NET[i] >= 0 ? '#6ee7a0' : '#ff9b9b'}">${fmtShort(NET[i])}</td>
+    <td>${badge}</td>
+  `;
+  tbody.appendChild(tr);
+});
+
+// Year chips
+const yearChipsEl = document.getElementById('yearChips');
+YEARS.forEach((y, idx) => {
+  const b = document.createElement('button');
+  b.className = 'year-chip';
+  b.type = 'button';
+  b.textContent = y;
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.year-chip').forEach(c=>c.classList.remove('active'));
+    b.classList.add('active');
+    showAnnualDetail(idx);
+    if(window.annualChart){
+      window.annualChart.setActiveElements([
+        {datasetIndex:0, index: idx},
+        {datasetIndex:1, index: idx},
+        {datasetIndex:2, index: idx},
+      ]);
+      window.annualChart.update();
+    }
+  });
+  yearChipsEl.appendChild(b);
+});
+
+function showAnnualDetail(i){
+  const el = document.getElementById('annualDetail');
+  el.classList.remove('hidden');
+  const sr = savingRates[i];
+  const srTxt = sr === null ? '—' : (sr >= 0 ? '+' : '') + sr.toFixed(1).replace('.',',') + '%';
+  el.innerHTML = `<b class="text-zinc-200">${YEARS[i]}</b> · Masuk ${fmtFull(INCOME[i])} · Keluar ${fmtFull(EXPENSES[i])} · Net <span style="color:${NET[i] >= 0 ? '#6ee7a0' : '#ff9b9b'}">${fmtFull(NET[i])}</span> · Saving rate ${srTxt}`;
+}
+
+// Chart defaults
+Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+Chart.defaults.color = "#9aa0ae";
+Chart.defaults.borderColor = "rgba(255,255,255,0.07)";
+
+// 1. Annual chart
+const annualCtx = document.getElementById('chartAnnual');
+window.annualChart = new Chart(annualCtx, {
+  type: 'bar',
+  data: {
+    labels: YEARS,
+    datasets: [
+      {
+        label: 'Pemasukan',
+        data: INCOME,
+        backgroundColor: '#e9c25c',
+        borderRadius: 7,
+        borderSkipped: false,
+        maxBarThickness: 34
+      },
+      {
+        label: 'Pengeluaran',
+        data: EXPENSES,
+        backgroundColor: '#ff6b6b',
+        borderRadius: 7,
+        borderSkipped: false,
+        maxBarThickness: 34
+      },
+      {
+        label: 'Net',
+        data: NET,
+        backgroundColor: (ctx) => ctx.raw >= 0 ? '#4ade80' : '#f87171',
+        borderRadius: 7,
+        borderSkipped: false,
+        maxBarThickness: 24
+      }
+    ]
+  },
+  options: {
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    onClick: (e, els) => {
+      if(els.length){
+        const idx = els[0].index;
+        document.querySelectorAll('.year-chip').forEach((c,ci)=>c.classList.toggle('active', ci===idx));
+        showAnnualDetail(idx);
+      }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(20,24,33,0.96)',
+        titleColor: '#e8e9ee',
+        bodyColor: '#cfd3dc',
+        borderColor: '#323949',
+        borderWidth: 1,
+        padding: 12,
+        callbacks: {
+          label: (ctx) => {
+            const label = ctx.dataset.label + ': ';
+            return label + fmtFull(ctx.raw);
+          },
+          afterBody: (items) => {
+            const i = items[0].dataIndex;
+            const sr = savingRates[i];
+            if(sr !== null){
+              return 'Saving rate: ' + (sr>=0?'+':'') + sr.toFixed(1) + '%';
+            }
+            return '';
+          }
+        }
+      }
+    },
+    scales: {
+      x: { grid: { display:false }, ticks:{ color:'#9aa0ae'} },
+      y: { 
+        grid: { color:'rgba(255,255,255,0.06)' },
+        ticks: {
+          color: '#9aa0ae',
+          callback: v => fmtShort(v).replace('Rp ','')
+        }
+      }
+    }
+  }
+});
+
+// 2. Net cash flow
+const netCtx = document.getElementById('chartNet');
+const netGradientPos = netCtx.getContext('2d').createLinearGradient(0,0,0,260);
+netGradientPos.addColorStop(0, 'rgba(74,222,128,0.28)');
+netGradientPos.addColorStop(1, 'rgba(74,222,128,0.02)');
+const netGradientNeg = netCtx.getContext('2d').createLinearGradient(0,0,0,260);
+netGradientNeg.addColorStop(0, 'rgba(248,113,113,0.04)');
+netGradientNeg.addColorStop(1, 'rgba(248,113,113,0.22)');
+
+new Chart(netCtx, {
+  type: 'line',
+  data: {
+    labels: YEARS,
+    datasets: [{
+      label: 'Net',
+      data: NET,
+      tension: 0.42,
+      fill: true,
+      pointRadius: 4.5,
+      pointHoverRadius: 6.5,
+      pointBackgroundColor: NET.map(v=> v >=0 ? '#4ade80' : '#f87171'),
+      pointBorderColor: '#0f1115',
+      pointBorderWidth: 1.6,
+      borderWidth: 2.4,
+      segment: {
+        borderColor: ctx => (ctx.p0.parsed.y >= 0 && ctx.p1.parsed.y >= 0) ? '#4ade80' : (ctx.p0.parsed.y < 0 && ctx.p1.parsed.y < 0 ? '#f87171' : '#d8a64a'),
+        backgroundColor: ctx => (ctx.p0.parsed.y >= 0 ? netGradientPos : netGradientNeg)
+      }
+    }]
+  },
+  options: {
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => 'Net: ' + fmtFull(ctx.raw)
+        }
+      }
+    },
+    scales: {
+      x: { grid: { display:false } },
+      y: {
+        grid: { color:'rgba(255,255,255,0.065)' },
+        ticks: { callback: v => fmtShort(v).replace('Rp ','') }
+      }
+    }
+  }
+});
+
+// 3. Housing
+const housingData = CATEGORIES_RAW["Housing"];
+const housingCtx = document.getElementById('chartHousing');
+new Chart(housingCtx, {
+  type: 'line',
+  data: {
+    labels: YEARS,
+    datasets: [{
+      label: 'Housing',
+      data: housingData,
+      borderColor: '#ff9f43',
+      backgroundColor: 'rgba(255,159,67,0.15)',
+      fill: true,
+      tension: 0.4,
+      pointRadius: YEARS.map((_,i)=> [0,5,7].includes(i) ? 5.5 : 3.4),
+      pointBackgroundColor: '#ff9f43',
+      pointBorderColor: '#151821',
+      borderWidth: 2.2
+    }]
+  },
+  options: {
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display:false },
+      tooltip: {
+        callbacks: {
+          label: ctx => 'Housing: ' + fmtFull(ctx.raw)
+        }
+      }
+    },
+    scales: {
+      x: { grid: { display:false } },
+      y: { grid:{ color:'rgba(255,255,255,.06)'}, ticks:{ callback: v => fmtShort(v).replace('Rp ','') }}
+    }
+  }
+});
+
+// 4. Categories stacked
+const catKeysAll = Object.keys(CATEGORIES_RAW);
+function buildCategoryDatasets(keys){
+  return keys.map(k => ({
+    label: k,
+    data: CATEGORIES_RAW[k].map(v => Math.abs(v)),
+    rawValues: CATEGORIES_RAW[k],
+    backgroundColor: CAT_COLORS[k] || '#8b93a7',
+    borderRadius: 4,
+    maxBarThickness: 44,
+    stack: 'exp'
+  }));
+}
+const TOP5 = ["Shopping","Housing","Life & Entertainment","Households","Investments"];
+const catCtx = document.getElementById('chartCategories');
+let catChart = new Chart(catCtx, {
+  type: 'bar',
+  data: {
+    labels: YEARS,
+    datasets: buildCategoryDatasets(TOP5)
+  },
+  options: {
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 12, padding: 14, color: '#aab0be'} },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            const ds = ctx.dataset;
+            const raw = ds.rawValues[ctx.dataIndex];
+            const abs = Math.abs(raw);
+            const creditNote = raw < 0 ? ' (kredit)' : '';
+            return ds.label + ': ' + fmtFull(abs) + creditNote;
+          },
+          footer: (items) => {
+            const idx = items[0].dataIndex;
+            return 'Total periode: ' + fmtFull(EXPENSES[idx]);
+          }
+        }
+      }
+    },
+    scales: {
+      x: { stacked: true, grid: { display:false } },
+      y: { stacked: true, grid:{ color:'rgba(255,255,255,.06)'}, ticks:{ callback: v => fmtShort(v).replace('Rp ','') } }
+    }
+  }
+});
+
+document.getElementById('btnTop5').addEventListener('click', function(){
+  this.classList.add('active');
+  document.getElementById('btnAll').classList.remove('active');
+  catChart.data.datasets = buildCategoryDatasets(TOP5);
+  catChart.update();
+});
+document.getElementById('btnAll').addEventListener('click', function(){
+  this.classList.add('active');
+  document.getElementById('btnTop5').classList.remove('active');
+  catChart.data.datasets = buildCategoryDatasets(catKeysAll);
+  catChart.update();
+});
+
+// 5. Proyeksi Net 2026 vs Tahun Sebelumnya
+const projCtx = document.getElementById('chartProjection2026');
+if(projCtx){
+  const projLabels = ['2021','2022','2023','2024','2025','2026 C','2026 B','2026 O'];
+  const projFullLabels = [
+    '2021 (aktual)',
+    '2022 (aktual)',
+    '2023 (aktual)',
+    '2024 (aktual)',
+    '2025 (aktual)',
+    '2026 Konservatif',
+    '2026 Base',
+    '2026 Optimis'
+  ];
+  const projValues = [37.4, -44.5, 143.8, -487.8, 19.4, 25.0, 19.4, 118.7];
+  const projColors = projValues.map((v,i) => i < 5 ? (v >= 0 ? '#4ade80' : '#f87171') : '#e9c25c');
+
+  new Chart(projCtx, {
+    type: 'bar',
+    data: {
+      labels: projLabels,
+      datasets: [{
+        label: 'Net',
+        data: projValues,
+        backgroundColor: projColors,
+        borderRadius: 7,
+        borderSkipped: false,
+        maxBarThickness: 44
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(20,24,33,0.96)',
+          titleColor: '#e8e9ee',
+          bodyColor: '#cfd3dc',
+          borderColor: '#323949',
+          borderWidth: 1,
+          padding: 12,
+          callbacks: {
+            title: (items) => projFullLabels[items[0].dataIndex],
+            label: (ctx) => {
+              const v = ctx.raw;
+              return 'Net: Rp ' + (v < 0 ? '-' : '') + Math.abs(v).toLocaleString('id-ID', {minimumFractionDigits:1, maximumFractionDigits:1}) + ' jt';
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: '#9aa0ae' }
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.065)' },
+          ticks: {
+            color: '#9aa0ae',
+            callback: v => 'Rp ' + v + ' jt'
+          }
+        }
+      }
+    }
+  });
+}
+
+// Initial detail
+showAnnualDetail(4); // 2023 best year
+document.querySelectorAll('.year-chip')[4]?.classList.add('active');
+</script>
+<script>(function(){document.addEventListener("click",function(e){var a=e.target.closest("[data-product-id]");if(!a)return;e.preventDefault();var pid=a.getAttribute("data-product-id");if(pid)parent.postMessage({type:"ecto-artifact-link-click",productId:pid},"*")})})();</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;var a=target.closest?target.closest("a[href]"):null;if(!a||!a.href||!/^https?:\/\//.test(a.href))return;if(a.href.replace(/#.*$/,"")===loc)return;var productId=extractProductId(target)||extractProductId(a);if(!productId)return;e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*")},true)})();</script>
+<script>
+// === MONTHLY 2026 MODULE ===
+const M2026_MONTHS = ["Jan","Feb","Mar","Apr","Mei","Jun*"];
+const M2026_INCOME = [55580510, 51479976, 68432000, 52527000, 53310475, 50417000];
+const M2026_EXPENSE = [52041573, 42591278, 75741811, 47016750, 44410881, 29301295];
+const M2026_NET = [3538937, 8888698, -7309811, 5510250, 8899594, 21115705];
+
+const M2026_CATS = {
+  "Households": [7543000, 8703000, 9460000, 6580000, 6830000, 6574500],
+  "Shopping": [4017418, 4304288, 13808465, 5520400, 6561284, 8203800],
+  "Housing": [3963145, 4035571, 3963145, 4064960, 3963145, 4133242],
+  "Transportation": [2720500, 539500, 3639000, 642000, 489000, 0],
+  "Vehicle": [700000, 600000, 5445800, 2802000, 1652500, 850000],
+  "Life & Entertainment": [8915000, 2485000, 4025967, 3801590, 7116158, 510000],
+  "Communication": [1068635, 1349019, 787200, 1563764, 678464, 822695],
+  "Financial": [5000000, 5000000, 4457402, 5000000, 5000000, 5000000],
+  "Investments": [17043875, 15374900, 21234832, 12222036, 10550330, 2137058],
+  "Infaq": [1070000, 200000, 8920000, 4820000, 1570000, 1070000]
+};
+
+const M2026_SUB = {
+  "Shopping": [
+    ["Foods, beverages", [3622700, 4204288, 10486765, 4667400, 6190170, 1052800]],
+    ["Electronics", [0, 0, 1777700, 825000, 35000, 7151000]],
+    ["Clothes & shoes", [0, 0, 1444000, 0, 336114, 0]]
+  ],
+  "Life & Entertainment": [
+    ["Education", [8700000, 2000000, 3000000, 2700000, 3100000, 0]],
+    ["Health care", [0, 0, 741000, 300000, 1144447, 150000]],
+    ["Holiday / trips", [195000, 445000, 0, 0, 2055711, 0]],
+    ["Books / subs", [0, 0, 0, 236590, 776000, 0]]
+  ],
+  "Vehicle": [
+    ["Fuel", [600000, 500000, 1550000, 2200000, 1200000, 800000]],
+    ["Toll", [100000, 100000, 611500, 602000, 452500, 50000]],
+    ["Maintenance", [0, 0, 3284300, 0, 0, 0]]
+  ]
+};
+
+function fmtRpShort(n){
+  const abs = Math.abs(n);
+  if(abs >= 1_000_000) return "Rp " + (abs/1_000_000).toLocaleString('id-ID', {maximumFractionDigits:1}) + " jt";
+  if(abs >= 1000) return "Rp " + Math.round(abs/1000).toLocaleString('id-ID') + " rb";
+  return "Rp " + abs.toLocaleString('id-ID');
+}
+
+let monthlyChart;
+function initMonthlyChart(){
+  const ctx = document.getElementById('chartMonthly2026');
+  if(!ctx) return;
+  monthlyChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: M2026_MONTHS,
+      datasets: [
+        { label: 'Income', data: M2026_INCOME, backgroundColor: '#e9c25c', borderRadius: 6, maxBarThickness: 28 },
+        { label: 'Expense', data: M2026_EXPENSE, backgroundColor: '#ff6b6b', borderRadius: 6, maxBarThickness: 28 },
+        { label: 'Net', data: M2026_NET, backgroundColor: (c) => c.raw >= 0 ? '#4ade80' : '#f87171', borderRadius: 6, maxBarThickness: 18 }
+      ]
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, labels: { color: '#9aa0ae', boxWidth: 12 } },
+        tooltip: { callbacks: { label: (c) => c.dataset.label + ': Rp ' + c.raw.toLocaleString('id-ID') } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#9aa0ae' } },
+        y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#9aa0ae', callback: v => (v/1_000_000) + ' jt' } }
+      }
+    }
+  });
+}
+
+function setCategory(cat){
+  // update chip active state
+  document.querySelectorAll('#catChipWrap button').forEach(b => {
+    b.classList.toggle('active', b.dataset.cat === cat);
+  });
+  const kpiEl = document.getElementById('catKpi');
+  const detailWrap = document.getElementById('catDetailWrap');
+  
+  if(cat === 'ALL'){
+    kpiEl.classList.add('hidden');
+    detailWrap.classList.add('hidden');
+    // restore full chart
+    if(monthlyChart){
+      monthlyChart.data.labels = M2026_MONTHS;
+      monthlyChart.data.datasets = [
+        { label: 'Income', data: M2026_INCOME, backgroundColor: '#e9c25c', borderRadius: 6 },
+        { label: 'Expense', data: M2026_EXPENSE, backgroundColor: '#ff6b6b', borderRadius: 6 },
+        { label: 'Net', data: M2026_NET, backgroundColor: (c) => (typeof c.raw === 'number' ? c.raw : c.parsed.y) >= 0 ? '#4ade80' : '#f87171', borderRadius: 6 }
+      ];
+      monthlyChart.update();
+    }
+    return;
+  }
+
+  const arr = M2026_CATS[cat];
+  if(!arr) return;
+
+  // KPI
+  const totalJanMei = arr.slice(0,5).reduce((a,b)=>a+b,0);
+  const avg = totalJanMei / 5;
+  const peakVal = Math.max(...arr.slice(0,5));
+  const peakIdx = arr.slice(0,5).indexOf(peakVal);
+  const monthNames = ["Jan","Feb","Mar","Apr","Mei"];
+  const totalExpenseJanMei = M2026_EXPENSE.slice(0,5).reduce((a,b)=>a+b,0);
+  const pct = (totalJanMei / totalExpenseJanMei * 100).toFixed(1);
+
+  document.getElementById('catTotal').textContent = fmtRpShort(totalJanMei);
+  document.getElementById('catAvg').textContent = fmtRpShort(avg);
+  document.getElementById('catPeak').textContent = monthNames[peakIdx] + ' · ' + fmtRpShort(peakVal);
+  document.getElementById('catPct').textContent = pct + '%';
+  kpiEl.classList.remove('hidden');
+
+  // chart -> single category
+  if(monthlyChart){
+    monthlyChart.data.labels = M2026_MONTHS;
+    monthlyChart.data.datasets = [{
+      label: cat,
+      data: arr,
+      backgroundColor: '#60a5fa',
+      borderRadius: 6
+    }];
+    monthlyChart.update();
+  }
+
+  // sub-category table
+  const sub = M2026_SUB[cat];
+  const tbody = document.querySelector('#catDetailTable tbody');
+  tbody.innerHTML = '';
+  if(sub && sub.length){
+    document.getElementById('catDetailTitle').textContent = 'Detail sub-kategori — ' + cat;
+    sub.forEach(([name, vals]) => {
+      const tr = document.createElement('tr');
+      let tds = `<td class="text-zinc-200">${name}</td>`;
+      vals.forEach(v => {
+        tds += `<td class="text-zinc-300">${v ? (v/1_000_000).toLocaleString('id-ID',{maximumFractionDigits:1}) + ' jt' : '—'}</td>`;
+      });
+      tr.innerHTML = tds;
+      tbody.appendChild(tr);
+    });
+    detailWrap.classList.remove('hidden');
+  } else {
+    detailWrap.classList.add('hidden');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initMonthlyChart();
+  document.querySelectorAll('#catChipWrap button').forEach(btn => {
+    btn.addEventListener('click', () => setCategory(btn.dataset.cat));
+  });
+});
+// === END MONTHLY 2026 MODULE ===
+</script>
+
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;var a=target.closest?target.closest("a[href]"):null;if(!a||!a.href||!/^https?:\/\//.test(a.href))return;if(a.href.replace(/#.*$/,"")===loc)return;var productId=extractProductId(target)||extractProductId(a);if(!productId)return;e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*")},true)})();</script><script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;var a=target.closest?target.closest("a[href]"):null;if(!a||!a.href||!/^https?:\/\//.test(a.href))return;if(a.href.replace(/#.*$/,"")===loc)return;var productId=extractProductId(target)||extractProductId(a);if(!productId)return;e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*")},true)})();</script></body>
+</html>

@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cashflow Zudin — Jan-Jun 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0f1115;
+  --card:#1a1d24;
+  --card-2:#171a21;
+  --border:#262a33;
+  --border-soft:#222631;
+  --text:#e5e7eb;
+  --muted:#9aa3b2;
+  --muted-2:#7f8797;
+  --green:#22c55e;
+  --green-soft:rgba(34,197,94,.10);
+  --green-border:rgba(34,197,94,.22);
+  --red:#ef4444;
+  --amber:#f59e0b;
+  --radius:18px;
+  --shadow:0 10px 30px rgba(0,0,0,.22);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+a{color:inherit}
+.app{
+  max-width:1080px;
+  margin:0 auto;
+  padding:22px 16px 56px;
+}
+
+/* Header */
+.site-header{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:18px;
+}
+.site-header h1{
+  margin:0;
+  font-size: clamp(22px, 3vw, 30px);
+  letter-spacing:-.018em;
+  font-weight:800;
+}
+.sub{
+  margin:6px 0 0;
+  color:var(--muted);
+  font-size:14px;
+}
+.sub strong{ color:#cbd5e1; font-weight:600;}
+.header-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.chip{
+  background:#212530;
+  border:1px solid var(--border);
+  color:#d6dbe4;
+  padding:9px 13px;
+  border-radius:999px;
+  font-size:12.8px;
+  font-weight:600;
+  cursor:pointer;
+}
+.chip.ghost{
+  background:transparent;
+  color:var(--muted);
+}
+.dot-live{
+  width:7px;height:7px;background:var(--green);border-radius:50%;display:inline-block;margin-right:6px; box-shadow:0 0 10px rgba(34,197,94,.5);
+}
+
+/* KPI */
+.kpis{
+  display:grid;
+  grid-template-columns: repeat(2,1fr);
+  gap:12px;
+  margin-bottom:18px;
+}
+@media (min-width:900px){
+  .kpis{ grid-template-columns: repeat(4,1fr);}
+}
+.kpi{
+  background: linear-gradient(180deg, #1b1f28, #191c24);
+  border:1px solid var(--border);
+  border-radius: var(--radius);
+  padding:16px 16px 15px;
+  box-shadow: var(--shadow);
+  min-width:0;
+}
+.kpi-label{
+  color:var(--muted);
+  font-size:12.5px;
+}
+.kpi-value{
+  font-size: clamp(18px,2.2vw,22px);
+  font-weight:800;
+  margin-top:8px;
+  letter-spacing:-.01em;
+  overflow-wrap:break-word;
+}
+.kpi-sub{
+  font-size:12px;
+  color:var(--muted-2);
+  margin-top:7px;
+}
+.green{ color:var(--green);}
+.red{ color:#ff6b6b;}
+
+/* Cards / Layout */
+.card{
+  background: var(--card);
+  border:1px solid var(--border);
+  border-radius: var(--radius);
+  padding:18px;
+  box-shadow: var(--shadow);
+  min-width:0;
+}
+.card-head{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+.card-head h3, .section-title{
+  margin:0;
+  font-size:15.8px;
+  font-weight:750;
+}
+.muted{ color:var(--muted);}
+.small{ font-size:12.4px;}
+.note{
+  margin-top:10px;
+  color:var(--muted);
+  font-size:12.3px;
+}
+.chart-wrap{
+  position:relative;
+  height:316px;
+  width:100%;
+}
+@media (max-width:640px){
+  .chart-wrap{ height:282px; }
+}
+.grid-two{
+  display:grid;
+  gap:16px;
+  margin-bottom:16px;
+}
+@media (min-width:980px){
+  .grid-two{ grid-template-columns: 1.22fr .78fr; }
+  .grid-two.even{ grid-template-columns: 1fr 1fr;}
+}
+
+/* Table */
+.table-wrap{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  margin: 2px -4px;
+  padding: 0 4px;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13.8px;
+  min-width:560px;
+}
+th{
+  text-align:left;
+  font-weight:600;
+  color:var(--muted);
+  font-size:12.3px;
+  padding:11px 10px;
+  border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+td{
+  padding:12px 10px;
+  border-bottom:1px solid var(--border-soft);
+  vertical-align:middle;
+}
+tr:last-child td{ border-bottom:none;}
+.num{ text-align:right; font-variant-numeric: tabular-nums; white-space:nowrap;}
+.positive{ color:var(--green);}
+.negative{ color:#ff6b6b;}
+tbody tr:hover td{ background:#1c212b;}
+
+/* Insights */
+.insight-list{ display:grid; gap:10px; }
+.insight{
+  background: linear-gradient(180deg, #1b2029, #191d25);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:13px 14px;
+  font-size:13.7px;
+  color:#d4d9e2;
+  line-height:1.5;
+}
+.insight b{ color:#f1f5f9; font-weight:700; }
+.insight .tag{
+  display:inline-block;
+  font-size:11px;
+  color:#a8b0be;
+  background:#232836;
+  border:1px solid #2b3040;
+  padding:3px 8px;
+  border-radius:999px;
+  margin-right:6px;
+  margin-bottom:4px;
+}
+
+/* Spotlight */
+.spot-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13.8px;
+  min-width:420px;
+}
+.spot-table th, .spot-table td{ padding:12px 6px;}
+.spot-rank{
+  color:var(--muted);
+  width:28px;
+}
+.spot-barcell{ width:92px; padding-left:12px !important;}
+.spot-bar{
+  height:7px;
+  border-radius:99px;
+  background:#232838;
+  overflow:hidden;
+}
+.spot-bar > i{
+  display:block;
+  height:100%;
+  background: linear-gradient(90deg, #22c55e, #57d88a);
+  border-radius:99px;
+}
+
+/* Proyeksi */
+.proj-grid{
+  display:grid;
+  grid-template-columns: repeat(3,1fr);
+  gap:10px;
+  margin:14px 0 14px;
+}
+@media (max-width:520px){
+  .proj-grid{ grid-template-columns: 1fr 1fr; }
+  .proj-grid > div:last-child{ grid-column: 1 / -1; }
+}
+.proj-cell{
+  background:#151922;
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:12px 13px;
+}
+.proj-cell span{
+  display:block;
+  font-size:11.9px;
+  color:var(--muted);
+  margin-bottom:5px;
+}
+.proj-cell strong{ font-size:15.6px; font-weight:750; }
+.proj-timeline{
+  background:#141822;
+  border:1px dashed #2b3240;
+  border-radius:14px;
+  padding:12px 14px;
+  display:flex;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:10px;
+  font-size:13px;
+  color:#c9cfda;
+}
+.proj-timeline b{ color:#e8ecf3;}
+.proj-total{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  flex-wrap:wrap;
+  margin-top:12px;
+  background: linear-gradient(180deg, rgba(34,197,94,.09), rgba(34,197,94,.032));
+  border:1px solid var(--green-border);
+  border-radius:14px;
+  padding:15px 16px;
+}
+.proj-total span{ color:#bde8c9; font-size:13px;}
+.proj-total strong{ font-size:21px; color:var(--green); letter-spacing:-.01em;}
+
+/* Controls */
+.chart-controls{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+  color:var(--muted);
+  font-size:12.6px;
+  margin-bottom:4px;
+}
+.toggle{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  user-select:none;
+  cursor:pointer;
+}
+.toggle input{ accent-color:#22c55e; width:16px; height:16px;}
+
+/* Legend (custom for category chart on mobile) */
+.custom-legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 14px;
+  margin-top:10px;
+  font-size:11.8px;
+  color:#b6bdc9;
+}
+.legend-item{ display:inline-flex; align-items:center; gap:6px; }
+.legend-dot{ width:9px; height:9px; border-radius:3px; display:inline-block;}
+
+/* Footer */
+footer{
+  margin-top:24px;
+  color:#87909f;
+  font-size:12px;
+  text-align:center;
+  line-height:1.6;
+}
+
+/* Utility */
+.hr-soft{ height:1px; background:var(--border-soft); margin:12px 0;}
+.wrap-tight p{ margin:6px 0;}
+.badge{
+  display:inline-block;
+  font-size:11px;
+  padding:4px 9px;
+  border-radius:999px;
+  background:#1f2530;
+  border:1px solid #2a3141;
+  color:#b9c1cf;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="site-header">
+    <div>
+      <h1>Cashflow Zudin — Jan-Jun 2026</h1>
+      <p class="sub">Bandung • IDR • <strong>*Jun MTD 1-23</strong></p>
+    </div>
+    <div class="header-actions">
+      <button class="chip" type="button"><span class="dot-live"></span> Live YTD</button>
+      <button class="chip ghost" type="button" id="exportBtn">Ekspor CSV</button>
+    </div>
+  </header>
+
+  <!-- KPI Cards -->
+  <section class="kpis" aria-label="Ringkasan KPI">
+    <div class="kpi">
+      <div class="kpi-label">Net YTD Jan-Mei</div>
+      <div class="kpi-value green">Rp 19.527.668</div>
+      <div class="kpi-sub">Akumulasi 5 bulan</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Net YTD Jan-Jun*</div>
+      <div class="kpi-value" style="color:#dbe6d5">Rp 12.540.339</div>
+      <div class="kpi-sub">Termasuk Jun MTD</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Saving rate Mei</div>
+      <div class="kpi-value">16,7%</div>
+      <div class="kpi-sub">Net / Income Mei</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Rata-rata Net (tanpa Mar)</div>
+      <div class="kpi-value">Rp 6,7 jt/bln</div>
+      <div class="kpi-sub">Jan, Feb, Apr, Mei</div>
+    </div>
+  </section>
+
+  <!-- Charts Row -->
+  <section class="grid-two even">
+    <div class="card">
+      <div class="card-head">
+        <h3>Arus Bulanan</h3>
+        <span class="muted small">Income / Expense / Net</span>
+      </div>
+      <div class="chart-controls">
+        <label class="toggle"><input type="checkbox" id="toggleJun" checked> Tampilkan Jun*</label>
+        <span class="muted">Ketuk legend untuk show / hide</span>
+      </div>
+      <div class="chart-wrap"><canvas id="flowChart"></canvas></div>
+      <p class="note">*Jun MTD 1-23 Juni, gaji & loan belum masuk. Net hijau positif, merah negatif.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3>Breakdown Expense</h3>
+        <span class="muted small">Stacked per kategori</span>
+      </div>
+      <div class="chart-wrap"><canvas id="categoryChart"></canvas></div>
+      <div class="custom-legend" id="catLegend"></div>
+    </div>
+  </section>
+
+  <!-- Table + Insights -->
+  <section class="grid-two">
+    <div class="card">
+      <div class="card-head">
+        <h3>Ringkasan Bulanan Jan-Mei</h3>
+        <span class="badge">IDR</span>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Ringkasan bulanan">
+          <thead>
+            <tr>
+              <th>Bulan</th>
+              <th class="num">Income</th>
+              <th class="num">Expense</th>
+              <th class="num">Net</th>
+              <th class="num">Saving %</th>
+            </tr>
+          </thead>
+          <tbody id="monthlyBody">
+            <!-- JS filled -->
+          </tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top:12px">Saving % = Net / Income. Mar negatif karena Lebaran.</p>
+    </div>
+
+    <div>
+      <h3 class="section-title" style="margin-bottom:10px;">Insight</h3>
+      <div class="insight-list">
+        <div class="insight"><span class="tag">Efisiensi</span><b>Feb = bulan paling efisien, saving 17,3%</b><br>Expense ditekan ke Rp 42,6 jt, net Rp 8,89 jt.</div>
+        <div class="insight"><span class="tag">Musiman</span><b>Mar = Lebaran spike, Food 10,4jt, Infaq 8,9jt, Mudik 9jt</b><br>Shopping naik ke Rp 13,8 jt,_transportasi & vehicle total Rp 9,1 jt.</div>
+        <div class="insight"><span class="tag">Edu</span><b>Jan = Education spike 8,7jt</b><br>Masuk di Life & Entertainment Rp 8,92 jt.</div>
+        <div class="insight"><span class="tag">Stabil</span><b>Apr-Mei = recovery stabil, net rata-rata 7,2jt</b><br>Expense turun ke Rp 44–47 jt, saving 10,5% – 16,7%.</div>
+        <div class="insight"><span class="tag">MTD</span><b>Jun* belum gajian, expense baru 7jt</b><br>Income Rp 0, net -Rp 6,99 jt. Data 1-23 Juni.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Spotlight + Proyeksi -->
+  <section class="grid-two even">
+    <div class="card">
+      <div class="card-head">
+        <h3>Category Spotlight – YTD Jan-Mei</h3>
+        <span class="muted small">Top 5 expense</span>
+      </div>
+      <div class="table-wrap">
+        <table class="spot-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Kategori</th>
+              <th class="num">Total</th>
+              <th>Share</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="spot-rank">1</td>
+              <td>Investments</td>
+              <td class="num">Rp 76.425.973</td>
+              <td class="spot-barcell"><div class="spot-bar"><i style="width:100%"></i></div></td>
+            </tr>
+            <tr>
+              <td class="spot-rank">2</td>
+              <td>Households</td>
+              <td class="num">Rp 39.116.000</td>
+              <td class="spot-barcell"><div class="spot-bar"><i style="width:51%"></i></div></td>
+            </tr>
+            <tr>
+              <td class="spot-rank">3</td>
+              <td>Shopping</td>
+              <td class="num">Rp 34.211.855</td>
+              <td class="spot-barcell"><div class="spot-bar"><i style="width:45%"></i></div></td>
+            </tr>
+            <tr>
+              <td class="spot-rank">4</td>
+              <td>Life &amp; Entertainment</td>
+              <td class="num">Rp 26.343.715</td>
+              <td class="spot-barcell"><div class="spot-bar"><i style="width:34%"></i></div></td>
+            </tr>
+            <tr>
+              <td class="spot-rank">5</td>
+              <td>Financial</td>
+              <td class="num">Rp 24.457.402</td>
+              <td class="spot-barcell"><div class="spot-bar"><i style="width:32%"></i></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted small" style="margin-top:10px">Total expense Jan-Mei: Rp 261.802.293 • Investments 29,2% dari total.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3>Proyeksi Jul-Des 2026</h3>
+        <span class="muted small">Run-rate Apr-Mei</span>
+      </div>
+
+      <div class="proj-grid">
+        <div class="proj-cell">
+          <span>Income / bln</span>
+          <strong>Rp 52,9 jt</strong>
+        </div>
+        <div class="proj-cell">
+          <span>Expense / bln</span>
+          <strong>Rp 45,7 jt</strong>
+        </div>
+        <div class="proj-cell">
+          <span>Net / bln</span>
+          <strong class="green">Rp 7,2 jt</strong>
+        </div>
+      </div>
+
+      <div class="proj-timeline">
+        <div>Jul – Des: <b>6 bulan</b></div>
+        <div>Est. Net 6 bln: <b>Rp 43,2 jt</b></div>
+        <div>YTD Jun*: <b>Rp 12,54 jt</b></div>
+      </div>
+
+      <div class="proj-total">
+        <span>Estimasi Net Akhir Tahun 2026</span>
+        <strong>~ Rp 62,7 jt</strong>
+      </div>
+
+      <p class="muted small" style="margin-top:11px">Run-rate berdasarkan Apr-Mei (stabil, tanpa efek Lebaran). Asumsi tidak ada bonus / THR tambahan. Proyeksi bisa berubah jika ada income ekstra atau expense tahunan.</p>
+    </div>
+  </section>
+
+  <footer>
+    Cashflow Zudin • Bandung • IDR • Data Jan-Jun 2026<br>
+    *Jun MTD 1-23 Juni, gaji & loan belum masuk. Dashboard ini untuk monitoring pribadi.
+  </footer>
+</div>
+
+<!-- Preload hint for no external images needed -->
+
+<script>
+// ---- Data ----
+const monthsAll = ["Jan","Feb","Mar","Apr","Mei","Jun*"];
+const incomeAll = [55580510, 51479976, 68432000, 52527000, 53310475, 0];
+const expenseAll = [52041573, 42591278, 75741811, 47016750, 44410881, 6987329];
+const netAll = [3538937, 8888698, -7309811, 5510250, 8899594, -6987329];
+
+const categories = [
+  { name:"Households", data:[7543000, 8703000, 9460000, 6580000, 6830000, 474500], color:"#86efac" },
+  { name:"Shopping", data:[4017418, 4304288, 13808465, 5520400, 6561284, 1249792], color:"#fca5b7" },
+  { name:"Housing", data:[3963145, 4035571, 3963145, 4064960, 3963145, 1633242], color:"#93c5fd" },
+  { name:"Transportation", data:[2720500, 539500, 3639000, 642000, 489000, 0], color:"#fde68a" },
+  { name:"Vehicle", data:[700000, 600000, 5445800, 2802000, 1652500, 850000], color:"#c4b5fd" },
+  { name:"Life & Entertainment", data:[8915000, 2485000, 4025967, 3801590, 7116158, 310000], color:"#fdba74" },
+  { name:"Communication", data:[1068635, 1349019, 787200, 1563764, 678464, 822695], color:"#7dd3fc" },
+  { name:"Financial", data:[5000000, 5000000, 4457402, 5000000, 5000000, 0], color:"#a3a3a3" },
+  { name:"Investments", data:[17043875, 15374900, 21234832, 12222036, 10550330, 577100], color:"#22c55e" },
+  { name:"Infaq/Others", data:[1070000, 200000, 8920000, 4820000, 1570000, 1070000], color:"#facc15" },
+];
+
+// Formatters
+const fmtIDR = n => "Rp " + new Intl.NumberFormat('id-ID').format(n);
+const fmtIDRShort = n => {
+  const abs = Math.abs(n);
+  if(abs >= 1_000_000) return "Rp " + (n/1_000_000).toLocaleString('id-ID', {maximumFractionDigits:1}) + " jt";
+  return fmtIDR(n);
+};
+
+// Fill monthly table Jan-Mei
+const monthlyBody = document.getElementById('monthlyBody');
+const monthlyRows = [
+  {m:"Jan", inc:55580510, exp:52041573, net:3538937},
+  {m:"Feb", inc:51479976, exp:42591278, net:8888698},
+  {m:"Mar", inc:68432000, exp:75741811, net:-7309811},
+  {m:"Apr", inc:52527000, exp:47016750, net:5510250},
+  {m:"Mei", inc:53310475, exp:44410881, net:8899594},
+];
+monthlyRows.forEach(r=>{
+  const saving = r.net / r.inc * 100;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><b>${r.m}</b></td>
+    <td class="num">${fmtIDR(r.inc)}</td>
+    <td class="num">${fmtIDR(r.exp)}</td>
+    <td class="num ${r.net>=0 ? 'positive':'negative'}">${fmtIDR(r.net)}</td>
+    <td class="num ${saving>=0 ? 'positive':'negative'}">${saving.toLocaleString('id-ID', {minimumFractionDigits:1, maximumFractionDigits:1})}%</td>
+  `;
+  monthlyBody.appendChild(tr);
+});
+
+// Chart.js defaults for dark
+Chart.defaults.color = "#b9c0cc";
+Chart.defaults.borderColor = "#232836";
+Chart.defaults.font.family = 'system-ui, -apple-system, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif';
+
+let flowChart, catChart;
+
+function getFiltered(includeJun){
+  const end = includeJun ? 6 : 5;
+  return {
+    labels: monthsAll.slice(0,end),
+    income: incomeAll.slice(0,end),
+    expense: expenseAll.slice(0,end),
+    net: netAll.slice(0,end),
+    catData: categories.map(c=> ({...c, data: c.data.slice(0,end)}))
+  };
+}
+
+function createFlowChart(includeJun=true){
+  const d = getFiltered(includeJun);
+  const ctx = document.getElementById('flowChart');
+  if(flowChart) flowChart.destroy();
+  flowChart = new Chart(ctx, {
+    data: {
+      labels: d.labels,
+      datasets: [
+        {
+          type: 'line',
+          label: 'Income',
+          data: d.income,
+          borderColor: '#22c55e',
+          backgroundColor: 'rgba(34,197,94,.08)',
+          borderWidth: 2.6,
+          tension: .4,
+          pointRadius: 3.2,
+          pointBackgroundColor: '#22c55e',
+          pointBorderColor: '#0f1115',
+          pointBorderWidth: 1.5,
+          yAxisID: 'y'
+        },
+        {
+          type: 'line',
+          label: 'Expense',
+          data: d.expense,
+          borderColor: '#9aa3b2',
+          backgroundColor: 'rgba(0,0,0,0)',
+          borderWidth: 2,
+          borderDash: [5,4],
+          tension: .38,
+          pointRadius: 3,
+          pointBackgroundColor: '#9aa3b2',
+          yAxisID: 'y'
+        },
+        {
+          type: 'bar',
+          label: 'Net',
+          data: d.net,
+          backgroundColor: d.net.map(v => v >= 0 ? '#22c55e' : '#ef4444'),
+          borderRadius: 7,
+          borderSkipped: false,
+          maxBarThickness: 36,
+          yAxisID: 'y'
+        }
+      ]
+    },
+    options: {
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{
+        legend:{
+          labels:{ color:'#c9cfd8', boxWidth:14, boxHeight:14, padding:16, usePointStyle:true, pointStyle:'rectRounded' }
+        },
+        tooltip:{
+          backgroundColor: 'rgba(18,20,26,.97)',
+          titleColor: '#e8ecf2',
+          bodyColor: '#d5dae2',
+          borderColor: '#2b313d',
+          borderWidth:1,
+          padding:12,
+          callbacks:{
+            label: (ctx) => {
+              const v = ctx.raw;
+              const label = ctx.dataset.label || '';
+              return ` ${label}: ${fmtIDR(v)}`;
+            }
+          }
+        }
+      },
+      scales:{
+        x:{ grid:{ color:'rgba(255,255,255,0.035)'} , ticks:{ color:'#9aa3b2'} },
+        y:{
+          grid:{ color:'#232836'},
+          ticks:{
+            color:'#9aa3b2',
+            callback: v => {
+              const abs = Math.abs(v);
+              if(abs >= 1_000_000) return (v/1_000_000).toLocaleString('id-ID') + ' jt';
+              return v.toLocaleString('id-ID');
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function createCategoryChart(includeJun=true){
+  const d = getFiltered(includeJun);
+  const ctx = document.getElementById('categoryChart');
+  if(catChart) catChart.destroy();
+  catChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: d.labels,
+      datasets: d.catData.map(c => ({
+        label: c.name,
+        data: c.data,
+        backgroundColor: c.color,
+        borderWidth: 0,
+        borderRadius: 3,
+        maxBarThickness: 44
+      }))
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      scales:{
+        x:{ stacked:true, grid:{ display:false }, ticks:{ color:'#9aa3b2'} },
+        y:{
+          stacked:true,
+          grid:{ color:'#232836' },
+          ticks:{
+            color:'#9aa3b2',
+            callback: v => (v/1_000_000).toLocaleString('id-ID') + ' jt'
+          }
+        }
+      },
+      plugins:{
+        legend:{
+          position:'bottom',
+          labels:{
+            color:'#b8bfcc',
+            boxWidth:11,
+            boxHeight:11,
+            padding:12,
+            font:{ size:11.5 }
+          }
+        },
+        tooltip:{
+          backgroundColor: 'rgba(18,20,26,.97)',
+          titleColor: '#e8ecf2',
+          bodyColor: '#d5dae2',
+          borderColor: '#2b313d',
+          borderWidth:1,
+          mode:'index',
+          intersect:false,
+          callbacks:{
+            label: (ctx) => ` ${ctx.dataset.label}: ${fmtIDR(ctx.raw)}`,
+            footer: (items) => {
+              const total = items.reduce((s,i)=> s + i.raw, 0);
+              return 'Total: ' + fmtIDR(total);
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Custom legend for mobile readability
+  const legendEl = document.getElementById('catLegend');
+  legendEl.innerHTML = '';
+  d.catData.forEach(c=>{
+    const span = document.createElement('span');
+    span.className='legend-item';
+    span.innerHTML = `<i class="legend-dot" style="background:${c.color}"></i>${c.name}`;
+    legendEl.appendChild(span);
+  });
+}
+
+createFlowChart(true);
+createCategoryChart(true);
+
+// Toggle Jun
+document.getElementById('toggleJun').addEventListener('change', (e)=>{
+  createFlowChart(e.target.checked);
+  createCategoryChart(e.target.checked);
+});
+
+// Export CSV dummy
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const rows = [
+    ['Bulan','Income','Expense','Net'],
+    ...monthsAll.map((m,i)=> [m, incomeAll[i], expenseAll[i], netAll[i]])
+  ];
+  const csv = rows.map(r=> r.join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'cashflow-zudin-jan-jun-2026.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+</script>
+<script>(function(){document.addEventListener("click",function(e){var a=e.target.closest("[data-product-id]");if(!a)return;e.preventDefault();var pid=a.getAttribute("data-product-id");if(pid)parent.postMessage({type:"ecto-artifact-link-click",productId:pid},"*")})})();</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;var a=target.closest?target.closest("a[href]"):null;if(!a||!a.href||!/^https?:\/\//.test(a.href))return;if(a.href.replace(/#.*$/,"")===loc)return;var productId=extractProductId(target)||extractProductId(a);if(!productId)return;e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*")},true)})();</script></body>
+</html>

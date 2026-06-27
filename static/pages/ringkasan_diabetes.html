@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="id">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ringkasan Kontrol Diabetes - Izzuddin Edi Siswanto</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          'sans': ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        },
+        colors: {
+          'paper': '#ffffff',
+          'ink': '#1a2332',
+          'muted': '#5b687a',
+          'soft': '#f3f6fa',
+          'line': '#dde3ec',
+          'brand': '#2a6aaa',
+          'brand-soft': '#e9f2fb',
+          'brand-strong': '#1a4d7e',
+          'success': '#1a7f4d',
+          'success-soft': '#e8f5ee',
+          'warn': '#b45309',
+          'warn-soft': '#fef3c7',
+          'alert': '#c24141',
+          'alert-soft': '#fef0f0',
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: #1a2332;
+    background-color: #eef2f6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  @media print {
+    body { background-color: #fff !important; }
+    .no-print { display: none !important; }
+    .print-shadow-none { box-shadow: none !important; border: 1px solid #dde3ec !important; }
+    .print-page { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
+    a { text-decoration: none !important; color: inherit !important; }
+    .print-break-avoid { break-inside: avoid; }
+  }
+  /* Custom focus */
+  :focus-visible { outline: 2px solid #2a6aaa; outline-offset: 2px; }
+  .metric-bar-track { background: #e6ebf2; }
+</style>
+</head>
+<body class="bg-[#eef2f6] min-h-screen">
+  <div class="print-page max-w-[820px] mx-auto px-4 sm:px-8 lg:px-0 py-8 sm:py-12">
+    
+    <!-- Top bar / Print actions -->
+    <div class="flex items-center justify-between mb-5 sm:mb-7 no-print">
+      <div class="flex items-center gap-2.5 text-[13px] text-muted">
+        <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-success"></span> Siap untuk dicetak</span>
+        <span class="text-line">•</span>
+        <span>A4 • 1 halaman</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="copyBtn" class="hidden sm:inline-flex items-center gap-1.5 text-[13px] font-medium text-muted hover:text-ink px-3 py-1.5 rounded-lg hover:bg-white transition-colors">
+          <i data-lucide="copy" class="w-[15px] h-[15px]"></i>
+          Salin
+        </button>
+        <button onclick="window.print()" class="inline-flex items-center gap-2 bg-brand hover:bg-brand-strong text-white text-[13.5px] font-semibold px-4 py-2.5 rounded-xl shadow-sm shadow-blue-900/10 transition-all active:scale-[0.98]">
+          <i data-lucide="printer" class="w-[16px] h-[16px]"></i>
+          <span>Cetak / Simpan PDF</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Document Card -->
+    <main id="reportSheet" class="bg-paper rounded-[20px] sm:rounded-[24px] shadow-[0_20px_60px_rgba(28,44,64,0.08)] print-shadow-none overflow-hidden border border-[#e1e7ef]">
+      
+      <!-- Header -->
+      <header class="px-6 sm:px-10 pt-8 sm:pt-10 pb-7 sm:pb-8 border-b border-line">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
+          <div>
+            <div class="flex items-center gap-2 text-[11.5px] font-semibold text-brand tracking-wide uppercase mb-2">
+              <span class="w-8 h-[2px] bg-brand/40 rounded-full"></span>
+              Diabetes:M Report
+            </div>
+            <h1 class="text-[28px] sm:text-[34px] font-extrabold text-ink tracking-tight leading-tight">Ringkasan Kontrol Diabetes</h1>
+            <p class="text-muted mt-1.5 text-[14.5px]">Diabetes:M report – 25/06/2026</p>
+          </div>
+          <div class="flex-shrink-0">
+            <div class="inline-flex items-center gap-2 bg-brand-soft text-brand-strong text-[11.5px] font-semibold px-3 py-1.5 rounded-full">
+              <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+              Untuk konsultasi dokter
+            </div>
+          </div>
+        </div>
+
+        <!-- Patient summary block -->
+        <div class="mt-7 bg-soft rounded-2xl px-5 sm:px-6 py-5 border border-line/80">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-y-4 md:gap-x-6">
+            <div class="md:col-span-5">
+              <div class="text-[11px] uppercase tracking-wider text-muted font-semibold mb-1">Pasien</div>
+              <div class="text-[18px] sm:text-[20px] font-bold text-ink">Izzuddin Edi Siswanto</div>
+              <div class="text-[13.5px] text-muted mt-0.5">55 th • Laki-laki</div>
+            </div>
+            <div class="md:col-span-7">
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-[13.5px]">
+                <div>
+                  <div class="text-[11px] text-muted">Berat</div>
+                  <div class="font-semibold text-ink mt-0.5">86,6 kg</div>
+                </div>
+                <div>
+                  <div class="text-[11px] text-muted">BMI</div>
+                  <div class="font-semibold text-ink mt-0.5">30,0</div>
+                </div>
+                <div>
+                  <div class="text-[11px] text-muted">Kolesterol</div>
+                  <div class="font-semibold text-ink mt-0.5">176 mg/dL</div>
+                  <div class="text-[11px] text-muted">08/06/2026</div>
+                </div>
+                <div>
+                  <div class="text-[11px] text-muted">Tekanan Darah</div>
+                  <div class="font-semibold text-ink mt-0.5">124 / 63 mmHg</div>
+                  <div class="text-[11px] text-muted">14/04/2026</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="px-6 sm:px-10 py-8 sm:py-9 space-y-9 sm:space-y-10">
+
+        <!-- Section 1: Perbandingan Glukosa -->
+        <section class="print-break-avoid">
+          <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+            <div>
+              <h2 class="text-[17px] sm:text-[18.5px] font-bold text-ink">1. Perbandingan Glukosa</h2>
+              <p class="text-[13.5px] text-muted mt-1">Periode 30 hari vs 90 hari terakhir</p>
+            </div>
+            <span class="inline-flex items-center gap-1.5 bg-success-soft text-success text-[11.5px] font-bold px-3 py-1.5 rounded-full">
+              <i data-lucide="trending-down" class="w-3.5 h-3.5"></i>
+              30 hari: Kontrol membaik
+            </span>
+          </div>
+
+          <!-- Desktop table -->
+          <div class="hidden sm:block rounded-2xl border border-line overflow-hidden bg-white">
+            <table class="w-full text-[13.8px]">
+              <thead class="bg-[#f7f9fc] text-[11px] uppercase tracking-wider text-muted font-semibold">
+                <tr>
+                  <th class="text-left font-semibold px-5 py-3.5 w-[38%]">Metrik</th>
+                  <th class="text-right font-semibold px-5 py-3.5 w-[31%]">
+                    <span class="inline-flex items-center gap-1.5 justify-end">30 hari
+                      <span class="bg-success-soft text-success text-[10px] font-bold px-1.5 py-0.5 rounded">Lebih baik</span>
+                    </span>
+                  </th>
+                  <th class="text-right font-semibold px-5 py-3.5 w-[31%] text-muted">90 hari</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#e9edf3]">
+                <tr>
+                  <td class="px-5 py-[13px] text-muted">Jumlah pengukuran</td>
+                  <td class="px-5 py-[13px] text-right font-semibold text-ink bg-[#f5f9f4]">8</td>
+                  <td class="px-5 py-[13px] text-right font-medium text-ink">49</td>
+                </tr>
+                <tr>
+                  <td class="px-5 py-[13px] text-muted">Rata-rata glukosa</td>
+                  <td class="px-5 py-[13px] text-right font-semibold text-ink bg-[#f5f9f4]">143 mg/dL</td>
+                  <td class="px-5 py-[13px] text-right font-medium text-ink">161 mg/dL</td>
+                </tr>
+                <tr>
+                  <td class="px-5 py-[13px] text-muted">Terendah</td>
+                  <td class="px-5 py-[13px] text-right font-semibold text-ink bg-[#f5f9f4]">124 mg/dL</td>
+                  <td class="px-5 py-[13px] text-right font-medium text-ink">110 mg/dL</td>
+                </tr>
+                <tr>
+                  <td class="px-5 py-[13px] text-muted">Tertinggi</td>
+                  <td class="px-5 py-[13px] text-right font-semibold text-ink bg-[#f5f9f4]">154 mg/dL</td>
+                  <td class="px-5 py-[13px] text-right font-medium text-ink">295 mg/dL</td>
+                </tr>
+                <tr class="bg-[#fafbfd]">
+                  <td class="px-5 py-[10px] text-[11px] uppercase tracking-wider text-muted font-semibold" colspan="3">Distribusi pembacaan</td>
+                </tr>
+                <tr>
+                  <td class="px-5 py-[12px]"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-success"></span><span class="text-ink">Norm</span></div></td>
+                  <td class="px-5 py-[12px] text-right font-semibold text-ink bg-[#f5f9f4]">6</td>
+                  <td class="px-5 py-[12px] text-right font-medium text-ink">29</td>
+                </tr>
+                <tr>
+                  <td class="px-5 py-[12px]"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-[#d8a03a]"></span><span class="text-ink">High</span></div></td>
+                  <td class="px-5 py-[12px] text-right font-semibold text-ink bg-[#f5f9f4]">2</td>
+                  <td class="px-5 py-[12px] text-right font-medium text-ink">17</td>
+                </tr>
+                <tr>
+                  <td class="px-5 py-[12px]"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-alert"></span><span class="text-ink">Hyper</span></div></td>
+                  <td class="px-5 py-[12px] text-right font-semibold text-ink bg-[#f5f9f4]">0</td>
+                  <td class="px-5 py-[12px] text-right font-medium text-ink">3</td>
+                </tr>
+                <tr>
+                  <td class="px-5 py-[12px]"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-brand"></span><span class="text-ink">Hypo / Low</span></div></td>
+                  <td class="px-5 py-[12px] text-right font-semibold text-ink bg-[#f5f9f4]">0</td>
+                  <td class="px-5 py-[12px] text-right font-medium text-ink">0</td>
+                </tr>
+                <tr class="bg-[#fafbfd]">
+                  <td class="px-5 py-[10px] text-[11px] uppercase tracking-wider text-muted font-semibold" colspan="3">Indeks risiko</td>
+                </tr>
+                <tr>
+                  <td class="px-5 py-[13px] text-muted">HBGI</td>
+                  <td class="px-5 py-[13px] text-right font-semibold text-success bg-[#f5f9f4]">2,1</td>
+                  <td class="px-5 py-[13px] text-right font-medium text-warn">5,4</td>
+                </tr>
+                <tr>
+                  <td class="px-5 py-[13px] text-muted">LBGI</td>
+                  <td class="px-5 py-[13px] text-right font-semibold text-ink bg-[#f5f9f4]">–</td>
+                  <td class="px-5 py-[13px] text-right font-medium text-ink">0</td>
+                </tr>
+                <tr>
+                  <td class="px-5 py-[13px] text-muted">Variabilitas</td>
+                  <td class="px-5 py-[13px] text-right font-semibold text-ink bg-[#f5f9f4]">–</td>
+                  <td class="px-5 py-[13px] text-right font-medium text-ink">8 mg/dL</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Mobile stacked list -->
+          <div class="sm:hidden space-y-2.5">
+            <div class="rounded-xl border border-line bg-white px-4 py-3 flex justify-between items-center">
+              <span class="text-[13px] text-muted">Jumlah pengukuran</span>
+              <span class="text-right text-[13.5px] font-semibold">8 <span class="text-muted font-normal">/ 49</span></span>
+            </div>
+            <div class="rounded-xl border border-line bg-white px-4 py-3 flex justify-between items-center">
+              <span class="text-[13px] text-muted">Rata-rata glukosa</span>
+              <span class="text-right text-[13.5px] font-semibold">143 <span class="text-muted font-normal">/ 161 mg/dL</span></span>
+            </div>
+            <div class="rounded-xl border border-line bg-white px-4 py-3 flex justify-between items-center">
+              <span class="text-[13px] text-muted">Terendah</span>
+              <span class="text-right text-[13.5px] font-semibold">124 <span class="text-muted font-normal">/ 110 mg/dL</span></span>
+            </div>
+            <div class="rounded-xl border border-line bg-white px-4 py-3 flex justify-between items-center">
+              <span class="text-[13px] text-muted">Tertinggi</span>
+              <span class="text-right text-[13.5px] font-semibold">154 <span class="text-muted font-normal">/ 295 mg/dL</span></span>
+            </div>
+            <div class="rounded-xl border border-line bg-white px-4 py-3">
+              <div class="text-[11px] uppercase tracking-wider text-muted font-semibold mb-2">Distribusi (30h / 90h)</div>
+              <div class="grid grid-cols-2 gap-y-2 text-[13.5px]">
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-success"></span>Norm: <b>6 / 29</b></div>
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-[#d8a03a]"></span>High: <b>2 / 17</b></div>
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-alert"></span>Hyper: <b>0 / 3</b></div>
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-brand"></span>Hypo: <b>0 / 0</b></div>
+              </div>
+            </div>
+            <div class="rounded-xl border border-line bg-white px-4 py-3 grid grid-cols-3 text-center gap-2 text-[13px]">
+              <div><div class="text-muted text-[11px]">HBGI</div><div class="font-semibold">2,1 / 5,4</div></div>
+              <div><div class="text-muted text-[11px]">LBGI</div><div class="font-semibold">– / 0</div></div>
+              <div><div class="text-muted text-[11px]">Variabilitas</div><div class="font-semibold">– / 8</div></div>
+            </div>
+            <p class="text-[12px] text-muted px-1 pt-1">Kolom kiri: 30 hari. Kolom kanan: 90 hari.</p>
+          </div>
+
+          <!-- Mini time-in-range bar -->
+          <div class="mt-4 bg-white border-line rounded-2xl px-4 sm:px-5 py-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5 text-[12.5px] text-muted">
+              <span class="font-medium text-ink">Distribusi glukosa – 90 hari</span>
+              <span>Target: 70–180 mg/dL</span>
+            </div>
+            <div class="w-full h-2.5 rounded-full overflow-hidden flex metric-bar-track">
+              <div style="width: 59.2%" class="bg-[#2f9b62]" title="Norm"></div>
+              <div style="width: 34.7%" class="bg-[#e0a73a]" title="High"></div>
+              <div style="width: 6.1%" class="bg-[#d84a4a]" title="Hyper"></div>
+            </div>
+            <div class="flex flex-wrap gap-x-5 gap-y-1 text-[12px] text-muted mt-2.5">
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#2f9b62]"></span> Norm 59%</span>
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#e0a73a]"></span> High 35%</span>
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#d84a4a]"></span> Hyper 6%</span>
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-brand"></span> Hypo 0%</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 2 & 3 side by side on desktop -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-7 lg:gap-8">
+          
+          <!-- Section 2: Setting Insulin -->
+          <section class="lg:col-span-5 print-break-avoid">
+            <h2 class="text-[17px] sm:text-[18.5px] font-bold text-ink">2. Setting Insulin di Aplikasi</h2>
+            <p class="text-[13.5px] text-muted mt-1 mb-4">Bolos Calculator – Profil aktif</p>
+
+            <div class="rounded-2xl border border-line bg-white px-5 py-5">
+              <div class="grid grid-cols-2 gap-4 text-[13.8px]">
+                <div>
+                  <div class="text-[11px] text-muted">TDD</div>
+                  <div class="text-[20px] font-extrabold tracking-tight text-ink">47,6 <span class="text-[13px] font-semibold text-muted">U</span></div>
+                </div>
+                <div>
+                  <div class="text-[11px] text-muted">Basal</div>
+                  <div class="text-[20px] font-extrabold tracking-tight text-ink">19,1 <span class="text-[13px] font-semibold text-muted">U</span></div>
+                </div>
+                <div class="col-span-2 h-px bg-line my-1"></div>
+                <div>
+                  <div class="text-[11px] text-muted">I:C Ratio</div>
+                  <div class="text-[15.5px] font-semibold text-ink mt-0.5">1 U : 10 g</div>
+                </div>
+                <div>
+                  <div class="text-[11px] text-muted">ISF</div>
+                  <div class="text-[15.5px] font-semibold text-ink mt-0.5">37,8 mg/dL</div>
+                </div>
+              </div>
+              <div class="mt-4 flex items-start gap-2 text-[12px] text-muted bg-[#f8f9fb] border border-[#e7ecf2] rounded-xl px-3 py-2.5">
+                <i data-lucide="info" class="w-3.5 h-3.5 mt-[2px] flex-shrink-0"></i>
+                <span>Setting aplikasi, bukan resep baru.</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Section 3: Catatan -->
+          <section class="lg:col-span-7 print-break-avoid">
+            <h2 class="text-[17px] sm:text-[18.5px] font-bold text-ink">3. Catatan</h2>
+            <p class="text-[13.5px] text-muted mt-1 mb-4">Ringkasan klinis untuk kunjungan</p>
+
+            <div class="rounded-2xl border border-line bg-white px-5 sm:px-6 py-5">
+              <ul class="space-y-3 text-[13.8px] text-ink leading-relaxed">
+                <li class="flex gap-3">
+                  <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#b7c3d3] flex-shrink-0"></span>
+                  <span><strong class="font-semibold">Frekuensi cek:</strong> ~0,5x/hari</span>
+                </li>
+                <li class="flex gap-3">
+                  <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#b7c3d3] flex-shrink-0"></span>
+                  <span><strong class="font-semibold">Estimated HbA1c:</strong> 7,2%</span>
+                </li>
+                <li class="flex gap-3">
+                  <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#b7c3d3] flex-shrink-0"></span>
+                  <span>Risiko hypo <strong class="font-semibold text-success">rendah</strong>, hiper <strong class="font-semibold text-warn">moderat</strong> di 90 hari, <strong class="font-semibold">membaik</strong> di 30 hari</span>
+                </li>
+                <li class="flex gap-3">
+                  <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#b7c3d3] flex-shrink-0"></span>
+                  <span>Log makan/insulin harian tidak tercatat di laporan ini</span>
+                </li>
+              </ul>
+
+              <div class="mt-5 pt-4 border-t border-line flex flex-wrap items-center gap-3 text-[12.5px] text-muted">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success-soft text-success font-semibold">
+                  <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                  Risiko hypo rendah
+                </div>
+                <div>Perlu cek lebih rutin untuk estimasi HbA1c yang akurat</div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Doctor notes area -->
+        <section class="print-break-avoid">
+          <div class="rounded-2xl border border-dashed border-[#c9d3e2] bg-[#fbfcfe] px-5 py-4">
+            <div class="text-[11px] uppercase tracking-wider font-semibold text-muted mb-2">Catatan dokter (tulis tangan saat konsultasi)</div>
+            <div class="h-[72px] sm:h-[56px]"></div>
+            <div class="flex flex-wrap gap-6 pt-3 border-t border-[#e6ecf3] text-[12.5px] text-muted mt-2">
+              <span>Tanggal: ____ / ____ / ______</span>
+              <span>Tanda tangan: ______________________</span>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Footer -->
+      <footer class="px-6 sm:px-10 py-5 sm:py-6 bg-[#f7f9fc] border-t border-line text-[12.5px] text-muted leading-relaxed">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <p class="max-w-[620px]">
+            <strong class="font-semibold text-ink">Disclaimer:</strong> Ringkasan ini dari aplikasi Diabetes:M, bukan diagnosis. Konsultasikan dengan dokter Anda sebelum mengubah terapi.
+          </p>
+          <div class="text-[11.5px] text-muted/90">
+            Diabetes:M report • 25/06/2026<br>
+            Halaman 1 / 1
+          </div>
+        </div>
+      </footer>
+    </main>
+
+    <!-- Bottom helper / print -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-5 text-[12.5px] text-[#66768a] no-print">
+      <p>Tip: Gunakan tombol Cetak untuk menyimpan sebagai PDF A4 tanpa header website.</p>
+      <button onclick="window.print()" class="text-brand font-semibold hover:underline">Buka dialog cetak →</button>
+    </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-ink text-white text-[13px] px-4 py-2.5 rounded-xl shadow-xl opacity-0 pointer-events-none transition-opacity duration-200 no-print">
+    Ringkasan disalin ke clipboard
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    const copyBtn = document.getElementById('copyBtn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', async () => {
+        const text = `Ringkasan Kontrol Diabetes
+Diabetes:M report - 25/06/2026
+
+Pasien: Izzuddin Edi Siswanto, 55 th
+BB 86.6 kg | BMI 30
+Kolesterol 176 mg/dL (08/06/2026)
+TD 124/63 mmHg (14/04/2026)
+
+Perbandingan Glukosa
+- 30 hari: Rata-rata 143 mg/dL | 124-154 mg/dL | HBGI 2.1
+- 90 hari: Rata-rata 161 mg/dL | 110-295 mg/dL | HBGI 5.4
+Norm/High/Hyper/Hypo (30h): 6 / 2 / 0 / 0
+Norm/High/Hyper/Hypo (90h): 29 / 17 / 3 / 0
+
+Setting Insulin di Aplikasi
+TDD 47.6 U | Basal 19.1 U | I:C 1:10 g | ISF 37.8 mg/dL
+Setting aplikasi, bukan resep baru.
+
+Catatan:
+- Frekuensi cek: ~0.5x/hari
+- Estimated HbA1c: 7.2%
+- Risiko hypo rendah, hiper moderat di 90 hari, membaik di 30 hari
+- Log makan/insulin harian tidak tercatat di laporan ini
+
+Disclaimer: Ringkasan ini dari aplikasi Diabetes:M, bukan diagnosis. Konsultasikan dengan dokter Anda sebelum mengubah terapi.`;
+        try {
+          await navigator.clipboard.writeText(text);
+          const t = document.getElementById('toast');
+          t.style.opacity = '1';
+          setTimeout(() => t.style.opacity = '0', 1800);
+        } catch(e) {}
+      });
+    }
+  </script>
+<script>(function(){document.addEventListener("click",function(e){var a=e.target.closest("[data-product-id]");if(!a)return;e.preventDefault();var pid=a.getAttribute("data-product-id");if(pid)parent.postMessage({type:"ecto-artifact-link-click",productId:pid},"*")})})();</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;var a=target.closest?target.closest("a[href]"):null;if(!a||!a.href||!/^https?:\/\//.test(a.href))return;if(a.href.replace(/#.*$/,"")===loc)return;var productId=extractProductId(target)||extractProductId(a);if(!productId)return;e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*")},true)})();</script></body>
+</html>
