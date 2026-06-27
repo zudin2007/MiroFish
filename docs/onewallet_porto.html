@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="id">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ONE Wallet – Porto Real</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{background:#0b1220;color:#e2e8f0;font-family:Inter,system-ui,sans-serif}
+.card{background:linear-gradient(180deg,rgba(22,31,51,.82),rgba(17,26,44,.78));border:1px solid rgba(255,255,255,.07);border-radius:18px}
+input{background:#0c1424;border:1px solid #1e293b;color:#e2e8f0;border-radius:10px;padding:8px 10px}
+input:focus{border-color:#00e5cc;outline:none;box-shadow:0 0 0 3px rgba(0,229,204,.12)}
+.badge{font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+input[data-kind="hold"]{width:100%}
+button[data-kind="reset0"]:hover{border-color:#00e5cc;color:#00e5cc}
+</style>
+</head>
+<body class="min-h-screen">
+<div class="max-w-6xl mx-auto px-4 py-7 lg:py-10">
+  <div class="flex items-center gap-3 mb-5">
+    <div class="w-11 h-11 rounded-xl flex items-center justify-center font-extrabold text-slate-900" style="background:linear-gradient(135deg,#00e5cc,#7cdbff)">O</div>
+    <div>
+      <div class="text-xl font-[800]">ONE Wallet</div>
+      <div class="text-xs text-slate-400">Porto Real – CMC • Read-only</div>
+    </div>
+    <div class="ml-auto text-right">
+      <div id="lastUpdate" class="text-[11px] text-slate-400">Memuat harga…</div>
+      <button id="refreshBtn" class="text-xs text-teal-400 hover:underline">Refresh harga</button>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-3 gap-5">
+    <div class="lg:col-span-2 space-y-5">
+      <div class="card p-5">
+        <div class="text-sm text-slate-400">Total Saldo</div>
+        <div id="totalIDR" class="text-3xl font-[800] mt-1">Rp —</div>
+        <div id="totalUSD" class="text-slate-300 mt-1"> $ —</div>
+        <div class="text-xs text-slate-500 mt-2">Baseline CMC: Rp96.281.990 • Live: BTC/ETH/SOL/BNB/KAS/HYPE/PAXG/USDC/USDT/VRSC/OMG/ETHFI</div>
+      </div>
+
+
+      <div class="card p-5">
+        <div class="font-[600] text-slate-200 mb-3">Connect Wallet (read-only)</div>
+        <div class="space-y-3 text-sm">
+          <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            <div><label class="text-[11px] text-slate-400">EVM (ETH/BNB/USDT)</label><input id="evmAddr" placeholder="0x..." class="w-full text-xs" style="width:100%"></div>
+            <div><label class="text-[11px] text-slate-400">BTC</label><input id="btcAddr" placeholder="bc1…" class="w-full text-xs" style="width:100%"></div>
+            <div><label class="text-[11px] text-slate-400">Solana</label><input id="solAddr" placeholder="Solana address" class="w-full text-xs" style="width:100%"></div>
+            <div><label class="text-[11px] text-slate-400">Kaspa</label><input id="kasAddr" placeholder="kaspa:…" class="w-full text-xs" style="width:100%"></div>
+            <div><label class="text-[11px] text-slate-400">HYPE (Hyperliquid)</label><input id="hypeAddr" placeholder="0x..." class="w-full text-xs" style="width:100%"></div>
+          </div>
+          <div class="flex flex-wrap gap-4 items-center text-xs text-slate-300">
+            <div class="flex gap-3">
+              <label><input type="radio" name="syncMode" value="add" checked> Tambah</label>
+              <label><input type="radio" name="syncMode" value="replace"> Replace</label>
+            </div>
+            <div class="flex gap-3 text-[11px]">
+              <span class="text-slate-400">EVM:</span>
+              <label><input type="checkbox" id="syncEth" checked> ETH</label>
+              <label><input type="checkbox" id="syncBnb" checked> BNB</label>
+              <label><input type="checkbox" id="syncUsdt" checked> USDT</label>
+              <label><input type="checkbox" id="syncUsdc"> USDC</label>
+            </div>
+          </div>
+          <div class="flex gap-2 items-center">
+            <button id="syncBtn" class="px-3 py-[7px] rounded-lg text-xs font-[600]" style="background:#00e5cc;color:#061318">Sync All</button>
+            <span id="syncStatus" class="text-[11px] text-slate-400"></span>
+          </div>
+          <div class="text-[11px] text-slate-500">BTC • ETH/BNB/USDT/USDC • SOL • KAS • HYPE – semua mode Add/Replace</div>
+        </div>
+      </div>
+
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-[700]">Aset – <span id="assetCount">27</span> token</div>
+          <div class="flex gap-3"><button id="exportCsvBtn" class="text-xs text-slate-300 hover:text-teal-400">Export CSV</button><button id="resetBtn" class="text-xs text-teal-400 hover:underline">Reset ke CMC</button></div>
+        </div>
+        <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="text-slate-400 text-xs"><tr><th class="text-left py-2">Aset</th><th class="text-right">Holdings</th><th class="text-right">Harga</th><th class="text-right">Nilai</th><th class="text-right">%</th></tr></thead>
+          <tbody id="assetBody"></tbody>
+        </table>
+        </div>
+      </div>
+
+      <div class="card p-5">
+        <div class="font-[700] mb-3">Edit Holdings</div>
+        <div id="editGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 text-sm"></div>
+        <div class="text-[11px] text-slate-500 mt-3">Tersimpan otomatis di browser ini (localStorage).</div>
+      </div>
+    </div>
+
+    <div class="space-y-5">
+      <div class="card p-5">
+        <div class="font-[700] mb-3">Alokasi</div>
+        <canvas id="allocChart" height="210"></canvas>
+        <div id="allocLegend" class="text-xs text-slate-400 mt-3 space-y-1"></div>
+      </div>
+
+      <div class="card p-5 space-y-3 text-sm">
+        <div class="font-[700]">Hot / Warm / Cold</div>
+        <div>❄️ <b>Cold</b> <span class="text-slate-400">BTC + PAXG</span><div id="coldVal" class="font-[700]"></div></div>
+        <div>🌡️ <b>Warm</b> <span class="text-slate-400">BNB/vBNB/ETH/SOL/HYPE/GRAM/VRSC/KAS</span><div id="warmVal" class="font-[700]"></div></div>
+        <div>🔥 <b>Hot</b> <span class="text-slate-400">Stablecoins + Tokenized stocks + micro alts</span><div id="hotVal" class="font-[700]"></div></div>
+      </div>
+
+      <div class="card p-5 text-sm">
+        <div class="font-[700] mb-2">Tokenized Stocks (RWA)</div>
+        <div class="text-slate-300 text-xs leading-relaxed">
+        NVDAon, ARMon, AAPLOn, QQQon, GOOGLon, ORCLon, AMZNon, MSFTon, AMDon, USOon<br>
+        Harga fixed dari CMC snapshot – untuk tracking porto, bukan trading live.
+        </div>
+      </div>
+
+      <div class="card p-5" style="background: radial-gradient(120% 150% at 10% 10%, rgba(124,58,237,0.28), rgba(14,21,38,0.12) 34%, rgba(0,229,204,0.10) 100%), linear-gradient(145deg, rgba(28, 40, 64, 0.92), rgba(16, 24, 44, 0.92));">
+        <div class="text-[11px] text-slate-300">VISA • Global</div>
+        <div class="text-lg tracking-widest mt-3 font-[600]">5244 •••• •••• 3812</div>
+        <div class="text-xs text-slate-400 mt-2">Kartu demo – tidak terhubung ke porto</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-[11px] text-slate-500 mt-8">ONE Wallet V1.2 – Read-only tracker. Harga live via CoinGecko. Bukan saran finansial.</div>
+</div>
+
+<script>
+const DEFAULT_ASSETS = {"BTC": 0.1421, "PAXG": 0.9444, "AMDon": 0.2046, "vBNB": 4.266, "NVDAon": 0.2173, "ARMon": 0.07865, "HYPE": 0.435, "GRAM": 16.08, "USOon": 0.1554, "AAPLOn": 0.05518, "QQQon": 0.01713, "GOOGLon": 0.02944, "ORCLon": 0.05269, "AMZNon": 0.03932, "MSFTon": 0.02333, "VRSC": 10.83, "BNB": 0.005893, "NOCK": 45.55, "USDC": 0.6827, "ETH": 0.0001685, "SOL": 0.002775, "OMG": 1.544, "ZIK": 444.0, "USDT": 0.03, "ETHFI": 0.003301, "9MM": 30.0, "KAS": 0};
+const ASSETS_META = [{"code": "BTC", "name": "Bitcoin", "holdings": 0.1421, "cg": "bitcoin", "fixed_idr": 1076495425.7565095}, {"code": "PAXG", "name": "PAX Gold", "holdings": 0.9444, "cg": "pax-gold", "fixed_idr": 72755188.47945786}, {"code": "AMDon", "name": "AMD (Ondo)", "holdings": 0.2046, "cg": null, "fixed_idr": 9335288.367546432}, {"code": "vBNB", "name": "Venus BNB", "holdings": 4.266, "cg": null, "fixed_idr": 267229.2545710267}, {"code": "NVDAon", "name": "NVIDIA (Ondo)", "holdings": 0.2173, "cg": null, "fixed_idr": 3752642.613897837}, {"code": "ARMon", "name": "ARM (Ondo)", "holdings": 0.07865, "cg": null, "fixed_idr": 7829913.413858868}, {"code": "HYPE", "name": "Hyperliquid", "holdings": 0.435, "cg": "hyperliquid", "fixed_idr": 1147618.4137931035}, {"code": "GRAM", "name": "Gram", "holdings": 16.08, "cg": null, "fixed_idr": 27801.60447761194}, {"code": "USOon", "name": "USO (Ondo)", "holdings": 0.1554, "cg": null, "fixed_idr": 2042393.6936936935}, {"code": "AAPLOn", "name": "Apple (Ondo)", "holdings": 0.05518, "cg": null, "fixed_idr": 5313179.412830736}, {"code": "QQQon", "name": "QQQ (Ondo)", "holdings": 0.01713, "cg": null, "fixed_idr": 13247742.556917688}, {"code": "GOOGLon", "name": "Google (Ondo)", "holdings": 0.02944, "cg": null, "fixed_idr": 6544658.967391305}, {"code": "ORCLon", "name": "Oracle (Ondo)", "holdings": 0.05269, "cg": null, "fixed_idr": 3299215.221104574}, {"code": "AMZNon", "name": "Amazon (Ondo)", "holdings": 0.03932, "cg": null, "fixed_idr": 4328076.042726348}, {"code": "MSFTon", "name": "Microsoft (Ondo)", "holdings": 0.02333, "cg": null, "fixed_idr": 6791807.1153021855}, {"code": "VRSC", "name": "VerusCoin", "holdings": 10.83, "cg": "verus-coin", "fixed_idr": 6278.948291782086}, {"code": "BNB", "name": "BNB", "holdings": 0.005893, "cg": "binancecoin", "fixed_idr": 10363853.72475819}, {"code": "NOCK", "name": "Nockchain", "holdings": 45.55, "cg": null, "fixed_idr": 656.9795828759604}, {"code": "USDC", "name": "USD Coin", "holdings": 0.6827, "cg": "usd-coin", "fixed_idr": 17857.521605390364}, {"code": "ETH", "name": "Ethereum", "holdings": 0.0001685, "cg": "ethereum", "fixed_idr": 30476854.59940653}, {"code": "SOL", "name": "Solana", "holdings": 0.002775, "cg": "solana", "fixed_idr": 1238933.3333333333}, {"code": "OMG", "name": "OMG Network", "holdings": 1.544, "cg": "omg-network", "fixed_idr": 877.389896373057}, {"code": "ZIK", "name": "Ziktalk", "holdings": 444.0, "cg": null, "fixed_idr": 1.6723648648648648}, {"code": "USDT", "name": "USDT", "holdings": 0.03, "cg": "tether", "fixed_idr": 17843.333333333332}, {"code": "ETHFI", "name": "ether.fi", "holdings": 0.003301, "cg": "ether-fi", "fixed_idr": 6034.5349893971525}, {"code": "9MM", "name": "9MM", "holdings": 30.0, "cg": null, "fixed_idr": 0.3456666666666666}, {"code": "KAS", "name": "Kaspa", "holdings": 0, "cg": "kaspa", "fixed_idr": 1000}];
+
+let prices = {};
+let holdings = {};
+
+function loadHoldings(){
+  try {
+    const saved = JSON.parse(localStorage.getItem('onewallet_porto_v2')||'{}');
+    holdings = {...DEFAULT_ASSETS, ...saved};
+  } catch(e) { holdings = {...DEFAULT_ASSETS}; }
+}
+function saveHoldings(){ localStorage.setItem('onewallet_porto_v2', JSON.stringify(holdings)); }
+
+const cgMap = {};
+ASSETS_META.forEach(a => { if(a.cg) cgMap[a.code] = a.cg });
+const cgIds = [...new Set(Object.values(cgMap))].join(',');
+
+async function fetchPrices(){
+  const url = `https://api.coingecko.com/api/v3/simple/price?ids=${cgIds}&vs_currencies=usd,idr`;
+  try {
+    const r = await fetch(url, {cache:'no-store'});
+    const j = await r.json();
+    const idToCode = Object.fromEntries(Object.entries(cgMap).map(([k,v])=>[v,k]));
+    for(const [id, val] of Object.entries(j)){
+      const code = idToCode[id];
+      if(code) prices[code] = {usd: val.usd, idr: val.idr, live: true};
+    }
+    document.getElementById('lastUpdate').textContent = 'Harga live • ' + new Date().toLocaleTimeString('id-ID');
+  } catch(e) {
+    document.getElementById('lastUpdate').textContent = 'Gagal fetch – pakai harga fixed';
+  }
+  ASSETS_META.forEach(a => {
+    if(!prices[a.code]) {
+      prices[a.code] = {idr: a.fixed_idr, usd: a.fixed_idr/16300, live: false};
+    }
+  });
+  render();
+}
+
+function fmtIDR(n){ return 'Rp ' + Math.round(n).toLocaleString('id-ID') }
+function fmtUSD(n){ return '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) }
+
+let chart;
+function render(){
+  const rows = ASSETS_META.map(a => {
+    const h = parseFloat(holdings[a.code]||0);
+    const p = prices[a.code] || {idr:a.fixed_idr, usd:a.fixed_idr/16300, live:false};
+    const valIDR = h * p.idr;
+    const valUSD = h * p.usd;
+    return {...a, h, p, valIDR, valUSD};
+  }).sort((x,y)=> y.valIDR - x.valIDR);
+
+  const totalIDR = rows.reduce((s,r)=>s+r.valIDR,0);
+  const totalUSD = rows.reduce((s,r)=>s+r.valUSD,0);
+  document.getElementById('totalIDR').textContent = fmtIDR(totalIDR);
+  document.getElementById('totalUSD').textContent = fmtUSD(totalUSD);
+  const ac = document.getElementById('assetCount'); if(ac) ac.textContent = ASSETS_META.length;
+
+  const tbody = document.getElementById('assetBody');
+  tbody.innerHTML = '';
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.className = 'border-t border-white/[0.06]';
+    const pct = totalIDR ? (r.valIDR/totalIDR*100) : 0;
+    tr.innerHTML = `
+      <td class="py-[10px] pr-3"><b>${r.code}</b> <span class="text-slate-400 text-xs">${r.name}</span> ${r.p.live ? '<span class="badge" style="color:#00e5cc">live</span>' : '<span class="badge">fixed</span>'}</td>
+      <td class="text-right tabular-nums">${r.h.toLocaleString('en-US', {maximumFractionDigits:8})} </td>
+      <td class="text-right text-slate-300">${fmtIDR(r.p.idr)}</td>
+      <td class="text-right font-[600]">${fmtIDR(r.valIDR)}</td>
+      <td class="text-right text-slate-400">${pct.toFixed(2)}%</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const top = rows.slice(0,4);
+  const restVal = rows.slice(4).reduce((s,r)=>s+r.valIDR,0);
+  const labels = [...top.map(t=>t.code), ...(restVal>0?['Lainnya'] : [])];
+  const data = [...top.map(t=>t.valIDR), ...(restVal>0?[restVal]:[])]
+  const ctx = document.getElementById('allocChart');
+  if(chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type:'doughnut',
+    data: { labels, datasets:[{ data, backgroundColor:['#00e5cc','#7c3aed','#ffb86b','#ff6b9d','#2a3958'], borderWidth:0 }] },
+    options: { cutout:'68%', plugins:{legend:{display:false}} }
+  });
+  document.getElementById('allocLegend').innerHTML = labels.map((l,i)=> `${l} – ${(data[i]/totalIDR*100).toFixed(1)}%`).join('<br>');
+
+  const coldCodes = new Set(['BTC','PAXG']);
+  const warmCodes = new Set(['BNB','vBNB','ETH','SOL','HYPE','GRAM','VRSC','KAS']);
+  let cold=0, warm=0, hot=0;
+  rows.forEach(r=> {
+    if(coldCodes.has(r.code)) cold += r.valIDR;
+    else if(warmCodes.has(r.code)) warm += r.valIDR;
+    else hot += r.valIDR;
+  });
+  document.getElementById('coldVal').textContent = fmtIDR(cold);
+  document.getElementById('warmVal').textContent = fmtIDR(warm);
+  document.getElementById('hotVal').textContent = fmtIDR(hot);
+
+  updateEditGridValues();
+}
+
+function buildEditGrid(){
+  const grid = document.getElementById('editGrid');
+  if(grid.dataset.built) return;
+  grid.innerHTML = '';
+  const sorted = [...ASSETS_META].sort((a,b)=>a.code.localeCompare(b.code));
+  sorted.forEach(a => {
+    const h = holdings[a.code] || 0;
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `<label class="text-xs text-slate-400">${a.code}</label>
+      <div class="flex gap-1 mt-1">
+        <input type="number" step="any" class="w-full flex-1" data-code="${a.code}" data-kind="hold" value="${h}">
+        <button class="px-2 text-[11px] rounded-lg border border-white/[0.1] text-slate-400" data-code="${a.code}" data-kind="reset0" title="Reset ke 0">0</button>
+      </div>`;
+    grid.appendChild(wrap);
+  });
+  grid.addEventListener('input', e => {
+    const code = e.target.dataset.code;
+    if(code && e.target.dataset.kind === 'hold') {
+      holdings[code] = parseFloat(e.target.value)||0;
+      saveHoldings();
+      render();
+    }
+  });
+  grid.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-kind="reset0"]');
+    if(!btn) return;
+    const code = btn.dataset.code;
+    holdings[code] = 0;
+    saveHoldings();
+    render();
+  });
+  grid.dataset.built = '1';
+}
+
+function updateEditGridValues(){
+  const grid = document.getElementById('editGrid');
+  if(!grid.dataset.built) { buildEditGrid(); return; }
+  grid.querySelectorAll('input[data-kind="hold"]').forEach(inp => {
+    if(document.activeElement === inp) return;
+    const code = inp.dataset.code;
+    const v = holdings[code] || 0;
+    if(parseFloat(inp.value) !== v) inp.value = v;
+  });
+}
+
+function exportPortfolioCSV(){
+  const rows = ASSETS_META.map(a => {
+    const h = parseFloat(holdings[a.code]||0);
+    const p = prices[a.code] || {idr:a.fixed_idr, usd:a.fixed_idr/16300, live:false};
+    return {code:a.code, name:a.name, holdings:h, price_idr:p.idr, value_idr:h*p.idr, value_usd:h*p.usd, source: p.live ? 'live' : 'fixed'};
+  }).sort((x,y)=> y.value_idr - x.value_idr);
+  const header = ['code','name','holdings','price_idr','value_idr','value_usd','source'];
+  const csv = [header.join(',')].concat(rows.map(r => header.map(k => JSON.stringify(r[k] ?? '')).join(','))).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'onewallet_porto_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+// Wallet sync
+async function syncWallets(){
+  const btc = document.getElementById('btcAddr')?.value.trim() || '';
+  const evm = document.getElementById('evmAddr')?.value.trim() || '';
+  const sol = document.getElementById('solAddr')?.value.trim() || '';
+  const kas = document.getElementById('kasAddr')?.value.trim() || '';
+  const hype = document.getElementById('hypeAddr')?.value.trim() || '';
+  const status = document.getElementById('syncStatus');
+  if(status) status.textContent = 'Sync…';
+  let msgs = [];
+  const modeEl = document.querySelector('input[name="syncMode"]:checked');
+  const isAdd = !modeEl || modeEl.value === 'add';
+  const apply = (code, amt) => {
+    if(isAdd) holdings[code] = (parseFloat(holdings[code])||0) + amt;
+    else holdings[code] = amt;
+    return amt;
+  };
+  const fmt = (c, a) => isAdd ? `${c} +${a}` : `${c} ${a}`;
+
+  // BTC
+  if(btc){
+    localStorage.setItem('onewallet_btc_addr', btc);
+    try {
+      const r = await fetch(`https://blockchain.info/balance?active=${encodeURIComponent(btc)}&cors=true`);
+      if(r.ok){ const j = await r.json(); const v = j[btc]; if(v){ const amt = v.final_balance / 1e8; apply('BTC', amt); msgs.push(fmt('BTC', amt.toFixed(8))); } }
+    } catch(e){}
+  }
+  // EVM
+  if(/^0x[a-fA-F0-9]{40}$/.test(evm)){
+    localStorage.setItem('onewallet_evm_addr', evm);
+    const syncEth = document.getElementById('syncEth')?.checked ?? true;
+    const syncBnb = document.getElementById('syncBnb')?.checked ?? true;
+    const syncUsdt = document.getElementById('syncUsdt')?.checked ?? true;
+    const syncUsdc = document.getElementById('syncUsdc')?.checked ?? false;
+    const doEthCall = async (rpc, to, data) => {
+      const r = await fetch(rpc, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({jsonrpc:'2.0', id:1, method:'eth_call', params:[{to, data}, 'latest']})});
+      if(!r.ok) return null; const j = await r.json(); return j.result;
+    };
+    if(syncEth){
+      try { const r = await fetch(`https://api.blockcypher.com/v1/eth/main/addrs/${evm}/balance`); if(r.ok){ const j = await r.json(); const amt = j.balance / 1e18; apply('ETH', amt); msgs.push(fmt('ETH', amt.toFixed(6))); } } catch(e){}
+    }
+    if(syncBnb){
+      try { const r = await fetch('https://bsc-dataseed.binance.org/', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({jsonrpc:'2.0', id:1, method:'eth_getBalance', params:[evm, 'latest']})}); if(r.ok){ const j = await r.json(); const amt = parseInt(j.result,16) / 1e18; apply('BNB', amt); msgs.push(fmt('BNB', amt.toFixed(6))); } } catch(e){}
+    }
+    const addrPad = evm.toLowerCase().replace('0x','').padStart(64,'0');
+    const balData = '0x70a08231' + addrPad;
+    if(syncUsdt){
+      try { const res = await doEthCall('https://cloudflare-eth.com', '0xdAC17F958D2ee523a2206206994597C13D831ec7', balData); if(res){ const amt = parseInt(res,16) / 1e6; apply('USDT', amt); msgs.push(fmt('USDT', amt.toFixed(2))); } } catch(e){}
+    }
+    if(syncUsdc){
+      try { const res = await doEthCall('https://cloudflare-eth.com', '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', balData); if(res){ const amt = parseInt(res,16) / 1e6; apply('USDC', amt); msgs.push(fmt('USDC', amt.toFixed(2))); } } catch(e){}
+    }
+  }
+  // SOL
+  if(sol){
+    localStorage.setItem('onewallet_sol_addr', sol);
+    try { const r = await fetch('https://api.mainnet-beta.solana.com', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({jsonrpc:'2.0',id:1,method:'getBalance',params:[sol]})}); if(r.ok){ const j = await r.json(); if(j.result){ const amt = j.result.value / 1e9; apply('SOL', amt); msgs.push(fmt('SOL', amt.toFixed(6))); } } } catch(e){}
+  }
+  // KAS
+  if(kas){
+    localStorage.setItem('onewallet_kas_addr', kas);
+    try {
+      const cleanAddr = kas.replace('kaspa:', '');
+      const r = await fetch(`https://api.kaspa.org/addresses/${encodeURIComponent(cleanAddr)}/balance`);
+      if(r.ok){ const j = await r.json(); const amt = (j.balance || 0) / 1e8; apply('KAS', amt); msgs.push(fmt('KAS', amt.toFixed(2))); }
+    } catch(e){}
+  }
+  // HYPE
+  if(/^0x[a-fA-F0-9]{40}$/.test(hype)){
+    localStorage.setItem('onewallet_hype_addr', hype);
+    try {
+      const r = await fetch('https://api.hyperliquid.xyz/info', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({type:'spotClearinghouseState', user: hype})});
+      if(r.ok){ const j = await r.json(); const balances = j.balances || []; const h = balances.find(b => b.coin === 'HYPE'); if(h){ const amt = parseFloat(h.total); apply('HYPE', amt); msgs.push(fmt('HYPE', amt.toFixed(4))); } }
+    } catch(e){}
+  }
+  saveHoldings();
+  render();
+  if(status) status.textContent = msgs.length ? (isAdd ? 'Ditambahkan: ' : 'Diupdate: ') + msgs.join(', ') : 'Tidak ada alamat valid / fetch gagal (CORS). Isi manual.';
+}
+
+// init
+document.getElementById('refreshBtn').onclick = fetchPrices;
+document.getElementById('resetBtn').onclick = ()=>{ localStorage.removeItem('onewallet_porto_v2'); loadHoldings(); fetchPrices(); };
+const exportBtn = document.getElementById('exportCsvBtn');
+if(exportBtn) exportBtn.onclick = exportPortfolioCSV;
+const syncBtn = document.getElementById('syncBtn');
+if(syncBtn) syncBtn.onclick = syncWallets;
+
+loadHoldings();
+buildEditGrid();
+['btcAddr','evmAddr','solAddr','kasAddr','hypeAddr'].forEach(id => {
+  const el = document.getElementById(id);
+  if(el) el.value = localStorage.getItem('onewallet_' + id.replace('Addr','') + '_addr') || '';
+});
+fetchPrices();
+setInterval(fetchPrices, 60000);
+</script>
+</body>
+</html>
