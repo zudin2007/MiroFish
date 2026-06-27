@@ -1,169 +1,240 @@
 """
-TradingManager — bridges TradingView webhook payloads to Binance order execution.
+TradingManager — exchange-agnostic signal processor.
 
-Expected TradingView alert message JSON:
-{
-  "action":        "buy" | "sell" | "close",
-  "symbol":        "BTCUSDT",
-  "order_type":    "market" | "limit",   (default: market)
-  "quantity":      0.001,                (base-asset qty; mutually exclusive with quote_quantity)
-  "quote_quantity": 100,                 (USDT amount to spend; market orders only)
-  "price":         65000,               (required for limit orders)
-  "secret":        "your-webhook-secret" (optional validation)
-}
+Reads TRADING_EXCHANGE from config to decide which service to use:
+  'binance' → BinanceService  (original PR #2)
+  'okx'     → OKXService      (new addition)
+
+Payload fields (same for both exchanges):
+  {
+    "secret":      "...",          # must match TRADING_WEBHOOK_SECRET
+    "action":      "buy"|"sell",
+    "symbol":      "BTC-USDT",    # OKX format; Binance auto-normalises to BTCUSDT
+    "quantity":    "0.001",        # base currency qty (optional if quote_qty set)
+    "quote_qty":   "50",           # quote currency qty (market buy in USDT)
+    "order_type":  "market"|"limit",
+    "price":       "65000"         # required for limit
+  }
 """
 
 import hmac
-from datetime import datetime, timezone
+import threading
+import time
+from collections import deque
 from typing import Optional
 
 from ..config import Config
 from ..utils.logger import get_logger
-from .binance_service import BinanceError, BinanceService
 
-logger = get_logger('mirofish.trading')
+logger = get_logger('mirofish.trading_manager')
+
+_manager_lock = threading.Lock()
+_manager: Optional["TradingManager"] = None
+
+
+def get_trading_manager() -> "TradingManager":
+    global _manager
+    with _manager_lock:
+        if _manager is None:
+            _manager = TradingManager()
+    return _manager
 
 
 class TradingManager:
+    """
+    Exchange-agnostic trading manager.
+    Instantiates the correct exchange service based on TRADING_EXCHANGE config.
+    """
+
     def __init__(self):
-        self._binance = BinanceService()
-        self._history: list[dict] = []
+        exchange = Config.TRADING_EXCHANGE.lower()
+
+        if exchange == "okx":
+            from .okx_service import OKXService
+            self.exchange = OKXService()
+            self.exchange_name = "okx"
+            logger.info("TradingManager initialised with OKX backend")
+        else:
+            from .binance_service import BinanceService
+            self.exchange = BinanceService()
+            self.exchange_name = "binance"
+            logger.info("TradingManager initialised with Binance backend")
+
+        self._history: deque = deque(maxlen=Config.TRADING_MAX_HISTORY)
+        self._lock = threading.Lock()
 
     # ------------------------------------------------------------------
-    # Public API
+    # Webhook secret validation
     # ------------------------------------------------------------------
-
-    @property
-    def binance(self) -> BinanceService:
-        return self._binance
 
     def validate_secret(self, payload: dict) -> bool:
-        """Return True if webhook secret matches (or none is configured)."""
+        """Constant-time comparison to prevent timing attacks."""
         expected = Config.TRADING_WEBHOOK_SECRET
         if not expected:
+            logger.warning("TRADING_WEBHOOK_SECRET not set — accepting all webhooks (INSECURE)")
             return True
-        received = str(payload.get("secret", ""))
-        return hmac.compare_digest(received, expected)
+        received = payload.get("secret", "")
+        return hmac.compare_digest(
+            expected.encode("utf-8"),
+            received.encode("utf-8"),
+        )
+
+    # ------------------------------------------------------------------
+    # Signal processing
+    # ------------------------------------------------------------------
 
     def process_signal(self, payload: dict) -> dict:
         """
-        Parse a TradingView alert payload and place a Binance order.
-        Returns a result dict with keys: success, [order|error], record.
+        Parse TradingView alert payload and place order on the configured exchange.
+        Returns a result dict with success / error / trade_record.
         """
-        action = str(payload.get("action", "")).lower()
-        symbol = str(payload.get("symbol", "")).strip().upper()
-        order_type = str(payload.get("order_type", "market")).upper()
-        quantity = payload.get("quantity")
-        quote_qty = payload.get("quote_quantity")
-        price = payload.get("price")
+        action     = payload.get("action", "").lower()
+        symbol     = payload.get("symbol", "").strip()
+        qty_str    = payload.get("quantity")
+        quote_str  = payload.get("quote_qty")
+        order_type = payload.get("order_type", "market").lower()
+        price_str  = payload.get("price")
 
         # --- basic validation ---
+        if action not in ("buy", "sell"):
+            return {"success": False, "error": f"Invalid action: '{action}'. Use 'buy' or 'sell'."}
         if not symbol:
-            return self._fail("symbol is required", payload)
-        if action not in ("buy", "sell", "close"):
-            return self._fail(f"Unknown action '{action}'. Use buy/sell/close.", payload)
-        if order_type not in ("MARKET", "LIMIT"):
-            return self._fail(f"Unknown order_type '{order_type}'. Use market/limit.", payload)
-        if quantity is None and quote_qty is None:
-            return self._fail("Provide quantity or quote_quantity.", payload)
-        if not self._binance.is_configured():
-            return self._fail("Binance API credentials not configured.", payload)
+            return {"success": False, "error": "Missing 'symbol' in payload."}
 
-        side = "SELL" if action in ("sell", "close") else "BUY"
+        quantity   = float(qty_str)   if qty_str   else None
+        quote_qty  = float(quote_str) if quote_str else None
+        price      = float(price_str) if price_str else None
+
+        if quantity is None and quote_qty is None:
+            return {"success": False, "error": "Provide 'quantity' (base) or 'quote_qty' (quote currency)."}
+
+        if not self.exchange.is_configured():
+            return {
+                "success": False,
+                "error": f"{self.exchange_name.upper()} API credentials not configured.",
+            }
+
+        # --- normalise symbol per exchange ---
+        norm_symbol = self._normalise_symbol(symbol)
 
         try:
-            result = self._binance.place_order(
-                symbol=symbol,
-                side=side,
-                order_type=order_type,
-                quantity=float(quantity) if quantity is not None else None,
-                quote_order_qty=float(quote_qty) if quote_qty is not None else None,
-                price=float(price) if price is not None else None,
-            )
-            record = self._make_record(
-                symbol=symbol, action=action, side=side,
-                order_type=order_type, quantity=quantity or quote_qty,
-                price=price, status=result.get("status", "UNKNOWN"),
-                order_id=result.get("orderId"),
-            )
-            self._append(record)
-            logger.info(f"Order placed: {record['order_id']} {symbol} {side}")
-            return {"success": True, "order": result, "record": record}
+            if self.exchange_name == "okx":
+                result = self.exchange.place_order(
+                    inst_id=norm_symbol,
+                    side=action,
+                    order_type=order_type,
+                    quantity=quantity,
+                    quote_order_qty=quote_qty,
+                    price=price,
+                )
+            else:
+                # Binance
+                result = self.exchange.place_order(
+                    symbol=norm_symbol,
+                    side=action,
+                    order_type=order_type,
+                    quantity=quantity,
+                    quote_order_qty=quote_qty,
+                    price=price,
+                )
 
-        except BinanceError as exc:
-            record = self._make_record(
-                symbol=symbol, action=action, side=side,
-                order_type=order_type, quantity=quantity or quote_qty,
-                price=price, status="FAILED", error=str(exc),
-            )
-            self._append(record)
+            record = self._make_record(payload, norm_symbol, action, order_type, result, success=True)
+            self._save(record)
+            logger.info(f"Order placed: {record}")
+            return {"success": True, "trade": record}
+
+        except Exception as exc:
+            record = self._make_record(payload, norm_symbol, action, order_type, {}, success=False, error=str(exc))
+            self._save(record)
             logger.error(f"Order failed: {exc}")
-            return {"success": False, "error": str(exc), "record": record}
+            return {"success": False, "error": str(exc), "trade": record}
 
-    def get_history(self, limit: int = 50) -> list:
-        return self._history[:limit]
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
+    def _normalise_symbol(self, symbol: str) -> str:
+        """
+        OKX uses dashes:  BTC-USDT, BTC-USDT-SWAP
+        Binance uses run-together: BTCUSDT
+
+        If TRADING_EXCHANGE=okx and user passes 'BTCUSDT', convert to 'BTC-USDT'.
+        Simple heuristic: if no dash and exchange is okx, insert dash before USDT/BTC/ETH quote.
+        """
+        symbol = symbol.upper().strip()
+        if self.exchange_name == "okx" and "-" not in symbol:
+            for quote in ("USDT", "USDC", "BTC", "ETH"):
+                if symbol.endswith(quote):
+                    base = symbol[: -len(quote)]
+                    symbol = f"{base}-{quote}"
+                    break
+        elif self.exchange_name == "binance" and "-" in symbol:
+            symbol = symbol.replace("-", "")
+        return symbol
+
+    def _make_record(
+        self,
+        payload: dict,
+        symbol: str,
+        action: str,
+        order_type: str,
+        result: dict,
+        success: bool,
+        error: str = None,
+    ) -> dict:
+        record = {
+            "timestamp":   int(time.time() * 1000),
+            "exchange":    self.exchange_name,
+            "symbol":      symbol,
+            "action":      action,
+            "order_type":  order_type,
+            "quantity":    payload.get("quantity"),
+            "quote_qty":   payload.get("quote_qty"),
+            "price":       payload.get("price"),
+            "success":     success,
+            "raw_result":  result,
+        }
+        if error:
+            record["error"] = error
+        # Extract order ID from exchange response
+        if self.exchange_name == "okx":
+            record["order_id"] = result.get("ordId")
+            record["client_order_id"] = result.get("clOrdId")
+        else:
+            record["order_id"] = result.get("orderId")
+            record["client_order_id"] = result.get("clientOrderId")
+        return record
+
+    def _save(self, record: dict):
+        with self._lock:
+            self._history.appendleft(record)
+
+    # ------------------------------------------------------------------
+    # Query methods (called by API routes)
+    # ------------------------------------------------------------------
 
     def get_balance(self) -> dict:
-        if not self._binance.is_configured():
-            return {"configured": False, "balances": []}
+        if not self.exchange.is_configured():
+            return {"error": f"{self.exchange_name.upper()} not configured", "balances": []}
         try:
-            return {"configured": True, "testnet": self._binance.testnet, "balances": self._binance.get_balances()}
-        except BinanceError as exc:
-            return {"configured": True, "error": str(exc), "balances": []}
+            balances = self.exchange.get_balances()
+            return {"exchange": self.exchange_name, "balances": balances}
+        except Exception as exc:
+            return {"error": str(exc), "balances": []}
+
+    def get_history(self, limit: int = 50) -> list:
+        with self._lock:
+            return list(self._history)[:limit]
 
     def get_open_orders(self, symbol: str = None) -> dict:
-        if not self._binance.is_configured():
-            return {"configured": False, "orders": []}
+        if not self.exchange.is_configured():
+            return {"error": f"{self.exchange_name.upper()} not configured", "orders": []}
         try:
-            orders = self._binance.get_open_orders(symbol)
-            return {"configured": True, "orders": orders}
-        except BinanceError as exc:
-            return {"configured": True, "error": str(exc), "orders": []}
-
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
-
-    def _fail(self, msg: str, payload: dict) -> dict:
-        record = self._make_record(
-            symbol=payload.get("symbol", ""),
-            action=payload.get("action", ""),
-            side="", order_type="", quantity=None,
-            price=None, status="FAILED", error=msg,
-        )
-        self._append(record)
-        return {"success": False, "error": msg, "record": record}
-
-    def _make_record(self, *, symbol, action, side, order_type, quantity,
-                     price, status, error=None, order_id=None) -> dict:
-        return {
-            "order_id": order_id,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "symbol": symbol,
-            "action": action,
-            "side": side,
-            "order_type": order_type,
-            "quantity": quantity,
-            "price": price,
-            "status": status,
-            "error": error,
-        }
-
-    def _append(self, record: dict):
-        self._history.insert(0, record)
-        max_hist = Config.TRADING_MAX_HISTORY
-        if len(self._history) > max_hist:
-            self._history = self._history[:max_hist]
-
-
-# --------------------------------------------------------------------------
-# Module-level singleton
-# --------------------------------------------------------------------------
-_instance: Optional[TradingManager] = None
-
-
-def get_trading_manager() -> TradingManager:
-    global _instance
-    if _instance is None:
-        _instance = TradingManager()
-    return _instance
+            norm = self._normalise_symbol(symbol) if symbol else None
+            if self.exchange_name == "okx":
+                orders = self.exchange.get_open_orders(inst_id=norm)
+            else:
+                orders = self.exchange.get_open_orders(symbol=norm)
+            return {"exchange": self.exchange_name, "orders": orders}
+        except Exception as exc:
+            return {"error": str(exc), "orders": []}
