@@ -5,6 +5,7 @@
       <div class="nav-brand">MIROFISH</div>
       <div class="nav-links">
         <LanguageSwitcher />
+        <router-link to="/trading" class="github-link">Trading <span class="arrow">↗</span></router-link>
         <a href="https://github.com/666ghj/MiroFish" target="_blank" class="github-link">
           {{ $t('nav.visitGithub') }} <span class="arrow">↗</span>
         </a>

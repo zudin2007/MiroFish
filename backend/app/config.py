@@ -62,7 +62,14 @@ class Config:
     REPORT_AGENT_MAX_TOOL_CALLS = int(os.environ.get('REPORT_AGENT_MAX_TOOL_CALLS', '5'))
     REPORT_AGENT_MAX_REFLECTION_ROUNDS = int(os.environ.get('REPORT_AGENT_MAX_REFLECTION_ROUNDS', '2'))
     REPORT_AGENT_TEMPERATURE = float(os.environ.get('REPORT_AGENT_TEMPERATURE', '0.5'))
-    
+
+    # ===== TradingView + Binance 自动化交易配置 =====
+    BINANCE_API_KEY = os.environ.get('BINANCE_API_KEY', '')
+    BINANCE_API_SECRET = os.environ.get('BINANCE_API_SECRET', '')
+    BINANCE_TESTNET = os.environ.get('BINANCE_TESTNET', 'true').lower() == 'true'
+    TRADING_WEBHOOK_SECRET = os.environ.get('TRADING_WEBHOOK_SECRET', '')
+    TRADING_MAX_HISTORY = int(os.environ.get('TRADING_MAX_HISTORY', '200'))
+
     @classmethod
     def validate(cls) -> list[str]:
         """验证必要配置"""
