@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Izzuddin Edi Siswanto — Islamic Finance &amp; Digital Asset Expert</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, ::before, ::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f0f7ff; --bg2: #e4f0fc; --white: #ffffff;
+      --ink: #0a1628; --ink2: #1e3a5f; --ink3: #5a7fa8;
+      --blue: #1d6fca; --blue2: #3b9eff; --blue3: #60c3ff;
+      --blue-bg: rgba(29,111,202,0.08); --blue-border: rgba(29,111,202,0.18);
+      --gold: #e9a020; --gold-bg: rgba(233,160,32,0.1); --gold-border: rgba(233,160,32,0.25);
+      --cyan: #06c5d4; --cyan-bg: rgba(6,197,212,0.08);
+      --border: #cce0f5; --border2: #a8c8e8;
+      --nav-h: 72px; --r: 16px; --r2: 24px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: "Plus Jakarta Sans", sans-serif; background: var(--bg); color: var(--ink); overflow-x: hidden; line-height: 1.6; }
+
+    /* NAV */
+    nav { position: fixed; top: 0; left: 0; right: 0; height: var(--nav-h); background: rgba(240,247,255,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 6vw; z-index: 100; }
+    .nav-logo { font-family: "Cormorant Garamond", serif; font-size: 21px; font-weight: 700; color: var(--ink); text-decoration: none; }
+    .nav-logo span { color: var(--blue); }
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links a { font-size: 11.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--ink3); text-decoration: none; font-weight: 600; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--blue); }
+    .nav-cta { background: var(--blue); color: #fff; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; padding: 9px 22px; border-radius: 50px; text-decoration: none; transition: 0.2s; font-weight: 600; box-shadow: rgba(29,111,202,0.3) 0 4px 16px; }
+    .nav-cta:hover { background: var(--blue2); transform: translateY(-1px); }
+
+    /* HERO */
+    #hero { min-height: 100vh; display: flex; align-items: center; position: relative; overflow: hidden; padding: var(--nav-h) 6vw 0; background: linear-gradient(160deg, #f0f7ff 0%, #e4f0fc 50%, #d6e8f8 100%); }
+    .hero-grid-bg { position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(var(--blue-border) 1px,transparent 1px), linear-gradient(90deg,var(--blue-border) 1px,transparent 1px); background-size: 48px 48px; mask-image: radial-gradient(80% 80% at 60% 50%, black 20%, transparent 100%); }
+    .hero-glow { position: absolute; right: -10vw; top: 50%; transform: translateY(-50%); width: 55vw; max-width: 700px; height: 55vw; max-height: 700px; background: radial-gradient(rgba(59,158,255,0.15) 0%, transparent 70%); pointer-events: none; }
+    .hero-geo-svg { position: absolute; right: 4vw; top: 50%; transform: translateY(-50%); width: 44vw; max-width: 580px; pointer-events: none; opacity: 0.12; }
+    .hero-content { position: relative; z-index: 1; max-width: 680px; padding: 80px 0; }
+    .hero-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 32px; }
+    .badge { display: inline-flex; align-items: center; gap: 7px; border-radius: 50px; padding: 6px 14px; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; }
+    .badge.blue { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue); }
+    .badge.cyan { background: var(--cyan-bg); border: 1px solid rgba(6,197,212,0.25); color: var(--cyan); }
+    .badge.gold { background: var(--gold-bg); border: 1px solid var(--gold-border); color: var(--gold); }
+    .badge::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentcolor; animation: pulse 2.5s ease infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.6)} }
+    h1.hero-name { font-family: "Cormorant Garamond", serif; font-size: clamp(58px,8vw,104px); font-weight: 700; line-height: 0.95; color: var(--ink); letter-spacing: -2.5px; margin-bottom: 10px; }
+    h1.hero-name em { color: var(--blue); font-style: italic; display: block; background: linear-gradient(135deg,var(--blue),var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-rule { width: 56px; height: 3px; border-radius: 2px; margin: 28px 0; background: linear-gradient(90deg,var(--blue),var(--cyan)); }
+    .hero-desc { font-size: clamp(15px,1.5vw,17px); color: var(--ink2); line-height: 1.9; max-width: 540px; font-family: "Cormorant Garamond", serif; font-style: italic; margin-bottom: 40px; font-weight: 400; }
+    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 48px; }
+    .btn-blue { background: linear-gradient(135deg,var(--blue),var(--blue2)); color: #fff; font-size: 11.5px; letter-spacing: 1.5px; text-transform: uppercase; padding: 14px 30px; border-radius: 50px; text-decoration: none; font-weight: 700; transition: 0.25s; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 9px; box-shadow: rgba(29,111,202,0.35) 0 6px 24px; }
+    .btn-blue:hover { transform: translateY(-2px); box-shadow: rgba(29,111,202,0.45) 0 10px 32px; }
+    .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--border2); font-size: 11.5px; letter-spacing: 1.5px; text-transform: uppercase; padding: 14px 30px; border-radius: 50px; text-decoration: none; font-weight: 600; transition: 0.25s; cursor: pointer; display: inline-flex; align-items: center; gap: 9px; }
+    .btn-ghost:hover { border-color: var(--blue); color: var(--blue); transform: translateY(-2px); }
+    .hero-stats { display: flex; gap: 32px; flex-wrap: wrap; }
+    .h-stat { text-align: left; }
+    .h-stat-n { font-family: "Cormorant Garamond", serif; font-size: 38px; font-weight: 700; line-height: 1; background: linear-gradient(135deg,var(--blue),var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .h-stat-l { font-size: 11px; color: var(--ink3); font-weight: 500; margin-top: 4px; letter-spacing: 0.3px; }
+
+    /* SECTIONS */
+    section { padding: 120px 6vw; }
+    .sec-label { font-size: 9.5px; letter-spacing: 3px; text-transform: uppercase; color: var(--blue); font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+    .sec-label::before { content: ""; width: 24px; height: 2px; background: linear-gradient(90deg,var(--blue),var(--cyan)); border-radius: 2px; }
+    h2.sec-title { font-family: "Cormorant Garamond", serif; font-size: clamp(42px,5.5vw,68px); font-weight: 700; line-height: 1; color: var(--ink); margin-bottom: 24px; letter-spacing: -1.5px; }
+    h2.sec-title span { font-style: italic; background: linear-gradient(135deg,var(--blue),var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    /* ABOUT */
+    #about { background: var(--white); }
+    .about-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 80px; align-items: center; margin-top: 72px; }
+    .about-text p { font-size: 15.5px; color: var(--ink2); line-height: 2; margin-bottom: 20px; }
+    .about-text p strong { color: var(--blue); font-weight: 700; }
+    .about-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .stat-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r); padding: 28px 24px; text-align: center; box-shadow: rgba(29,111,202,0.06) 0 2px 12px; position: relative; overflow: hidden; }
+    .stat-card::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg,var(--blue),var(--cyan)); }
+    .stat-num { font-family: "Cormorant Garamond", serif; font-size: 50px; font-weight: 700; line-height: 1; letter-spacing: -1px; background: linear-gradient(135deg,var(--blue),var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat-label { font-size: 11px; color: var(--ink3); margin-top: 8px; font-weight: 600; letter-spacing: 0.5px; }
+
+    /* EXPERTISE */
+    #expertise { background: var(--bg); }
+    .expertise-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; margin-top: 72px; }
+    .exp-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r); padding: 34px 28px; transition: 0.3s; position: relative; overflow: hidden; }
+    .exp-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg,var(--blue),var(--cyan)); transform: scaleX(0); transform-origin: left center; transition: transform 0.3s; }
+    .exp-card:hover { transform: translateY(-6px); box-shadow: rgba(29,111,202,0.12) 0 20px 48px; border-color: var(--blue-border); }
+    .exp-card:hover::before { transform: scaleX(1); }
+    .exp-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--blue-bg); border: 1px solid var(--blue-border); display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 20px; }
+    .exp-card-title { font-family: "Cormorant Garamond", serif; font-size: 22px; font-weight: 700; color: var(--ink); margin-bottom: 12px; }
+    .exp-card-desc { font-size: 12.5px; color: var(--ink2); line-height: 1.85; }
+    .exp-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 20px; }
+    .exp-tag { font-size: 9.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--blue); border: 1px solid var(--blue-border); background: var(--blue-bg); padding: 4px 10px; border-radius: 50px; font-weight: 600; }
+
+    /* SERVICES */
+    #services { background: var(--white); position: relative; overflow: hidden; }
+    .services-intro { font-size: 17px; color: var(--ink2); line-height: 1.9; max-width: 620px; margin-bottom: 72px; font-family: "Cormorant Garamond", serif; font-style: italic; }
+    .services-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; margin-bottom: 56px; }
+    .svc-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r); padding: 34px 28px; transition: 0.3s; position: relative; overflow: hidden; }
+    .svc-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg,var(--blue),var(--cyan)); transform: scaleX(0); transform-origin: left center; transition: transform 0.3s; }
+    .svc-card:hover { transform: translateY(-6px); box-shadow: rgba(29,111,202,0.12) 0 20px 48px; border-color: var(--blue-border); }
+    .svc-card:hover::before { transform: scaleX(1); }
+    .svc-icon { font-size: 28px; margin-bottom: 16px; }
+    .svc-title { font-family: "Cormorant Garamond", serif; font-size: 22px; font-weight: 700; color: var(--ink); margin-bottom: 12px; line-height: 1.25; }
+    .svc-desc { font-size: 12.5px; color: var(--ink2); line-height: 1.85; margin-bottom: 20px; }
+    .svc-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 24px; }
+    .svc-tag { font-size: 9.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--blue); border: 1px solid var(--blue-border); background: var(--blue-bg); padding: 4px 10px; border-radius: 50px; font-weight: 600; }
+    .svc-cta { display: inline-flex; align-items: center; gap: 8px; font-size: 10.5px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--blue); font-weight: 700; text-decoration: none; padding-bottom: 2px; transition: gap 0.2s, border-color 0.2s; border: none; border-bottom: 1.5px solid var(--blue-border); background: none; cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; }
+    .svc-cta:hover { gap: 12px; border-bottom-color: var(--blue); }
+    .services-bottom { background: linear-gradient(135deg,var(--blue) 0%,#1558a8 50%,#0d3f7a 100%); border-radius: var(--r2); padding: 48px 56px; display: flex; align-items: center; justify-content: space-between; gap: 32px; box-shadow: rgba(29,111,202,0.35) 0 12px 48px; position: relative; overflow: hidden; }
+    .services-bottom::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.05) 1px,transparent 1px), linear-gradient(90deg,rgba(255,255,255,0.05) 1px,transparent 1px); background-size: 40px 40px; }
+    .services-bottom-text { position: relative; z-index: 1; }
+    .services-bottom-text h3 { font-family: "Cormorant Garamond", serif; font-size: 30px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+    .services-bottom-text p { font-size: 14px; color: rgba(255,255,255,0.75); line-height: 1.75; max-width: 480px; }
+    .services-bottom-action { flex-shrink: 0; position: relative; z-index: 1; }
+    .btn-white { background: #fff; color: var(--blue); font-size: 11.5px; letter-spacing: 1.5px; text-transform: uppercase; padding: 14px 30px; border-radius: 50px; text-decoration: none; font-weight: 700; transition: 0.25s; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 9px; box-shadow: rgba(0,0,0,0.15) 0 4px 16px; }
+    .btn-white:hover { transform: translateY(-2px); box-shadow: rgba(0,0,0,0.2) 0 8px 24px; }
+
+    /* CV */
+    #cv { background: var(--bg); }
+    .cv-tabs { display: flex; gap: 8px; margin-top: 56px; flex-wrap: wrap; }
+    .cv-tab { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink3); padding: 10px 22px; border: 1.5px solid var(--border); border-radius: 50px; cursor: pointer; font-weight: 600; transition: 0.2s; background: transparent; font-family: "Plus Jakarta Sans", sans-serif; }
+    .cv-tab.active { background: var(--blue); color: #fff; border-color: var(--blue); box-shadow: rgba(29,111,202,0.3) 0 4px 14px; }
+    .cv-tab:hover:not(.active) { border-color: var(--blue); color: var(--blue); }
+    .cv-panel { display: none; padding-top: 52px; }
+    .cv-panel.active { display: block; }
+    .xp-row { display: grid; grid-template-columns: 160px 1fr; gap: 24px; margin-bottom: 40px; padding-bottom: 40px; border-bottom: 1px solid var(--border); }
+    .xp-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .xp-yr { font-size: 11px; color: var(--ink3); font-weight: 600; line-height: 1.6; padding-top: 4px; }
+    .xp-badge { display: inline-block; background: var(--blue-bg); color: var(--blue); font-size: 8.5px; letter-spacing: 1px; text-transform: uppercase; padding: 2px 9px; border-radius: 50px; margin-top: 6px; font-weight: 700; border: 1px solid var(--blue-border); }
+    .xp-role { font-family: "Cormorant Garamond", serif; font-size: 22px; font-weight: 700; color: var(--ink); }
+    .xp-co { font-size: 12px; color: var(--blue); font-weight: 600; margin: 4px 0 10px; }
+    .xp-desc { font-size: 13px; color: var(--ink2); line-height: 1.8; }
+    .edu-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .edu2 { background: var(--white); border: 1px solid var(--border); border-radius: var(--r); padding: 26px; position: relative; box-shadow: rgba(29,111,202,0.06) 0 2px 10px; }
+    .edu2::after { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg,var(--blue),var(--cyan)); border-radius: var(--r) var(--r) 0 0; }
+    .edu2-deg { font-family: "Cormorant Garamond", serif; font-size: 20px; font-weight: 700; color: var(--ink); margin-bottom: 5px; }
+    .edu2-field { font-size: 10.5px; color: var(--blue); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+    .edu2-sch { font-size: 12.5px; color: var(--ink2); }
+    .edu2-yr { position: absolute; top: 18px; right: 18px; font-size: 10px; color: var(--ink3); font-weight: 500; }
+    .skills-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+    .sk2 { margin-bottom: 18px; }
+    .sk2-n { font-size: 13px; color: var(--ink); font-weight: 600; margin-bottom: 7px; display: flex; justify-content: space-between; }
+    .sk2-n span { font-size: 11px; color: var(--ink3); }
+    .sk2-bar { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .sk2-fill { height: 100%; background: linear-gradient(90deg,var(--blue),var(--cyan)); border-radius: 3px; }
+    .lang-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-top: 28px; }
+    .lang-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; text-align: center; box-shadow: rgba(29,111,202,0.06) 0 2px 8px; }
+    .lang-card-n { font-family: "Cormorant Garamond", serif; font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+    .lang-card-l { font-size: 9.5px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--blue); font-weight: 700; }
+
+    /* SOCIAL */
+    #social { background: var(--white); }
+    .social-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 20px; margin-top: 72px; }
+    .platform-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r); padding: 28px; display: flex; align-items: center; gap: 20px; text-decoration: none; transition: 0.25s; }
+    .platform-card:hover { transform: translateY(-4px); box-shadow: rgba(29,111,202,0.12) 0 16px 40px; border-color: var(--blue-border); }
+    .platform-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+    .ig .platform-icon { background: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); }
+    .tt .platform-icon { background: #010101; }
+    .fb .platform-icon { background: #1877f2; }
+    .yt .platform-icon { background: #ff0000; }
+    .li .platform-icon { background: #0a66c2; }
+    .web .platform-icon { background: linear-gradient(135deg,var(--blue),var(--cyan)); }
+    .platform-info { flex: 1; }
+    .platform-name { font-family: "Cormorant Garamond", serif; font-size: 20px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
+    .platform-handle { font-size: 11px; color: var(--blue); font-weight: 600; margin-bottom: 7px; }
+    .platform-desc { font-size: 12px; color: var(--ink2); line-height: 1.65; }
+    .platform-arrow { font-size: 18px; color: var(--ink3); flex-shrink: 0; transition: transform 0.2s; }
+    .platform-card:hover .platform-arrow { transform: translateX(5px); color: var(--blue); }
+
+    /* BLOG */
+    #blog { background: var(--bg); }
+    .blog-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; margin-top: 72px; }
+    .blog-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r); padding: 28px; transition: 0.25s; display: flex; flex-direction: column; box-shadow: rgba(29,111,202,0.05) 0 2px 10px; }
+    .blog-card:hover { transform: translateY(-5px); box-shadow: rgba(29,111,202,0.12) 0 20px 48px; border-color: var(--blue-border); }
+    .blog-tag { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--blue); background: var(--blue-bg); border: 1px solid var(--blue-border); padding: 4px 12px; border-radius: 50px; align-self: flex-start; margin-bottom: 16px; font-weight: 700; }
+    .blog-title { font-family: "Cormorant Garamond", serif; font-size: 19px; font-weight: 700; color: var(--ink); line-height: 1.35; margin-bottom: 12px; }
+    .blog-excerpt { font-size: 12.5px; color: var(--ink2); line-height: 1.8; flex: 1; }
+    .blog-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border); }
+    .blog-date { font-size: 10.5px; color: var(--ink3); font-weight: 500; }
+    .blog-link { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--blue); text-decoration: none; font-weight: 700; display: flex; align-items: center; gap: 5px; transition: gap 0.2s; }
+    .blog-link:hover { gap: 9px; }
+
+    /* CONTACT */
+    #contact { background: linear-gradient(160deg,#0a1628 0%,#0d2a52 50%,#0a1f3f 100%); text-align: center; position: relative; overflow: hidden; }
+    .contact-grid-bg { position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(59,158,255,0.08) 1px,transparent 1px), linear-gradient(90deg,rgba(59,158,255,0.08) 1px,transparent 1px); background-size: 48px 48px; }
+    .contact-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 600px; height: 600px; background: radial-gradient(rgba(29,111,202,0.25) 0%, transparent 70%); pointer-events: none; }
+    .contact-inner { max-width: 700px; margin: 0 auto; position: relative; z-index: 1; }
+    .contact-inner .sec-label { justify-content: center; color: var(--blue2); }
+    .contact-inner .sec-label::before { background: linear-gradient(90deg,var(--blue2),var(--cyan)); }
+    .contact-name-big { font-family: "Cormorant Garamond", serif; font-size: clamp(40px,5vw,64px); font-weight: 700; color: #fff; margin-bottom: 20px; letter-spacing: -1px; line-height: 1.05; }
+    .contact-sub { font-size: 16px; color: rgba(255,255,255,0.65); line-height: 1.8; margin-bottom: 52px; font-style: italic; font-family: "Cormorant Garamond", serif; }
+    .contact-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 48px; }
+    .cc { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: var(--r); padding: 24px; backdrop-filter: blur(8px); }
+    .cc-icon { font-size: 22px; margin-bottom: 10px; }
+    .cc-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--blue2); margin-bottom: 7px; font-weight: 700; }
+    .cc-value { font-size: 12px; color: rgba(255,255,255,0.7); }
+    .cc-value a { color: #fff; text-decoration: none; font-weight: 500; }
+
+    /* FOOTER */
+    footer { background: #060f1f; border-top: 1px solid rgba(255,255,255,0.06); padding: 36px 6vw; display: flex; align-items: center; justify-content: space-between; }
+    .footer-name { font-family: "Cormorant Garamond", serif; font-size: 20px; font-weight: 700; color: #fff; }
+    .footer-name span { background: linear-gradient(135deg,var(--blue2),var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .footer-copy { font-size: 11px; color: rgba(255,255,255,0.3); }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { font-size: 10.5px; color: rgba(255,255,255,0.35); text-decoration: none; letter-spacing: 1px; text-transform: uppercase; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--blue2); }
+
+    /* ANIMATIONS */
+    .fade-in { opacity: 0; transform: translateY(24px); transition: opacity 0.7s, transform 0.7s; }
+    .fade-in.visible { opacity: 1; transform: none; }
+
+    /* BACK TO TOP */
+    #top-btn { position: fixed; bottom: 28px; right: 28px; width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg,var(--blue),var(--blue2)); color: #fff; border: none; cursor: pointer; font-size: 18px; display: none; align-items: center; justify-content: center; box-shadow: rgba(29,111,202,0.4) 0 4px 20px; z-index: 99; transition: transform 0.2s; }
+    #top-btn.show { display: flex; }
+    #top-btn:hover { transform: translateY(-3px); }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .expertise-grid, .services-grid, .blog-grid { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 768px) {
+      .expertise-grid, .services-grid, .blog-grid, .social-grid, .contact-cards { grid-template-columns: 1fr; }
+      .about-grid { grid-template-columns: 1fr; gap: 40px; }
+      .edu-grid2, .skills-cols { grid-template-columns: 1fr; }
+      .xp-row { grid-template-columns: 1fr; gap: 8px; }
+      .services-bottom { flex-direction: column; text-align: center; padding: 32px 24px; }
+      .nav-links { display: none; }
+      footer { flex-direction: column; gap: 16px; text-align: center; }
+      .lang-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="#hero" class="nav-logo">Izzuddin <span>E.S.</span></a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#expertise">Expertise</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#cv">Resume</a></li>
+    <li><a href="#social">Media</a></li>
+    <li><a href="#blog">Insights</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Contact</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-glow"></div>
+  <svg class="hero-geo-svg" viewBox="0 0 600 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g stroke="#1d6fca" stroke-width="0.6">
+      <circle cx="300" cy="300" r="280"/><circle cx="300" cy="300" r="240"/>
+      <circle cx="300" cy="300" r="200"/><circle cx="300" cy="300" r="160"/>
+      <circle cx="300" cy="300" r="120"/><circle cx="300" cy="300" r="80"/>
+      <polygon points="300,20 567,165 567,435 300,580 33,435 33,165"/>
+      <polygon points="300,60 533,185 533,415 300,540 67,415 67,185"/>
+      <polygon points="300,100 500,205 500,395 300,500 100,395 100,205"/>
+      <polygon points="300,140 467,225 467,375 300,460 133,375 133,225"/>
+      <line x1="300" y1="20" x2="300" y2="580"/>
+      <line x1="33" y1="300" x2="567" y2="300"/>
+      <line x1="33" y1="165" x2="567" y2="435"/>
+      <line x1="33" y1="435" x2="567" y2="165"/>
+      <line x1="100" y1="100" x2="500" y2="500"/>
+      <line x1="500" y1="100" x2="100" y2="500"/>
+      <polygon points="300,140 380,220 300,300 220,220"/>
+      <polygon points="300,300 380,380 300,460 220,380"/>
+    </g>
+    <g stroke="#06c5d4" stroke-width="0.8" opacity="0.5">
+      <circle cx="300" cy="300" r="160"/>
+      <polygon points="300,140 380,220 300,300 220,220"/>
+    </g>
+  </svg>
+  <div class="hero-content">
+    <div class="hero-badges">
+      <span class="badge blue">Islamic Finance</span>
+      <span class="badge cyan">Digital Asset</span>
+      <span class="badge gold">Sharia Governance</span>
+    </div>
+    <h1 class="hero-name">Izzuddin<em>Edi Siswanto</em></h1>
+    <div class="hero-rule"></div>
+    <p class="hero-desc">"A principled Islamic finance professional who leads with clarity and trust — cutting through complexity to give direct, decisive guidance, grounded in faith and built on collaborative relationships."</p>
+    <div class="hero-actions">
+      <a href="#services" class="btn-blue">Lihat Layanan ↓</a>
+      <a href="#contact" class="btn-ghost">Hubungi Saya</a>
+    </div>
+    <div class="hero-stats">
+      <div class="h-stat"><div class="h-stat-n">21+</div><div class="h-stat-l">Tahun Pengalaman</div></div>
+      <div class="h-stat"><div class="h-stat-n">5+</div><div class="h-stat-l">Institusi SSB</div></div>
+      <div class="h-stat"><div class="h-stat-n">57+</div><div class="h-stat-l">Sitasi Akademik</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="sec-label">Who I Am</div>
+  <h2 class="sec-title">Principled. Decisive.<br><span>Grounded in Faith.</span></h2>
+  <div class="about-grid fade-in">
+    <div class="about-text">
+      <p>Dengan pengalaman lebih dari <strong>21 tahun</strong> di industri keuangan syariah, karier saya berdiri di persimpangan antara <strong>yurisprudensi Syariah</strong> dan sistem keuangan modern — menerjemahkan prinsip Fiqh yang kompleks menjadi solusi praktis bagi institusi di seluruh Indonesia.</p>
+      <p>Fondasi akademis dari <strong>Universitas Islam Madinah</strong> hingga PhD di <strong>Universitas Malaya</strong> memberi saya penguasaan ilmu Islam klasik, sementara dua dekade di garis depan industri keuangan membuat saya tetap tajam dan pragmatis.</p>
+      <p>Dari memimpin <strong>Dewan Pengawas Syariah</strong>, mengajar generasi berikutnya, hingga memelopori ekosistem <strong>keuangan Islam dan kripto</strong> — tujuan saya tetap sama: keputusan berprinsip yang benar-benar menggerakkan sesuatu.</p>
+    </div>
+    <div class="about-stats">
+      <div class="stat-card"><div class="stat-num">21+</div><div class="stat-label">Tahun di Islamic Finance</div></div>
+      <div class="stat-card"><div class="stat-num">5+</div><div class="stat-label">Institusi SSB Dilayani</div></div>
+      <div class="stat-card"><div class="stat-num">57+</div><div class="stat-label">Sitasi Akademik</div></div>
+      <div class="stat-card"><div class="stat-num">3</div><div class="stat-label">Gelar Akademik</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERTISE -->
+<section id="expertise">
+  <div class="sec-label">Areas of Focus</div>
+  <h2 class="sec-title">Deep Expertise,<br><span>Broad Impact.</span></h2>
+  <div class="expertise-grid">
+    <div class="exp-card fade-in">
+      <div class="exp-icon">🏛️</div>
+      <div class="exp-card-title">Sharia Governance</div>
+      <div class="exp-card-desc">Menjabat sebagai Ketua dan anggota DPS di lembaga asuransi, manajer investasi, dan sekuritas. Menerjemahkan kepatuhan syariah dari konsep menjadi realitas operasional.</div>
+      <div class="exp-tags"><span class="exp-tag">SSB</span><span class="exp-tag">DPS</span><span class="exp-tag">Fatwa DSN</span></div>
+    </div>
+    <div class="exp-card fade-in">
+      <div class="exp-icon">📜</div>
+      <div class="exp-card-title">Fiqh Muamalat</div>
+      <div class="exp-card-desc">Dua puluh tahun mengajarkan dan menerapkan yurisprudensi Islam klasik pada kontrak keuangan kontemporer — dari murabahah hingga struktur sukuk.</div>
+      <div class="exp-tags"><span class="exp-tag">Usul Fiqh</span><span class="exp-tag">AAOIFI</span><span class="exp-tag">Fiqh Kontemporer</span></div>
+    </div>
+    <div class="exp-card fade-in">
+      <div class="exp-icon">🏗️</div>
+      <div class="exp-card-title">Waqf &amp; Sukuk</div>
+      <div class="exp-card-desc">Pelopor strukturisasi Waqf sebagai instrumen pembiayaan infrastruktur dan perumahan. Riset Cash Waqf, Sukuk al-Intifa'a, dan pembiayaan proyek pembangunan.</div>
+      <div class="exp-tags"><span class="exp-tag">Cash Waqf</span><span class="exp-tag">SBSN</span><span class="exp-tag">Infrastruktur</span></div>
+    </div>
+    <div class="exp-card fade-in">
+      <div class="exp-icon">📈</div>
+      <div class="exp-card-title">Pasar Modal Syariah</div>
+      <div class="exp-card-desc">Trader saham aktif di BEI dengan keahlian mendalam pada instrumen ekuitas syariah, struktur pasar modal Islam, dan sertifikasi ASPM.</div>
+      <div class="exp-tags"><span class="exp-tag">IDX</span><span class="exp-tag">Saham Syariah</span><span class="exp-tag">ASPM</span></div>
+    </div>
+    <div class="exp-card fade-in">
+      <div class="exp-icon">₿</div>
+      <div class="exp-card-title">Islamic Finance &amp; Crypto</div>
+      <div class="exp-card-desc">Pendiri komunitas IFBTC, menjembatani keuangan Islam klasik dengan ekosistem blockchain dan kripto melalui edukasi, literasi, dan kerangka berprinsip.</div>
+      <div class="exp-tags"><span class="exp-tag">Bitcoin</span><span class="exp-tag">Crypto Mining</span><span class="exp-tag">Blockchain</span></div>
+    </div>
+    <div class="exp-card fade-in">
+      <div class="exp-icon">🎓</div>
+      <div class="exp-card-title">Academia &amp; Research</div>
+      <div class="exp-card-desc">Dosen senior di berbagai institusi, 57+ sitasi riset, konsultan Bappenas dan PUPR. Membentuk generasi profesional keuangan Islam berikutnya di Indonesia.</div>
+      <div class="exp-tags"><span class="exp-tag">STEI SEBI</span><span class="exp-tag">LPPI</span><span class="exp-tag">Riset</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="sec-label">Jasa Profesional</div>
+  <h2 class="sec-title">Services &amp;<br><span>Consulting.</span></h2>
+  <p class="services-intro">Dengan pengalaman lebih dari 21 tahun di industri keuangan syariah, saya menawarkan layanan konsultasi, pelatihan, dan advisory yang praktis, terukur, dan berlandaskan prinsip Islam.</p>
+  <div class="services-grid">
+    <div class="svc-card fade-in">
+      <div class="svc-icon">🏛️</div>
+      <div class="svc-title">Konsultasi Syariah &amp; Fatwa</div>
+      <div class="svc-desc">Pendampingan sharia compliance untuk institusi keuangan, fintech, dan perusahaan — dari review produk, penyusunan akad, hingga opini fatwa muamalat kontemporer.</div>
+      <div class="svc-tags"><span class="svc-tag">DPS / SSB</span><span class="svc-tag">Akad &amp; Kontrak</span><span class="svc-tag">Fintech Syariah</span></div>
+      <a href="#contact" class="svc-cta">Konsultasi Sekarang →</a>
+    </div>
+    <div class="svc-card fade-in">
+      <div class="svc-icon">📚</div>
+      <div class="svc-title">Pelatihan &amp; Workshop Islamic Finance</div>
+      <div class="svc-desc">Program pelatihan intensif untuk profesional, perbankan, dan akademisi — mencakup Fiqh Muamalat, AAOIFI standards, pasar modal syariah, dan keuangan Islam kontemporer.</div>
+      <div class="svc-tags"><span class="svc-tag">In-House Training</span><span class="svc-tag">Workshop</span><span class="svc-tag">Sertifikasi</span></div>
+      <a href="#contact" class="svc-cta">Jadwalkan Pelatihan →</a>
+    </div>
+    <div class="svc-card fade-in">
+      <div class="svc-icon">🎤</div>
+      <div class="svc-title">Pembicara &amp; Narasumber</div>
+      <div class="svc-desc">Hadir sebagai keynote speaker, narasumber seminar, atau moderator panel — untuk konferensi Islamic finance, forum ekonomi Islam, dan acara korporat.</div>
+      <div class="svc-tags"><span class="svc-tag">Keynote</span><span class="svc-tag">Seminar</span><span class="svc-tag">Webinar</span></div>
+      <a href="#contact" class="svc-cta">Undang Sebagai Pembicara →</a>
+    </div>
+    <div class="svc-card fade-in">
+      <div class="svc-icon">📈</div>
+      <div class="svc-title">Konsultasi Investasi Syariah</div>
+      <div class="svc-desc">Panduan investasi halal berbasis prinsip Islam — dari screening saham syariah di BEI, reksa dana syariah, sukuk, hingga perencanaan portofolio sesuai Sharia.</div>
+      <div class="svc-tags"><span class="svc-tag">Saham Syariah</span><span class="svc-tag">Reksa Dana</span><span class="svc-tag">Sukuk</span></div>
+      <a href="#contact" class="svc-cta">Mulai Konsultasi →</a>
+    </div>
+    <div class="svc-card fade-in">
+      <div class="svc-icon">₿</div>
+      <div class="svc-title">Konsultasi Digital Aset &amp; Crypto</div>
+      <div class="svc-desc">Panduan halal-haram aset kripto dari perspektif Fiqh Muamalat — Bitcoin, altcoin, DeFi, NFT, dan crypto mining dikaji secara mendalam dari kacamata ekonomi Islam.</div>
+      <div class="svc-tags"><span class="svc-tag">Bitcoin</span><span class="svc-tag">Crypto Mining</span><span class="svc-tag">DeFi Halal</span></div>
+      <a href="#contact" class="svc-cta">Tanya Sekarang →</a>
+    </div>
+    <div class="svc-card fade-in">
+      <div class="svc-icon">🕌</div>
+      <div class="svc-title">Advisory Waqf &amp; Zakat</div>
+      <div class="svc-desc">Konsultasi strukturisasi Cash Waqf, pengelolaan dana zakat produktif, dan pengembangan instrumen filantropi Islam modern termasuk integrasi Waqf dengan Sukuk.</div>
+      <div class="svc-tags"><span class="svc-tag">Cash Waqf</span><span class="svc-tag">Zakat Produktif</span><span class="svc-tag">Sukuk Waqf</span></div>
+      <a href="#contact" class="svc-cta">Konsultasi Advisory →</a>
+    </div>
+  </div>
+  <div class="services-bottom fade-in">
+    <div class="services-bottom-text">
+      <h3>Tertarik bekerja sama?</h3>
+      <p>Semua layanan dapat disesuaikan dengan kebutuhan institusi, korporat, maupun individu. Hubungi saya untuk diskusi awal tanpa biaya.</p>
+    </div>
+    <div class="services-bottom-action"><a href="#contact" class="btn-white">Hubungi Sekarang →</a></div>
+  </div>
+</section>
+
+<!-- CV -->
+<section id="cv">
+  <div class="sec-label">Resume</div>
+  <h2 class="sec-title">Professional<br><span>History.</span></h2>
+  <div class="cv-tabs">
+    <button class="cv-tab active" onclick="switchTab('exp')">Experience</button>
+    <button class="cv-tab" onclick="switchTab('edu')">Education</button>
+    <button class="cv-tab" onclick="switchTab('skills')">Skills &amp; Certs</button>
+  </div>
+  <div id="tab-exp" class="cv-panel active">
+    <div class="xp-row"><div class="xp-yr">2025 – Present<div class="xp-badge">Active</div></div><div><div class="xp-role">Senior Lecturer</div><div class="xp-co">STEI Fitrah Insani · West Bandung</div><div class="xp-desc">Investment &amp; Syariah Stock Market, Advanced Entrepreneurship, UMKM Scale Up Technics.</div></div></div>
+    <div class="xp-row"><div class="xp-yr">2024 – Present<div class="xp-badge">Active</div></div><div><div class="xp-role">Owner &amp; Community Lead</div><div class="xp-co">IFBTC (Islamic Finance &amp; Bitcoin Community) · West Bandung</div><div class="xp-desc">Managing crypto mining operations (BTC, Kaspa, LTC, Doge via ASIC) and building community bridging Islamic finance principles with Bitcoin and crypto ecosystems.</div></div></div>
+    <div class="xp-row"><div class="xp-yr">2018 – Present<div class="xp-badge">Active</div></div><div><div class="xp-role">SSB Chairman</div><div class="xp-co">PT Pool Advista Indonesia Tbk · Jakarta</div><div class="xp-desc">Chairing the Sharia Supervisory Board for the publicly listed company, overseeing all aspects of sharia compliance from product design to daily operations.</div></div></div>
+    <div class="xp-row"><div class="xp-yr">2004 – Present<div class="xp-badge">21 Years</div></div><div><div class="xp-role">Senior Lecturer &amp; Strategic Advisor</div><div class="xp-co">STEI SEBI · South Jakarta</div><div class="xp-desc">Core subjects: Fiqh Muamalat, Usul Fiqh, Quranic Economics, AAOIFI, DSN-MUI Fatwa, Contemporary Financial Transaction Fiqh. Strategic advisory across multiple institutional research projects.</div></div></div>
+    <div class="xp-row"><div class="xp-yr">2013 – Present<div class="xp-badge">Active</div></div><div><div class="xp-role">Syariah Supervisory Board Member</div><div class="xp-co">Avrist Assurance &amp; Avrist Asset Management · Jakarta</div><div class="xp-desc">Supervising sharia compliance in insurance and asset management — from product development to daily implementation.</div></div></div>
+    <div class="xp-row"><div class="xp-yr">2011 – Present<div class="xp-badge">Active</div></div><div><div class="xp-role">Member of Supervisory Board</div><div class="xp-co">Dompet Dhuafa · Greater Jakarta</div><div class="xp-desc">Sharia oversight for one of Indonesia's largest and most trusted philanthropic institutions.</div></div></div>
+    <div class="xp-row"><div class="xp-yr">2016 – Present<div class="xp-badge">Active</div></div><div><div class="xp-role">Head of Board of Trustees</div><div class="xp-co">Wafaa Group · Jakarta</div><div class="xp-desc">Leading poverty treatment and capacity building programs, among Indonesia's most impactful community development initiatives.</div></div></div>
+    <div class="xp-row"><div class="xp-yr">2014 – Present<div class="xp-badge">Active</div></div><div><div class="xp-role">Senior Lecturer</div><div class="xp-co">ICDIF – LPPI · Greater Jakarta</div><div class="xp-desc">Delivering executive Islamic finance training for banking and financial industry professionals.</div></div></div>
+    <div class="xp-row"><div class="xp-yr">2006</div><div><div class="xp-role">Individual Consultant</div><div class="xp-co">Directorate of Multilateral, Bappenas · Jakarta</div><div class="xp-desc">Developed Country Assistance Strategy Study (CASS) between Republic of Indonesia and Islamic Development Bank (IDB).</div></div></div>
+    <div class="xp-row"><div class="xp-yr">2007</div><div><div class="xp-role">Consultant</div><div class="xp-co">Kementerian PUPR · Jakarta</div><div class="xp-desc">Research on Cash Waqf as a financial resource and structured financing mechanism for Indonesia's property and housing sector.</div></div></div>
+  </div>
+  <div id="tab-edu" class="cv-panel">
+    <div class="edu-grid2">
+      <div class="edu2"><div class="edu2-yr">In Progress</div><div class="edu2-deg">Doctor of Philosophy</div><div class="edu2-field">Syariah Economics</div><div class="edu2-sch">University of Malaya, Malaysia</div></div>
+      <div class="edu2"><div class="edu2-yr">1997–2002</div><div class="edu2-deg">Master of Islamic Studies</div><div class="edu2-field">Syariah Economics</div><div class="edu2-sch">National University of Malaysia (UKM)</div></div>
+      <div class="edu2"><div class="edu2-yr">1991–1995</div><div class="edu2-deg">Lc — Bachelor of Arts</div><div class="edu2-field">Syariah</div><div class="edu2-sch">Islamic University of Madinah, Saudi Arabia</div></div>
+      <div class="edu2"><div class="edu2-yr">1999–2001</div><div class="edu2-deg">Tahfidh Program</div><div class="edu2-field">Ulumul Quran</div><div class="edu2-sch">MQWH</div></div>
+      <div class="edu2"><div class="edu2-yr">1984–1989</div><div class="edu2-deg">Secondary School Diploma</div><div class="edu2-field">High School Education</div><div class="edu2-sch">Pondok Modern Darussalam Gontor</div></div>
+    </div>
+  </div>
+  <div id="tab-skills" class="cv-panel">
+    <div class="skills-cols">
+      <div>
+        <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--blue);margin-bottom:24px;font-weight:700">Technical Skills</div>
+        <div class="sk2"><div class="sk2-n">Sharia Supervisory Board (SSB/DPS)<span>98%</span></div><div class="sk2-bar"><div class="sk2-fill" style="width:98%"></div></div></div>
+        <div class="sk2"><div class="sk2-n">Fiqh Muamalat &amp; Usul Fiqh<span>97%</span></div><div class="sk2-bar"><div class="sk2-fill" style="width:97%"></div></div></div>
+        <div class="sk2"><div class="sk2-n">Islamic Finance<span>96%</span></div><div class="sk2-bar"><div class="sk2-fill" style="width:96%"></div></div></div>
+        <div class="sk2"><div class="sk2-n">Waqf &amp; Sukuk Structuring<span>91%</span></div><div class="sk2-bar"><div class="sk2-fill" style="width:91%"></div></div></div>
+        <div class="sk2"><div class="sk2-n">Islamic Capital Markets<span>88%</span></div><div class="sk2-bar"><div class="sk2-fill" style="width:88%"></div></div></div>
+        <div class="sk2"><div class="sk2-n">Crypto &amp; Blockchain (Islamic)<span>78%</span></div><div class="sk2-bar"><div class="sk2-fill" style="width:78%"></div></div></div>
+        <div class="sk2"><div class="sk2-n">Academic Research &amp; Publishing<span>85%</span></div><div class="sk2-bar"><div class="sk2-fill" style="width:85%"></div></div></div>
+      </div>
+      <div>
+        <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--blue);margin-bottom:24px;font-weight:700">Languages</div>
+        <div class="lang-grid">
+          <div class="lang-card"><div class="lang-card-n">Arabic</div><div class="lang-card-l">Full Professional</div></div>
+          <div class="lang-card"><div class="lang-card-n">English</div><div class="lang-card-l">Professional</div></div>
+          <div class="lang-card"><div class="lang-card-n">Indonesian</div><div class="lang-card-l">Native</div></div>
+        </div>
+        <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--blue);margin:32px 0 18px;font-weight:700">Certifications</div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:18px;border-left:3px solid var(--blue);margin-bottom:14px">
+          <div style="font-size:14px;color:var(--ink);font-weight:700">ASPM</div>
+          <div style="font-size:12px;color:var(--ink2);margin-top:5px">Ahli Syariah Pasar Modal</div>
+        </div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:18px;border-left:3px solid var(--cyan);margin-bottom:14px">
+          <div style="font-size:14px;color:var(--ink);font-weight:700">Dewan Pengawas Syariah</div>
+          <div style="font-size:12px;color:var(--ink2);margin-top:5px">Certified Sharia Supervisory Board</div>
+        </div>
+        <div style="background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:var(--r);padding:18px;font-size:12.5px;color:var(--ink2);line-height:1.7">
+          🏆 <strong style="color:var(--gold)">Award:</strong> Development Strategy — Waqf with Sukuk for Infrastructure Development Project in Indonesia
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL -->
+<section id="social">
+  <div class="sec-label">Digital Presence</div>
+  <h2 class="sec-title">Connect &amp;<br><span>Follow Along.</span></h2>
+  <div class="social-grid fade-in">
+    <a href="https://instagram.com/zudin2007" target="_blank" rel="noopener" class="platform-card ig">
+      <div class="platform-icon">📸</div>
+      <div class="platform-info"><div class="platform-name">Instagram</div><div class="platform-handle">@zudin2007</div><div class="platform-desc">Daily insights on Islamic finance, market updates, and personal reflections on faith-driven investing.</div></div>
+      <div class="platform-arrow">→</div>
+    </a>
+    <a href="https://tiktok.com/@zudinvest" target="_blank" rel="noopener" class="platform-card tt">
+      <div class="platform-icon">🎵</div>
+      <div class="platform-info"><div class="platform-name">TikTok</div><div class="platform-handle">@zudinvest</div><div class="platform-desc">Short-form education on halal investing, crypto literacy, and Islamic finance made accessible for everyone.</div></div>
+      <div class="platform-arrow">→</div>
+    </a>
+    <a href="https://facebook.com/zudin2007" target="_blank" rel="noopener" class="platform-card fb">
+      <div class="platform-icon">💬</div>
+      <div class="platform-info"><div class="platform-name">Facebook</div><div class="platform-handle">zudin2007</div><div class="platform-desc">Community discussions on muamalat, sharia compliance, and Islamic economic development in Indonesia.</div></div>
+      <div class="platform-arrow">→</div>
+    </a>
+    <a href="https://youtube.com/@izzuddinabdulmanaf" target="_blank" rel="noopener" class="platform-card yt">
+      <div class="platform-icon">▶️</div>
+      <div class="platform-info"><div class="platform-name">YouTube</div><div class="platform-handle">@izzuddinabdulmanaf</div><div class="platform-desc">In-depth lectures, talks, and educational content on Islamic finance, Fiqh Muamalat, and contemporary financial issues.</div></div>
+      <div class="platform-arrow">→</div>
+    </a>
+    <a href="https://linkedin.com/in/zudin" target="_blank" rel="noopener" class="platform-card li">
+      <div class="platform-icon">💼</div>
+      <div class="platform-info"><div class="platform-name">LinkedIn</div><div class="platform-handle">linkedin.com/in/zudin</div><div class="platform-desc">Professional network, research insights, and industry commentary on Islamic capital markets and governance.</div></div>
+      <div class="platform-arrow">→</div>
+    </a>
+    <a href="https://izzuddinesiswanto.com/" target="_blank" rel="noopener" class="platform-card web">
+      <div class="platform-icon">📖</div>
+      <div class="platform-info"><div class="platform-name">Blog</div><div class="platform-handle">izzuddinesiswanto.com</div><div class="platform-desc">Long-form articles and fatwa analysis on contemporary Islamic finance, muamalat principles, and investment guidance.</div></div>
+      <div class="platform-arrow">→</div>
+    </a>
+  </div>
+</section>
+
+<!-- BLOG -->
+<section id="blog">
+  <div class="sec-label">Insights &amp; Writing</div>
+  <h2 class="sec-title">Latest<br><span>Perspectives.</span></h2>
+  <div class="blog-grid fade-in">
+    <div class="blog-card"><span class="blog-tag">Waqf &amp; Infrastructure</span><div class="blog-title">Development Strategy: Waqf with Sukuk for Infrastructure Projects</div><div class="blog-excerpt">Exploring how Cash Waqf combined with Sukuk al-Intifa'a instruments can provide sustainable, Sharia-compliant financing for Indonesia's infrastructure development needs.</div><div class="blog-meta"><span class="blog-date">Research Publication</span><a href="https://konsultasimuamalat.me/" class="blog-link" target="_blank" rel="noopener">Read More →</a></div></div>
+    <div class="blog-card"><span class="blog-tag">Islamic Capital Markets</span><div class="blog-title">Principles of Islamic Investment: A Practical Framework</div><div class="blog-excerpt">A deep dive into the core principles governing Islamic investment funds — from equity screening criteria to permissible profit-sharing structures, rooted in Sharia jurisprudence.</div><div class="blog-meta"><span class="blog-date">konsultasimuamalat.me</span><a href="https://konsultasimuamalat.me/" class="blog-link" target="_blank" rel="noopener">Read More →</a></div></div>
+    <div class="blog-card"><span class="blog-tag">Crypto &amp; Islamic Finance</span><div class="blog-title">Bridging Bitcoin &amp; Sharia: The IFBTC Community Approach</div><div class="blog-excerpt">How the Islamic Finance &amp; Bitcoin Community is working to harmonize classical Islamic economic principles with emerging blockchain technology through education and community frameworks.</div><div class="blog-meta"><span class="blog-date">IFBTC Insights</span><a href="https://konsultasimuamalat.me/" class="blog-link" target="_blank" rel="noopener">Read More →</a></div></div>
+    <div class="blog-card"><span class="blog-tag">Sharia Governance</span><div class="blog-title">The Role of DPS in Shaping Ethical Finance Institutions</div><div class="blog-excerpt">How an effective Dewan Pengawas Syariah transforms sharia compliance from a checkbox into a genuine institutional culture of integrity and accountability.</div><div class="blog-meta"><span class="blog-date">Academic Article</span><a href="https://konsultasimuamalat.me/" class="blog-link" target="_blank" rel="noopener">Read More →</a></div></div>
+    <div class="blog-card"><span class="blog-tag">IDB &amp; Policy</span><div class="blog-title">Country Assistance Strategy: Indonesia–IDB Cooperation Framework</div><div class="blog-excerpt">Key findings from the CASS policy study developed for Bappenas — outlining strategic pathways for Indonesia to deepen its cooperation with the Islamic Development Bank.</div><div class="blog-meta"><span class="blog-date">Policy Document, 2006</span><a href="https://www.slideshare.net/Zudin2007" class="blog-link" target="_blank" rel="noopener">View Slides →</a></div></div>
+    <div class="blog-card"><span class="blog-tag">Social Empowerment</span><div class="blog-title">Zakat, Waqf &amp; Social Finance: Tools for Ummah Welfare</div><div class="blog-excerpt">How traditional Islamic social finance instruments — Zakat, Waqf, and Sadaqah — can be modernized and institutionalized to address poverty and capacity building.</div><div class="blog-meta"><span class="blog-date">Wafaa Group Research</span><a href="https://konsultasimuamalat.me/" class="blog-link" target="_blank" rel="noopener">Read More →</a></div></div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-grid-bg"></div>
+  <div class="contact-glow"></div>
+  <div class="contact-inner">
+    <div class="sec-label">Get In Touch</div>
+    <div class="contact-name-big">Let's Connect &amp;<br>Collaborate.</div>
+    <p class="contact-sub">Whether you're looking for a Sharia advisor, academic collaborator, speaker, or simply want to discuss Islamic finance — I'd love to hear from you.</p>
+    <div class="contact-cards">
+      <div class="cc"><div class="cc-icon">📱</div><div class="cc-label">Phone / WA</div><div class="cc-value">+62 878 2353 4370</div></div>
+      <div class="cc"><div class="cc-icon">✉️</div><div class="cc-label">Email</div><div class="cc-value"><a href="mailto:zudin2007@gmail.com">zudin2007@gmail.com</a></div></div>
+      <div class="cc"><div class="cc-icon">🌐</div><div class="cc-label">Website</div><div class="cc-value"><a href="https://izzuddinesiswanto.com/" target="_blank" rel="noopener">izzuddinesiswanto.com</a></div></div>
+    </div>
+    <a href="mailto:zudin2007@gmail.com" class="btn-blue" style="margin:0 auto;display:inline-flex">Kirim Pesan ✉️</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-name">Izzuddin <span>Edi Siswanto</span></div>
+  <div class="footer-copy">© 2025 · Islamic Finance &amp; Digital Asset · Indonesia</div>
+  <div class="footer-links">
+    <a href="https://linkedin.com/in/zudin" target="_blank" rel="noopener">LinkedIn</a>
+    <a href="https://izzuddinesiswanto.com/" target="_blank" rel="noopener">Blog</a>
+    <a href="#hero">Back to Top</a>
+  </div>
+</footer>
+
+<button id="top-btn" onclick="scrollToTop()">↑</button>
+
+<script>
+function switchTab(id) {
+  document.querySelectorAll('.cv-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.cv-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+const topBtn = document.getElementById('top-btn');
+window.addEventListener('scroll', () => {
+  topBtn.classList.toggle('show', window.scrollY > 400);
+});
+function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+</script>
+</body>
+</html>
