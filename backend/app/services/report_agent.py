@@ -23,12 +23,13 @@ from ..utils.llm_client import LLMClient
 from ..utils.logger import get_logger
 from ..utils.locale import get_language_instruction, t
 from .zep_tools import (
-    ZepToolsService, 
-    SearchResult, 
-    InsightForgeResult, 
+    ZepToolsService,
+    SearchResult,
+    InsightForgeResult,
     PanoramaResult,
     InterviewResult
 )
+from .market_data_service import MarketDataService, MarketDataError
 
 logger = get_logger('mirofish.report_agent')
 
@@ -547,6 +548,25 @@ TOOL_DESC_INTERVIEW_AGENTS = """\
 
 【重要】需要OASIS模拟环境正在运行才能使用此功能！"""
 
+TOOL_DESC_MARKET_DATA = """\
+【真实行情数据 - 股票/加密货币】
+获取指定股票或加密货币代码的**真实**市场行情，包括当前价格、24小时涨跌幅、
+20日/50日均线（SMA20/SMA50）、14日相对强弱指标（RSI14）、52周高低点。
+数据直接来自真实市场（股票来自Stooq，加密货币来自Binance），不是模拟结果。
+
+【使用场景】
+- 预测场景涉及具体股票或加密货币代码（如 AAPL、TSLA、BTCUSDT）
+- 需要为预测报告提供真实的价格走势和技术指标，而不仅仅是模拟出的舆论反应
+- 需要将模拟出的群体情绪/舆论走向，与真实的价格/技术面数据结合，形成更可信的预测
+
+【返回内容】
+- 当前价格、24小时涨跌幅
+- SMA20、SMA50、RSI14 等技术指标
+- 52周价格区间
+
+【重要】这是真实市场数据，用于为预测提供事实依据；模拟世界的舆论/情绪演化仍是预测的核心，
+该工具只是为预测提供锚点，不能替代模拟结果。"""
+
 # ── 大纲规划 prompt ──
 
 PLAN_SYSTEM_PROMPT = """\
@@ -887,24 +907,27 @@ class ReportAgent:
         simulation_id: str,
         simulation_requirement: str,
         llm_client: Optional[LLMClient] = None,
-        zep_tools: Optional[ZepToolsService] = None
+        zep_tools: Optional[ZepToolsService] = None,
+        market_data_service: Optional[MarketDataService] = None
     ):
         """
         初始化Report Agent
-        
+
         Args:
             graph_id: 图谱ID
             simulation_id: 模拟ID
             simulation_requirement: 模拟需求描述
             llm_client: LLM客户端（可选）
             zep_tools: Zep工具服务（可选）
+            market_data_service: 真实行情数据服务（可选）
         """
         self.graph_id = graph_id
         self.simulation_id = simulation_id
         self.simulation_requirement = simulation_requirement
-        
+
         self.llm = llm_client or LLMClient()
         self.zep_tools = zep_tools or ZepToolsService()
+        self.market_data = market_data_service or MarketDataService()
         
         # 工具定义
         self.tools = self._define_tools()
@@ -949,6 +972,14 @@ class ReportAgent:
                 "parameters": {
                     "interview_topic": "采访主题或需求描述（如：'了解学生对宿舍甲醛事件的看法'）",
                     "max_agents": "最多采访的Agent数量（可选，默认5，最大10）"
+                }
+            },
+            "market_data": {
+                "name": "market_data",
+                "description": TOOL_DESC_MARKET_DATA,
+                "parameters": {
+                    "symbol": "股票代码或加密货币交易对，如 AAPL、TSLA、BTCUSDT",
+                    "asset_type": "资产类型：stock 或 crypto（可选，默认根据代码自动识别）"
                 }
             }
         }
@@ -1019,7 +1050,20 @@ class ReportAgent:
                     max_agents=max_agents
                 )
                 return result.to_text()
-            
+
+            elif tool_name == "market_data":
+                # 真实行情数据 - 为预测报告提供事实依据（股票/加密货币）
+                symbol = parameters.get("symbol", "")
+                asset_type = parameters.get("asset_type", "auto") or "auto"
+                try:
+                    result = self.market_data.get_market_snapshot(
+                        symbol=symbol,
+                        asset_type=asset_type
+                    )
+                    return result.to_text()
+                except MarketDataError as e:
+                    return f"未能获取行情数据: {str(e)}"
+
             # ========== 向后兼容的旧工具（内部重定向到新工具） ==========
             
             elif tool_name == "search_graph":
@@ -1055,14 +1099,14 @@ class ReportAgent:
                 return json.dumps(result, ensure_ascii=False, indent=2)
             
             else:
-                return f"未知工具: {tool_name}。请使用以下工具之一: insight_forge, panorama_search, quick_search"
-                
+                return f"未知工具: {tool_name}。请使用以下工具之一: insight_forge, panorama_search, quick_search, interview_agents, market_data"
+
         except Exception as e:
             logger.error(t('report.toolExecFailed', toolName=tool_name, error=str(e)))
             return f"工具执行失败: {str(e)}"
-    
+
     # 合法的工具名称集合，用于裸 JSON 兜底解析时校验
-    VALID_TOOL_NAMES = {"insight_forge", "panorama_search", "quick_search", "interview_agents"}
+    VALID_TOOL_NAMES = {"insight_forge", "panorama_search", "quick_search", "interview_agents", "market_data"}
 
     def _parse_tool_calls(self, response: str) -> List[Dict[str, Any]]:
         """

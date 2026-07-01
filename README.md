@@ -81,7 +81,7 @@ Click the image to watch the complete demo video for prediction using BettaFish-
 Click the image to watch MiroFish's deep prediction of the lost ending based on hundreds of thousands of words from the first 80 chapters of "Dream of the Red Chamber"
 </div>
 
-> **Financial Prediction**, **Political News Prediction** and more examples coming soon...
+> **Financial Prediction** is supported today: describe a market scenario as your simulation requirement and the ReportAgent can call its `market_data` tool to ground the report in real stock/crypto prices and technical indicators (SMA20/SMA50/RSI14, no API key required) alongside the simulated social-sentiment signal. **Political News Prediction** and more examples coming soon...
 
 ## 🔄 Workflow
 
