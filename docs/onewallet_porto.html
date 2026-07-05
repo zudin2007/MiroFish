@@ -1,27 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
-<head><style>
-@font-face {
-  font-family: "Optimistic";
-  font-style: normal;
-  font-weight: 400 600;
-  font-display: swap;
-  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Optimistic Mono";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
-}
-:where(html) {
-  font-family: "Optimistic", system-ui, sans-serif;
-}
-:where(code, pre, kbd, samp) {
-  font-family: "Optimistic Mono", ui-monospace, monospace;
-}
-</style>
+<head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>ONE Wallet – Porto Real</title>
@@ -36,6 +15,8 @@ input:focus{border-color:#00e5cc;outline:none;box-shadow:0 0 0 3px rgba(0,229,20
 .badge{font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
 input[data-kind="hold"]{width:100%}
 button[data-kind="reset0"]:hover{border-color:#00e5cc;color:#00e5cc}
+.skel{display:inline-block;background:linear-gradient(90deg,#1e293b 25%,#263348 50%,#1e293b 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:6px;color:transparent;user-select:none}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 </style>
 </head>
 <body class="min-h-screen">
@@ -56,8 +37,8 @@ button[data-kind="reset0"]:hover{border-color:#00e5cc;color:#00e5cc}
     <div class="lg:col-span-2 space-y-5">
       <div class="card p-5">
         <div class="text-sm text-slate-400">Total Saldo</div>
-        <div id="totalIDR" class="text-3xl font-[800] mt-1">Rp —</div>
-        <div id="totalUSD" class="text-slate-300 mt-1"> $ —</div>
+        <div id="totalIDR" class="text-3xl font-[800] mt-1"><span class="skel">Rp 000.000.000</span></div>
+        <div id="totalUSD" class="text-slate-300 mt-1"><span class="skel">$ 00,000.00</span></div>
         <div class="text-xs text-slate-500 mt-2">Baseline CMC: Rp96.281.990 • Live: BTC/ETH/SOL/BNB/KAS/HYPE/PAXG/USDC/USDT/VRSC/OMG/ETHFI</div>
       </div>
 
@@ -107,7 +88,9 @@ button[data-kind="reset0"]:hover{border-color:#00e5cc;color:#00e5cc}
         <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead class="text-slate-400 text-xs"><tr><th class="text-left py-2">Aset</th><th class="text-right">Holdings</th><th class="text-right">Harga</th><th class="text-right">Nilai</th><th class="text-right">%</th></tr></thead>
-          <tbody id="assetBody"></tbody>
+          <tbody id="assetBody">
+            <tr class="border-t border-white/[0.06]" id="skelRow"><td colspan="5" class="py-3"><span class="skel text-xs">Memuat harga aset…&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>
+          </tbody>
         </table>
         </div>
       </div>
