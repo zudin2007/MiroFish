@@ -68,7 +68,7 @@ function drawProj(){
   const dep=(+document.getElementById('dep').value)/16853.7;
   const c=(+document.getElementById('cagr').value)/100;
   const start=data.reduce((s,d)=>s+d.value,0);
-  const t1=1000, t2=100000000/16853.7;
+  const t1=500000000/16853.7, t2=100000000/16853.7;
   const l=[],f=[],g=[],a=[],b=[];
   let bf=start, bg=start;
   for(let i=0;i<=36;i++){
@@ -78,7 +78,7 @@ function drawProj(){
   }
   const ctx=document.getElementById('proj').getContext('2d');
   if(pj)pj.destroy();
-  pj=new Chart(ctx,{type:'line',data:{labels:l,datasets:[{label:'Flat',data:f,borderColor:'blue'},{label:'CAGR '+c*100+'%',data:g,borderColor:'green'},{label:'$1K',data:a,borderDash:[5,5],borderColor:'orange'},{label:'Rp100jt',data:b,borderDash:[3,3],borderColor:'purple'}]},options:{}});
+  pj=new Chart(ctx,{type:'line',data:{labels:l,datasets:[{label:'Flat',data:f,borderColor:'blue'},{label:'CAGR '+c*100+'%',data:g,borderColor:'green'},{label:'Rp500jt',data:a,borderDash:[5,5],borderColor:'orange'},{label:'Rp100jt',data:b,borderDash:[3,3],borderColor:'purple'}]},options:{}});
 }
 
 async function upd(){
