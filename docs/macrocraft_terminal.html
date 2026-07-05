@@ -934,6 +934,542 @@ body[data-theme="pencil"] #frog { filter: grayscale(1) contrast(1.15); }
   var activeBtn = document.querySelector('.tf[data-d].active') || document.querySelector('.tf[data-d="30"]');
   loadRange(activeBtn ? parseInt(activeBtn.getAttribute('data-d'), 10) : 30);
 })();
+
+/* =========================================================
+   LIVE DATA ENGINE — CoinGecko · alternative.me · Binance · Yahoo
+   ========================================================= */
+(function () {
+  'use strict';
+
+  var S = {
+    btc: 62081, btcChg: 0.5,
+    eth: 1736, ethChg: 0,
+    btcD: 55.62, ethD: 9.36,
+    mcap: 2.23e12, mcapChg: 0.86,
+    usdtD: 8.24, stableMcap: 257e9,
+    coinCount: 17387,
+    fg: 21, fgY: 19, fgW: 13,
+    dxy: 101.17, dxyChg: -0.27,
+    gold: 4170, goldChg: 0,
+    us10y: 4.35, us2y: 3.92,
+    vix: 18.5, spx: 6900, spxChg: 0.5,
+    silver: 32.41, funding: 0.0052,
+    cpi: 3.0, pce: 2.8
+  };
+
+  var PROXY = 'https://api.allorigins.win/raw?url=';
+
+  function set(id, html) { var e = document.getElementById(id); if (e) e.innerHTML = html; }
+  function setText(id, t) { var e = document.getElementById(id); if (e) e.textContent = t; }
+  function fmtB(n) { return n >= 1e12 ? '$' + (n / 1e12).toFixed(2) + 'T' : n >= 1e9 ? '$' + (n / 1e9).toFixed(0) + 'B' : '$' + Math.round(n); }
+  function cc(v) { return v > 0 ? 'up' : v < 0 ? 'down' : 'flat'; }
+  function arr(v) { return v > 0 ? '▲' : v < 0 ? '▼' : '—'; }
+  function pct(v, dec) { return (v >= 0 ? '+' : '') + v.toFixed(dec || 2) + '%'; }
+
+  /* --- FETCHES --- */
+
+  function fetchCG() {
+    fetch('https://api.coingecko.com/api/v3/global')
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var d = j.data;
+        S.mcap = d.total_market_cap.usd;
+        S.mcapChg = d.market_cap_change_percentage_24h_usd;
+        S.btcD = d.market_cap_percentage.btc;
+        S.ethD = d.market_cap_percentage.eth;
+        S.usdtD = d.market_cap_percentage.usdt || S.usdtD;
+        var stbPct = (d.market_cap_percentage.usdt || 0) + (d.market_cap_percentage.usdc || 0);
+        S.stableMcap = (stbPct / 100) * S.mcap;
+        S.coinCount = d.active_cryptocurrencies;
+        renderInternals();
+      }).catch(function () {});
+
+    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true')
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        S.btc = j.bitcoin.usd;
+        S.btcChg = j.bitcoin.usd_24h_change;
+        S.eth = j.ethereum.usd;
+        S.ethChg = j.ethereum.usd_24h_change;
+        renderBTC(); renderTape();
+      }).catch(function () {});
+  }
+
+  function fetchFG() {
+    fetch('https://api.alternative.me/fng/?limit=8')
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var d = j.data;
+        S.fg = +d[0].value;
+        S.fgY = d[1] ? +d[1].value : S.fgY;
+        S.fgW = d[7] ? +d[7].value : (d[d.length - 1] ? +d[d.length - 1].value : S.fgW);
+        renderFG(); computeAll();
+      }).catch(function () {});
+  }
+
+  function fetchFunding() {
+    fetch('https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT')
+      .then(function (r) { return r.json(); })
+      .then(function (j) { S.funding = parseFloat(j.lastFundingRate) * 100; renderRisk(); })
+      .catch(function () {});
+  }
+
+  function fetchYahoo(sym, cb) {
+    var url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + sym + '?interval=1d&range=5d';
+    fetch(PROXY + encodeURIComponent(url))
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var meta = j.chart.result[0].meta;
+        var price = meta.regularMarketPrice;
+        var prev = meta.chartPreviousClose || meta.previousClose || price;
+        cb(price, prev ? ((price - prev) / prev * 100) : 0);
+      }).catch(function () {});
+  }
+
+  function fetchMarket() {
+    fetchYahoo('DX-Y.NYB', function (p, c) { S.dxy = p; S.dxyChg = c; renderDXY(); computeAll(); });
+    fetchYahoo('GC=F',     function (p, c) { S.gold = p; S.goldChg = c; renderGold(); });
+    fetchYahoo('%5EVIX',   function (p)    { S.vix = p; renderRisk(); });
+    fetchYahoo('%5EGSPC',  function (p, c) { S.spx = p; S.spxChg = c; renderRisk(); computeAll(); });
+    fetchYahoo('%5ETNX',   function (p)    { S.us10y = p; renderRates(); });
+    fetchYahoo('SI=F',     function (p)    { S.silver = p; renderRisk(); });
+  }
+
+  /* --- RENDER CARDS --- */
+
+  function renderBTC() {
+    set('v-btc', '$' + S.btc.toLocaleString('en-US', { maximumFractionDigits: 0 }));
+    set('c-btc', '<span class="' + cc(S.btcChg) + '">' + arr(S.btcChg) + ' ' + pct(S.btcChg) + '</span>');
+    var ds = S.btcD > 55 ? 'BTC SEASON' : S.btcD > 50 ? 'NETRAL' : 'ALT SEASON';
+    set('v-btcd', S.btcD.toFixed(2) + '<span style="font-size:20px">%</span>');
+    set('c-btcd', '<span class="' + (S.btcD > 50 ? 'up' : 'down') + '">' + ds + '</span>');
+    set('src-btc', 'LIVE'); set('src-btcd', 'LIVE');
+  }
+
+  function renderDXY() {
+    set('v-dxy', S.dxy.toFixed(2));
+    set('c-dxy', '<span class="' + cc(S.dxyChg) + '">' + arr(S.dxyChg) + ' ' + pct(S.dxyChg) + '</span>');
+    set('src-dxy', 'LIVE');
+  }
+
+  function renderGold() {
+    set('v-gold', '$' + Math.round(S.gold).toLocaleString('en-US'));
+    set('c-gold', S.goldChg ? '<span class="' + cc(S.goldChg) + '">' + arr(S.goldChg) + ' ' + pct(S.goldChg) + '</span>' : '<span class="flat">—</span>');
+    set('src-gold', 'LIVE');
+  }
+
+  function renderInternals() {
+    set('t-mcap', fmtB(S.mcap));
+    set('t-mcapchg', '<span class="' + cc(S.mcapChg) + '">' + arr(S.mcapChg) + ' ' + pct(S.mcapChg) + '</span>');
+    set('t-eth', '$' + S.eth.toLocaleString('en-US', { maximumFractionDigits: 0 }));
+    set('t-ethd', S.ethD.toFixed(2) + '%');
+    set('t-usdtd', S.usdtD.toFixed(2) + '%');
+    set('t-stable', fmtB(S.stableMcap));
+    if (S.coinCount) setText('t-count', S.coinCount.toLocaleString('en-US'));
+  }
+
+  function renderFG() {
+    var v = S.fg;
+    var color = v >= 55 ? 'var(--mc-green)' : v >= 45 ? 'var(--mc-yellow)' : 'var(--mc-red)';
+    var label = v >= 75 ? 'EXTREME GREED' : v >= 55 ? 'GREED' : v >= 45 ? 'NEUTRAL' : v >= 25 ? 'FEAR' : 'EXTREME FEAR';
+    var filled = Math.round(v / 20);
+    var hearts = Array.from({ length: 5 }, function (_, i) {
+      return '<span style="color:' + (i < filled ? color : '#333') + '">♥</span>';
+    }).join('');
+    setText('v-fg', v);
+    var fgEl = document.getElementById('v-fg'); if (fgEl) fgEl.style.color = color;
+    setText('fg-class', label);
+    set('fg-hearts', hearts);
+    setText('fg-y', S.fgY); setText('fg-w', S.fgW);
+  }
+
+  function renderRates() {
+    var curve = S.us10y - S.us2y, real = S.us10y - S.cpi;
+    set('t-us10y', S.us10y.toFixed(2) + '%');
+    set('t-us2y', S.us2y.toFixed(2) + '%');
+    set('t-curve', (curve >= 0 ? '+' : '') + curve.toFixed(2) + 'pp <span class="' + (curve > 0 ? 'up' : 'down') + '">' + (curve > 0 ? 'NORMAL' : 'INVERTED') + '</span>');
+    set('t-real', (real >= 0 ? '+' : '') + real.toFixed(2) + '% <span class="' + (real > 2 ? 'down' : real > 0 ? 'flat' : 'up') + '">' + (real > 2 ? 'HAWKISH' : real > 0 ? 'MODERAT' : 'DOVISH') + '</span>');
+    set('t-cpi', S.cpi.toFixed(1) + '%');
+    set('t-pce', S.pce.toFixed(1) + '%');
+  }
+
+  function renderRisk() {
+    var vl = S.vix < 16 ? 'CALM' : S.vix < 20 ? 'NORMAL' : S.vix < 30 ? 'ELEVATED' : 'PANIC';
+    set('t-vix', S.vix.toFixed(1) + ' <span class="' + (S.vix < 20 ? 'flat' : 'down') + '">' + vl + '</span>');
+    set('t-spx', S.spx.toLocaleString('en-US', { maximumFractionDigits: 0 }) + ' <span class="' + cc(S.spxChg) + '">' + arr(S.spxChg) + ' ' + pct(S.spxChg) + '</span>');
+    var fl = Math.abs(S.funding) < 0.005 ? 'SEHAT' : S.funding > 0.05 ? 'PANAS LONG' : S.funding < -0.005 ? 'PANAS SHORT' : 'NORMAL';
+    set('t-fund', S.funding.toFixed(4) + '%/8h <span class="' + (Math.abs(S.funding) < 0.01 ? 'up' : 'down') + '">' + fl + '</span>');
+    set('t-silver', '$' + S.silver.toFixed(2));
+    var halvDate = new Date('2024-04-20'), now = new Date();
+    var mth = (now - halvDate) / (1000 * 60 * 60 * 24 * 30.44);
+    var nextH = new Date('2028-04-20');
+    var dl = Math.round((nextH - now) / 86400000);
+    var cyc = mth < 6 ? '<span class="up">EARLY CYCLE / AKUMULASI</span>'
+            : mth < 18 ? '<span class="up">MID CYCLE / EKSPANSI</span>'
+            : '<span class="down">LATE CYCLE / DISTRIBUSI ⚠</span>';
+    set('t-halving', 'Bln ke-' + Math.floor(mth) + ' · ' + cyc + ' · −' + dl + 'd');
+  }
+
+  /* --- SIGNALS & BIAS --- */
+
+  function buildSignals() {
+    var s = [];
+    s.push(S.dxyChg < -0.3
+      ? { l: 'bull', t: 'DXY melemah (' + pct(S.dxyChg) + ')', w: 'Dollar turun → aset risiko & BTC diuntungkan' }
+      : S.dxyChg > 0.3
+        ? { l: 'bear', t: 'DXY menguat (' + pct(S.dxyChg) + ')', w: 'Dollar naik → tekanan pada BTC & risk assets' }
+        : { l: 'neut', t: 'DXY sideways (' + pct(S.dxyChg) + ')', w: 'Dollar netral → tidak ada tekanan langsung' });
+    s.push({ l: 'neut', t: 'Fed HOLD 3.50–3.75%', w: 'Pause = netral; pasar sensitif ke arah FOMC 28–29 JUL 2026' });
+    s.push({ l: 'bull', t: 'M2 ekspansi (+4.2% YoY)', w: 'Likuiditas bertambah → historis positif untuk BTC 3–6 bln' });
+    s.push(S.spxChg > 0.3
+      ? { l: 'bull', t: 'SPX ' + arr(S.spxChg) + ' ' + pct(S.spxChg), w: 'Ekuitas naik = risk-on → tailwind BTC' }
+      : S.spxChg < -0.5
+        ? { l: 'bear', t: 'SPX ' + arr(S.spxChg) + ' ' + pct(S.spxChg), w: 'Ekuitas jatuh = risk-off → tekanan BTC' }
+        : { l: 'neut', t: 'SPX sideways (' + pct(S.spxChg) + ')', w: 'Ekuitas netral → tidak ada sinyal kuat' });
+    s.push(S.btcD > 55
+      ? { l: 'bull', t: 'BTC.D ' + S.btcD.toFixed(1) + '% (tinggi)', w: 'Modal terkonsentrasi di BTC; alt underperform' }
+      : S.btcD < 48
+        ? { l: 'bull', t: 'BTC.D ' + S.btcD.toFixed(1) + '% (rendah)', w: 'Sinyal altseason; rotasi ke alts tapi BTC bisa ikut' }
+        : { l: 'neut', t: 'BTC.D ' + S.btcD.toFixed(1) + '% (netral)', w: 'Dominasi netral, tidak ada rotasi jelas' });
+    s.push(S.fg < 25
+      ? { l: 'bull', t: 'Extreme Fear (' + S.fg + ')', w: 'Kontrarian: ketakutan ekstrem sering dekat bottom lokal' }
+      : S.fg > 75
+        ? { l: 'bear', t: 'Extreme Greed (' + S.fg + ')', w: 'Kontrarian: euforia ekstrem sering dekat puncak lokal' }
+        : S.fg >= 55
+          ? { l: 'neut', t: 'Greed (' + S.fg + ')', w: 'Sentimen bullish tapi belum ekstrem — waspada FOMO' }
+          : { l: 'neut', t: 'Fear (' + S.fg + ')', w: 'Sentimen negatif, volatilitas naik — potensi beli bertahap' });
+    return s;
+  }
+
+  function renderSignals() {
+    var sigs = buildSignals();
+    var bull = sigs.filter(function (s) { return s.l === 'bull'; }).length;
+    set('signals', sigs.map(function (s) {
+      return '<div class="sig"><div class="lamp ' + s.l + '"></div><div><div class="wtxt">' + s.t + '</div><div class="why">' + s.w + '</div></div></div>';
+    }).join(''));
+    var bp = Math.round((bull / sigs.length) * 100);
+    var bl = bp >= 70 ? 'BULLISH' : bp >= 55 ? 'BIAS BULLISH' : bp >= 45 ? 'NETRAL' : bp >= 30 ? 'BIAS BEARISH' : 'BEARISH';
+    var bc = bp >= 60 ? 'var(--mc-green)' : bp >= 45 ? 'var(--mc-yellow)' : 'var(--mc-red)';
+    var bg = bp >= 60
+      ? 'repeating-linear-gradient(90deg,var(--mc-green) 0 8px,rgba(0,0,0,.25) 8px 10px)'
+      : bp >= 45
+        ? 'repeating-linear-gradient(90deg,var(--mc-yellow) 0 8px,rgba(0,0,0,.25) 8px 10px)'
+        : 'repeating-linear-gradient(90deg,var(--mc-red) 0 8px,rgba(0,0,0,.25) 8px 10px)';
+    var xp = document.getElementById('xpfill');
+    if (xp) { xp.style.width = bp + '%'; xp.style.background = bg; xp.style.boxShadow = '0 0 10px ' + bc; }
+    var bt = document.getElementById('biastxt');
+    if (bt) { bt.textContent = bl; bt.style.color = bc; }
+  }
+
+  /* --- ANALYSIS ENGINE --- */
+
+  function computeScore() {
+    var liq = 90;
+    var curve = S.us10y - S.us2y, real = S.us10y - S.cpi;
+    var rts = Math.min(100, 50 + (curve > 0 ? 15 : 0) + (real < 2 ? 15 : 0) + (real < 0 ? 15 : 0));
+    var dxy = S.dxyChg < -0.5 ? 100 : S.dxyChg < 0 ? 80 : S.dxyChg < 0.5 ? 50 : 25;
+    var infl = S.cpi < 2 ? 100 : S.cpi < 3 ? 70 : S.cpi < 4 ? 50 : 25;
+    var rsk = Math.min(100, 50 + (S.vix < 20 ? 20 : 0) + (S.spxChg > 0 ? 15 : 0) + (S.fg > 25 && S.fg < 75 ? 15 : 0));
+    var cry = Math.min(100, 50 + (S.btcD > 45 && S.btcD < 65 ? 15 : 0) + (Math.abs(S.funding) < 0.01 ? 20 : 0) + (S.fg < 25 ? 15 : 0));
+    var comp = Math.round(liq * 0.25 + rts * 0.20 + dxy * 0.15 + infl * 0.10 + rsk * 0.15 + cry * 0.15);
+    return {
+      comp: comp,
+      cats: [
+        { n: 'LIKUIDITAS', w: '25%', s: liq, d: 'M2 +4.2% YoY · ekspansi bertahap' },
+        { n: 'SUKU BUNGA', w: '20%', s: rts, d: '10Y ' + S.us10y.toFixed(2) + '% · real ' + (real >= 0 ? '+' : '') + real.toFixed(2) + '% · kurva ' + (curve >= 0 ? '+' : '') + curve.toFixed(2) + 'pp' },
+        { n: 'DOLLAR', w: '15%', s: dxy, d: 'DXY ' + S.dxy.toFixed(2) + ' (' + pct(S.dxyChg) + ')' },
+        { n: 'INFLASI', w: '10%', s: infl, d: 'CPI ' + S.cpi.toFixed(1) + '% · PCE ' + S.pce.toFixed(1) + '%' },
+        { n: 'RISK APPETITE', w: '15%', s: rsk, d: 'VIX ' + S.vix.toFixed(1) + ' · SPX ' + pct(S.spxChg) + ' · F&G ' + S.fg },
+        { n: 'CRYPTO INTERNAL', w: '15%', s: cry, d: 'BTC.D ' + S.btcD.toFixed(1) + '% · funding ' + S.funding.toFixed(4) + '%' }
+      ]
+    };
+  }
+
+  function renderEngine() {
+    var res = computeScore(), sc = res.comp;
+    var verdict = sc >= 75 ? 'BULLISH' : sc >= 60 ? 'BIAS BULLISH' : sc >= 45 ? 'NETRAL' : sc >= 30 ? 'BIAS BEARISH' : 'BEARISH';
+    var vc = sc >= 60 ? 'var(--mc-green)' : sc >= 45 ? 'var(--mc-yellow)' : 'var(--mc-red)';
+    var stances = { 'BULLISH': 'REGIME: RISK-ON · LIKUIDITAS MENDUKUNG', 'BIAS BULLISH': 'REGIME: RISK-ON/MIXED · MONITORING', 'NETRAL': 'REGIME: MIXED · WAIT & SEE', 'BIAS BEARISH': 'REGIME: RISK-OFF/MIXED · HATI-HATI', 'BEARISH': 'REGIME: RISK-OFF · DEFENSIVE' };
+    setText('vd-score', sc);
+    var se = document.getElementById('vd-score'); if (se) se.style.color = vc;
+    setText('vd-verdict', verdict);
+    var ve = document.getElementById('vd-verdict'); if (ve) ve.style.color = vc;
+    setText('vd-stance', stances[verdict] || '');
+    set('vd-cats', res.cats.map(function (c) {
+      var cc2 = c.s >= 65 ? 'var(--mc-green)' : c.s >= 40 ? 'var(--mc-yellow)' : 'var(--mc-red)';
+      return '<div class="catrow"><div class="px cname">' + c.n + ' <span style="color:#666">' + c.w + '</span></div>' +
+        '<div class="catbar"><div class="mid"></div><div class="cfill" style="width:' + c.s + '%;background:' + cc2 + ';color:' + cc2 + '"></div></div>' +
+        '<div class="px cscore" style="color:' + cc2 + '">' + c.s + '</div>' +
+        '<div class="cdetail" title="' + c.d + '">' + c.d + '</div></div>';
+    }).join(''));
+    var best = res.cats.reduce(function (a, b) { return a.s > b.s ? a : b; });
+    var worst = res.cats.reduce(function (a, b) { return a.s < b.s ? a : b; });
+    set('vd-narrative',
+      '<div style="margin-bottom:7px"><span class="wtxt">📋 KESIMPULAN:</span> Skor komposit <b style="color:' + vc + '">' + sc + '/100 (' + verdict + ')</b> dari 6 kategori berbobot.</div>' +
+      '<div style="margin-bottom:7px"><span class="up">▲ Pendorong terkuat — ' + best.n + ' (' + best.s + '):</span> ' + best.d + '</div>' +
+      '<div style="margin-bottom:7px"><span class="down">▼ Hambatan terbesar — ' + worst.n + ' (' + worst.s + '):</span> ' + worst.d + '</div>' +
+      '<div style="margin-bottom:7px"><span style="color:var(--mc-aqua)">◆ Likuiditas vs harga:</span> M2 +4.2% YoY — historis, gelombang likuiditas butuh 3–6 bulan untuk mengalir ke BTC.</div>' +
+      '<div style="margin-bottom:7px"><span style="color:var(--mc-yellow)">◈ Level pengubah skenario:</span> DXY tembus naik &gt;2% atau VIX &gt;28 → bias otomatis turun. Sinyal cut Fed di FOMC Jul/Sep → bias naik.</div>' +
+      '<div style="margin-bottom:7px"><span style="color:#888">⚠ Skor = agregasi mekanis, bukan nasihat keuangan. Klik ✎ untuk update data manual.</span></div>');
+  }
+
+  function computeAll() { renderSignals(); renderEngine(); renderLog(); }
+
+  /* --- CALENDAR --- */
+
+  function genCalendar() {
+    var now = new Date(), y = now.getFullYear(), m = now.getMonth();
+    var end = new Date(now); end.setDate(end.getDate() + 60);
+    var events = [];
+
+    function nthDay(yr, mo, dow, n) {
+      var d = new Date(yr, mo, 1), cnt = 0;
+      while (d.getMonth() === mo) {
+        if (d.getDay() === dow && ++cnt === n) return new Date(d);
+        d.setDate(d.getDate() + 1);
+      }
+    }
+
+    [new Date('2026-07-30'), new Date('2026-09-17'), new Date('2026-11-05'), new Date('2026-12-17')].forEach(function (fd) {
+      if (fd > now && fd < end) events.push({ date: fd, label: 'FOMC Rate Decision', stars: 3, time: '01.00', why: 'Hawkish/hike → DXY↑ BTC↓ · Dovish/sinyal cut → BTC↑' });
+    });
+
+    for (var w = 0; w < 9; w++) {
+      var thu = new Date(now);
+      thu.setDate(thu.getDate() + ((4 - now.getDay() + 7) % 7 || 7) + w * 7);
+      if (thu > now && thu < end) events.push({ date: thu, label: 'Initial Jobless Claims', stars: 1, time: '19.30', why: 'Claims naik = tenaga kerja melemah → dovish → BTC↑ (kecuali panik resesi)' });
+    }
+
+    var tpls = [
+      { day: 'ff', label: 'NFP (Non-Farm Payroll)', stars: 3, time: '19.30', why: 'NFP lemah → dovish → BTC↑ · kuat → hawkish → BTC↓' },
+      { day: 13, label: 'CPI Inflation', stars: 3, time: '19.30', why: 'CPI > perkiraan → BTC↓ · CPI dingin → ekspektasi cut naik → BTC↑' },
+      { day: 14, label: 'PPI', stars: 2, time: '19.30', why: 'PPI panas = inflasi pipeline → hawkish → negatif aset risiko' },
+      { day: 16, label: 'Retail Sales', stars: 2, time: '19.30', why: 'Retail kuat → ekonomi panas → hawkish · lemah → dovish' },
+      { day: 26, label: 'Core PCE Price Index', stars: 3, time: '19.30', why: 'Core PCE (ukuran favorit Fed) panas → BTC↓ · dingin → BTC↑' },
+      { day: 28, label: 'GDP (Advance/Rev)', stars: 2, time: '19.30', why: 'GDP terlalu panas → hawkish · kontraksi 2 kuartal = resesi → risk-off' }
+    ];
+
+    [0, 1].forEach(function (mo) {
+      var cm = m + mo, cy = y + Math.floor(cm / 12); cm = cm % 12;
+      tpls.forEach(function (t) {
+        var ev = t.day === 'ff' ? nthDay(cy, cm, 5, 1) : new Date(cy, cm, t.day);
+        if (!ev) return;
+        if (ev.getDay() === 0) ev.setDate(ev.getDate() + 1);
+        if (ev.getDay() === 6) ev.setDate(ev.getDate() + 2);
+        if (ev > now && ev < end) events.push({ date: ev, label: t.label, stars: t.stars, time: t.time, why: t.why });
+      });
+    });
+
+    events.sort(function (a, b) { return a.date - b.date; });
+    var seen = {};
+    events = events.filter(function (e) { var k = e.date.toDateString() + e.label; return seen[k] ? false : (seen[k] = true); });
+
+    var WD = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+    var MO = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    set('callist', events.slice(0, 10).map(function (e) {
+      var d = e.date;
+      var dstr = WD[d.getDay()] + ', ' + d.getDate() + ' ' + MO[d.getMonth()] + ', ' + e.time + ' WIB';
+      var stars = Array.from({ length: 3 }, function (_, i) {
+        return '<span style="color:' + (i < e.stars ? 'var(--mc-gold)' : '#444') + '">★</span>';
+      }).join('');
+      return '<div class="calrow"><span class="px" style="font-size:8px;color:var(--mc-aqua)">' + dstr + '</span> ' + stars + '<br><b class="wtxt">' + e.label + '</b><div class="callogic">' + e.why + '</div></div>';
+    }).join('') || '<div style="padding:8px;color:var(--mc-gray)">Tidak ada event 60 hari ke depan</div>');
+  }
+
+  /* --- NEWS --- */
+
+  var newsCache = { crypto: [], macro: [] };
+  var activeNewsTab = 'crypto';
+  var BW = ['surge', 'rally', 'gain', 'bullish', 'high', 'jump', 'rise', 'ath', 'buy', 'cut', 'dovish', 'growth', 'record', 'green'];
+  var RW = ['crash', 'drop', 'plunge', 'fear', 'ban', 'hack', 'fall', 'sell', 'hawkish', 'recession', 'inflation', 'hike', 'dump', 'warning', 'red'];
+
+  function fetchNews() {
+    var feeds = { crypto: 'https://cointelegraph.com/rss', macro: 'https://feeds.a.dj.com/rss/RSSMarketsMain.xml' };
+    Object.keys(feeds).forEach(function (tab) {
+      fetch(PROXY + encodeURIComponent(feeds[tab]))
+        .then(function (r) { return r.text(); })
+        .then(function (txt) {
+          var xml = new DOMParser().parseFromString(txt, 'application/xml');
+          var src = tab === 'crypto' ? 'Cointelegraph' : 'WSJ Markets';
+          newsCache[tab] = Array.from(xml.querySelectorAll('item')).slice(0, 14).map(function (item) {
+            var title = (item.querySelector('title') || {}).textContent || '';
+            var link = (item.querySelector('link') || {}).textContent || '';
+            var pubDate = (item.querySelector('pubDate') || {}).textContent || '';
+            var tl = title.toLowerCase();
+            var isBull = BW.some(function (w) { return tl.includes(w); });
+            var isBear = RW.some(function (w) { return tl.includes(w); });
+            var sent = isBull && !isBear ? 'up' : !isBull && isBear ? 'down' : 'flat';
+            var d = new Date(pubDate);
+            var dStr = isNaN(d.getTime()) ? '' : d.toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) + ' WIB';
+            return { title: title, link: link, src: src, sent: sent, arrow: sent === 'up' ? '▲' : sent === 'down' ? '▼' : '◼', dStr: dStr };
+          });
+          if (tab === activeNewsTab) renderNews();
+          renderNewsConc();
+        }).catch(function () {});
+    });
+  }
+
+  function renderNews() {
+    var items = newsCache[activeNewsTab];
+    if (!items || !items.length) { set('newslist', '<div style="padding:8px;color:var(--mc-gray)">Memuat berita...</div>'); return; }
+    set('newslist', items.map(function (n) {
+      return '<div class="newsrow"><span class="' + n.sent + '">' + n.arrow + '</span> <a href="' + n.link + '" target="_blank" rel="noopener">' + n.title + '</a><div class="callogic">' + n.src + ' · ' + n.dStr + '</div></div>';
+    }).join(''));
+  }
+
+  function renderNewsConc() {
+    var all = newsCache.crypto.concat(newsCache.macro);
+    var bull = all.filter(function (n) { return n.sent === 'up'; }).length;
+    var bear = all.filter(function (n) { return n.sent === 'down'; }).length;
+    var label = bull > bear * 1.5 ? 'BULLISH' : bear > bull * 1.5 ? 'BEARISH' : 'CAMPURAN / NETRAL';
+    var cl = bull > bear * 1.5 ? 'mc-green' : bear > bull * 1.5 ? 'mc-red' : 'mc-yellow';
+    set('newsconc', '<span class="px" style="font-size:9px;color:var(--' + cl + ')">KESIMPULAN SENTIMEN: ' + label + ' — ' + bull + '↑ / ' + bear + '↓</span>');
+  }
+
+  /* --- TAPE --- */
+
+  function renderTape() {
+    set('tape',
+      '<b>BTC-USD</b> <span class="tval">$' + S.btc.toLocaleString('en-US', { maximumFractionDigits: 0 }) + '</span> <span class="' + cc(S.btcChg) + '">' + arr(S.btcChg) + pct(S.btcChg, 1) + '</span> · ' +
+      '<b>BTC.D</b> <span class="tval">' + S.btcD.toFixed(1) + '%</span> · ' +
+      '<b>ETH-USD</b> <span class="tval">$' + S.eth.toLocaleString('en-US', { maximumFractionDigits: 0 }) + '</span> <span class="' + cc(S.ethChg) + '">' + arr(S.ethChg) + pct(S.ethChg, 1) + '</span> · ' +
+      '<b>DXY</b> <span class="tval">' + S.dxy.toFixed(2) + '</span> <span class="' + cc(S.dxyChg) + '">' + arr(S.dxyChg) + pct(S.dxyChg, 2) + '</span> · ' +
+      '<b>GOLD</b> <span class="tval">$' + Math.round(S.gold).toLocaleString('en-US') + '</span> · ' +
+      '<b>US10Y</b> <span class="tval">' + S.us10y.toFixed(2) + '%</span> · ' +
+      '<b>VIX</b> <span class="tval">' + S.vix.toFixed(1) + '</span> · ' +
+      '<b>SPX</b> <span class="tval">' + S.spx.toLocaleString('en-US', { maximumFractionDigits: 0 }) + '</span> <span class="' + cc(S.spxChg) + '">' + arr(S.spxChg) + pct(S.spxChg, 1) + '</span> · ' +
+      '<b>F&G</b> <span class="tval">' + S.fg + '</span> · ' +
+      '<b>TOTAL MCAP</b> <span class="tval">' + fmtB(S.mcap) + '</span> <span class="' + cc(S.mcapChg) + '">' + arr(S.mcapChg) + pct(S.mcapChg, 1) + '</span>'
+    );
+  }
+
+  /* --- CLOCK --- */
+
+  function updateClock() {
+    var now = new Date();
+    var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+    function tz(h) {
+      var d = new Date(now.getTime() + h * 3600000);
+      return { h: d.getUTCHours(), m: d.getUTCMinutes(), s: d.getUTCSeconds(), dow: d.getUTCDay(), date: d.getUTCDate(), mon: d.getUTCMonth(), yr: d.getUTCFullYear() };
+    }
+    var wib = tz(7);
+    var isEDT = now.getUTCMonth() >= 2 && now.getUTCMonth() <= 10;
+    var ny = tz(isEDT ? -4 : -5);
+    var ksa = tz(3);
+    setText('clock', pad(wib.h) + ':' + pad(wib.m) + ':' + pad(wib.s));
+    setText('ck-ny', pad(ny.h) + ':' + pad(ny.m));
+    setText('ck-ksa', pad(ksa.h) + ':' + pad(ksa.m));
+    var WD = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    var MO = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    setText('dateline', WD[wib.dow] + ', ' + pad(wib.date) + ' ' + MO[wib.mon] + ' ' + wib.yr);
+    var nyMins = ny.h * 60 + ny.m, isWd = ny.dow >= 1 && ny.dow <= 5;
+    var mkt = document.getElementById('mkt');
+    if (mkt) {
+      if (isWd && nyMins >= 570 && nyMins < 960) {
+        var left = 960 - nyMins;
+        mkt.innerHTML = '<span class="up">NYSE: OPEN · tutup dalam ' + Math.floor(left / 60) + 'h ' + (left % 60) + 'm</span>';
+      } else if (isWd && nyMins < 570) {
+        var until = 570 - nyMins;
+        mkt.innerHTML = '<span class="flat">NYSE: PRE-MARKET · buka dalam ' + Math.floor(until / 60) + 'h ' + (until % 60) + 'm</span>';
+      } else {
+        mkt.innerHTML = '<span class="down">NYSE: CLOSED</span>';
+      }
+    }
+  }
+
+  /* --- LOG --- */
+
+  function renderLog() {
+    var halvDate = new Date('2024-04-20'), now = new Date();
+    var mth = (now - halvDate) / (1000 * 60 * 60 * 24 * 30.44);
+    var cyc = mth < 6 ? 'EARLY CYCLE' : mth < 18 ? 'MID CYCLE / EKSPANSI' : mth < 30 ? 'LATE CYCLE / DISTRIBUSI' : 'DEEP BEAR / CAPITULASI';
+    set('log', [
+      { c: 'up', t: 'INFO', m: 'FOMC berikutnya 28–29 JUL 2026 — konsensus: HOLD, waspadai dot plot &amp; bahasa inflasi.' },
+      { c: 'up', t: 'INFO', m: 'M2 terakhir $22.80T tren ekspansi — rilis H.6 berikutnya: 28 Jul 2026.' },
+      { c: 'mc-yellow', t: 'WARN', m: 'BTC halving Bln ke-' + Math.floor(mth) + ' (' + cyc + ') · ' + (mth < 18 ? 'Historis: masih fase ekspansi.' : 'Hati-hati distribusi — volatilitas naik.') },
+      { c: 'mc-yellow', t: 'WARN', m: 'DXY ' + S.dxy.toFixed(2) + ' (' + pct(S.dxyChg) + ') — ' + (S.dxyChg < 0 ? 'Dollar melemah = tailwind BTC &amp; risk assets.' : 'Dollar menguat = headwind BTC &amp; risk assets.') },
+      { c: 'up', t: 'INFO', m: 'BTC.D ' + S.btcD.toFixed(2) + '% — ' + (S.btcD > 55 ? 'BTC season. Modal terkonsentrasi di BTC.' : S.btcD < 48 ? 'Potensi altseason, monitor rotasi.' : 'Dominasi netral, tidak ada rotasi jelas.') },
+      { c: 'mc-aqua', t: 'TIP', m: 'Urutan baca: DXY → yield/Fed → M2 → BTC.D → chart BTC. Makro dulu, mikro belakangan.' }
+    ].map(function (e) {
+      return '<div><span style="color:var(--' + e.c + ')">[' + e.t + ']</span> ' + e.m + '</div>';
+    }).join(''));
+  }
+
+  /* --- INTERACTIONS --- */
+
+  function initTheme() {
+    document.querySelectorAll('.thbtn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.body.setAttribute('data-theme', btn.getAttribute('data-t'));
+        document.querySelectorAll('.thbtn').forEach(function (b) { b.classList.toggle('active', b === btn); });
+      });
+    });
+  }
+
+  function initManualEdit() {
+    document.querySelectorAll('td.edit').forEach(function (td) {
+      td.addEventListener('click', function () {
+        var k = td.getAttribute('data-k');
+        var val = prompt('Edit ' + k.toUpperCase() + ':', td.textContent.replace(/[^0-9.]/g, ''));
+        if (val === null || isNaN(+val) || +val <= 0) return;
+        var n = +val;
+        ({ us10y: function () { S.us10y = n; renderRates(); }, us2y: function () { S.us2y = n; renderRates(); }, cpi: function () { S.cpi = n; renderRates(); }, pce: function () { S.pce = n; renderRates(); }, vix: function () { S.vix = n; renderRisk(); }, spx: function () { S.spx = n; renderRisk(); } }[k] || function () {})();
+        computeAll();
+      });
+    });
+  }
+
+  function initNewsTabs() {
+    document.querySelectorAll('.ntab').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        activeNewsTab = btn.getAttribute('data-n');
+        document.querySelectorAll('.ntab').forEach(function (b) { b.classList.toggle('active', b === btn); });
+        renderNews();
+      });
+    });
+    document.querySelectorAll('.mcpanel .mcbtn').forEach(function (b) {
+      if (b.textContent.trim() === '⟳') b.addEventListener('click', fetchNews);
+    });
+  }
+
+  function initHotbar() {
+    var slots = document.querySelectorAll('.hotbar .slot');
+    if (slots[0]) slots[0].addEventListener('click', function () { fetchCG(); fetchFG(); fetchFunding(); fetchMarket(); fetchNews(); });
+    var last = slots[slots.length - 1];
+    if (last) last.addEventListener('click', function () { var nl = document.getElementById('newslist'); if (nl) nl.scrollIntoView({ behavior: 'smooth' }); });
+  }
+
+  function initMascot() {
+    var m = document.getElementById('mascot');
+    if (m) m.addEventListener('click', function () { var t = document.getElementById('vd-score'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+  }
+
+  /* --- BOOT --- */
+
+  function boot() {
+    initTheme(); initManualEdit(); initNewsTabs(); initHotbar(); initMascot();
+    genCalendar();
+    renderBTC(); renderDXY(); renderGold(); renderInternals(); renderFG();
+    renderRates(); renderRisk(); renderSignals(); renderEngine(); renderLog(); renderTape();
+    updateClock();
+    setInterval(updateClock, 1000);
+    setTimeout(function () { fetchCG(); fetchFG(); fetchFunding(); fetchMarket(); fetchNews(); }, 700);
+    setInterval(function () { fetchCG(); fetchFG(); fetchFunding(); fetchMarket(); }, 60000);
+    setInterval(fetchNews, 300000);
+    setInterval(genCalendar, 3600000);
+    var dot = document.getElementById('livedot');
+    setInterval(function () {
+      if (dot) { dot.classList.remove('on'); setTimeout(function () { dot.classList.add('on'); }, 250); }
+    }, 60000);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+
+})();
 </script>
 
 </body></html>
