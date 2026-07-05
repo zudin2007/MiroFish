@@ -150,6 +150,7 @@ button[data-kind="reset0"]:hover{border-color:#00e5cc;color:#00e5cc}
 const DEFAULT_ASSETS = {"BTC": 0.1421, "PAXG": 0.9444, "AMDon": 0.2046, "vBNB": 4.266, "NVDAon": 0.2173, "ARMon": 0.07865, "HYPE": 0.435, "GRAM": 16.08, "USOon": 0.1554, "AAPLOn": 0.05518, "QQQon": 0.01713, "GOOGLon": 0.02944, "ORCLon": 0.05269, "AMZNon": 0.03932, "MSFTon": 0.02333, "VRSC": 10.83, "BNB": 0.005893, "NOCK": 45.55, "USDC": 0.6827, "ETH": 0.0001685, "SOL": 0.002775, "OMG": 1.544, "ZIK": 444.0, "USDT": 0.03, "ETHFI": 0.003301, "9MM": 30.0, "KAS": 0};
 const ASSETS_META = [{"code": "BTC", "name": "Bitcoin", "holdings": 0.1421, "cg": "bitcoin", "fixed_idr": 1076495425.7565095}, {"code": "PAXG", "name": "PAX Gold", "holdings": 0.9444, "cg": "pax-gold", "fixed_idr": 72755188.47945786}, {"code": "AMDon", "name": "AMD (Ondo)", "holdings": 0.2046, "cg": null, "fixed_idr": 9335288.367546432}, {"code": "vBNB", "name": "Venus BNB", "holdings": 4.266, "cg": null, "fixed_idr": 267229.2545710267}, {"code": "NVDAon", "name": "NVIDIA (Ondo)", "holdings": 0.2173, "cg": null, "fixed_idr": 3752642.613897837}, {"code": "ARMon", "name": "ARM (Ondo)", "holdings": 0.07865, "cg": null, "fixed_idr": 7829913.413858868}, {"code": "HYPE", "name": "Hyperliquid", "holdings": 0.435, "cg": "hyperliquid", "fixed_idr": 1147618.4137931035}, {"code": "GRAM", "name": "Gram", "holdings": 16.08, "cg": null, "fixed_idr": 27801.60447761194}, {"code": "USOon", "name": "USO (Ondo)", "holdings": 0.1554, "cg": null, "fixed_idr": 2042393.6936936935}, {"code": "AAPLOn", "name": "Apple (Ondo)", "holdings": 0.05518, "cg": null, "fixed_idr": 5313179.412830736}, {"code": "QQQon", "name": "QQQ (Ondo)", "holdings": 0.01713, "cg": null, "fixed_idr": 13247742.556917688}, {"code": "GOOGLon", "name": "Google (Ondo)", "holdings": 0.02944, "cg": null, "fixed_idr": 6544658.967391305}, {"code": "ORCLon", "name": "Oracle (Ondo)", "holdings": 0.05269, "cg": null, "fixed_idr": 3299215.221104574}, {"code": "AMZNon", "name": "Amazon (Ondo)", "holdings": 0.03932, "cg": null, "fixed_idr": 4328076.042726348}, {"code": "MSFTon", "name": "Microsoft (Ondo)", "holdings": 0.02333, "cg": null, "fixed_idr": 6791807.1153021855}, {"code": "VRSC", "name": "VerusCoin", "holdings": 10.83, "cg": "verus-coin", "fixed_idr": 6278.948291782086}, {"code": "BNB", "name": "BNB", "holdings": 0.005893, "cg": "binancecoin", "fixed_idr": 10363853.72475819}, {"code": "NOCK", "name": "Nockchain", "holdings": 45.55, "cg": null, "fixed_idr": 656.9795828759604}, {"code": "USDC", "name": "USD Coin", "holdings": 0.6827, "cg": "usd-coin", "fixed_idr": 17857.521605390364}, {"code": "ETH", "name": "Ethereum", "holdings": 0.0001685, "cg": "ethereum", "fixed_idr": 30476854.59940653}, {"code": "SOL", "name": "Solana", "holdings": 0.002775, "cg": "solana", "fixed_idr": 1238933.3333333333}, {"code": "OMG", "name": "OMG Network", "holdings": 1.544, "cg": "omg-network", "fixed_idr": 877.389896373057}, {"code": "ZIK", "name": "Ziktalk", "holdings": 444.0, "cg": null, "fixed_idr": 1.6723648648648648}, {"code": "USDT", "name": "USDT", "holdings": 0.03, "cg": "tether", "fixed_idr": 17843.333333333332}, {"code": "ETHFI", "name": "ether.fi", "holdings": 0.003301, "cg": "ether-fi", "fixed_idr": 6034.5349893971525}, {"code": "9MM", "name": "9MM", "holdings": 30.0, "cg": null, "fixed_idr": 0.3456666666666666}, {"code": "KAS", "name": "Kaspa", "holdings": 0, "cg": "kaspa", "fixed_idr": 1000}];
 
+const USD_IDR = 16850;
 let prices = {};
 let holdings = {};
 
@@ -181,7 +182,7 @@ async function fetchPrices(){
   }
   ASSETS_META.forEach(a => {
     if(!prices[a.code]) {
-      prices[a.code] = {idr: a.fixed_idr, usd: a.fixed_idr/16300, live: false};
+      prices[a.code] = {idr: a.fixed_idr, usd: a.fixed_idr/USD_IDR, live: false};
     }
   });
   render();
@@ -194,7 +195,7 @@ let chart;
 function render(){
   const rows = ASSETS_META.map(a => {
     const h = parseFloat(holdings[a.code]||0);
-    const p = prices[a.code] || {idr:a.fixed_idr, usd:a.fixed_idr/16300, live:false};
+    const p = prices[a.code] || {idr:a.fixed_idr, usd:a.fixed_idr/USD_IDR, live:false};
     const valIDR = h * p.idr;
     const valUSD = h * p.usd;
     return {...a, h, p, valIDR, valUSD};
@@ -227,12 +228,17 @@ function render(){
   const labels = [...top.map(t=>t.code), ...(restVal>0?['Lainnya'] : [])];
   const data = [...top.map(t=>t.valIDR), ...(restVal>0?[restVal]:[])]
   const ctx = document.getElementById('allocChart');
-  if(chart) chart.destroy();
-  chart = new Chart(ctx, {
-    type:'doughnut',
-    data: { labels, datasets:[{ data, backgroundColor:['#00e5cc','#7c3aed','#ffb86b','#ff6b9d','#2a3958'], borderWidth:0 }] },
-    options: { cutout:'68%', plugins:{legend:{display:false}} }
-  });
+  if(chart) {
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = data;
+    chart.update('none');
+  } else {
+    chart = new Chart(ctx, {
+      type:'doughnut',
+      data: { labels, datasets:[{ data, backgroundColor:['#00e5cc','#7c3aed','#ffb86b','#ff6b9d','#2a3958'], borderWidth:0 }] },
+      options: { cutout:'68%', plugins:{legend:{display:false}} }
+    });
+  }
   document.getElementById('allocLegend').innerHTML = labels.map((l,i)=> `${l} – ${(data[i]/totalIDR*100).toFixed(1)}%`).join('<br>');
 
   const coldCodes = new Set(['BTC','PAXG']);
@@ -298,7 +304,7 @@ function updateEditGridValues(){
 function exportPortfolioCSV(){
   const rows = ASSETS_META.map(a => {
     const h = parseFloat(holdings[a.code]||0);
-    const p = prices[a.code] || {idr:a.fixed_idr, usd:a.fixed_idr/16300, live:false};
+    const p = prices[a.code] || {idr:a.fixed_idr, usd:a.fixed_idr/USD_IDR, live:false};
     return {code:a.code, name:a.name, holdings:h, price_idr:p.idr, value_idr:h*p.idr, value_usd:h*p.usd, source: p.live ? 'live' : 'fixed'};
   }).sort((x,y)=> y.value_idr - x.value_idr);
   const header = ['code','name','holdings','price_idr','value_idr','value_usd','source'];
@@ -329,11 +335,17 @@ async function syncWallets(){
   };
   const fmt = (c, a) => isAdd ? `${c} +${a}` : `${c} ${a}`;
 
+  const tFetch = (url, opts) => {
+    const ctrl = new AbortController();
+    const id = setTimeout(() => ctrl.abort(), 10000);
+    return fetch(url, {...(opts||{}), signal: ctrl.signal}).finally(() => clearTimeout(id));
+  };
+
   // BTC
   if(btc){
     localStorage.setItem('onewallet_btc_addr', btc);
     try {
-      const r = await fetch(`https://blockchain.info/balance?active=${encodeURIComponent(btc)}&cors=true`);
+      const r = await tFetch(`https://blockchain.info/balance?active=${encodeURIComponent(btc)}&cors=true`);
       if(r.ok){ const j = await r.json(); const v = j[btc]; if(v){ const amt = v.final_balance / 1e8; apply('BTC', amt); msgs.push(fmt('BTC', amt.toFixed(8))); } }
     } catch(e){}
   }
@@ -345,14 +357,17 @@ async function syncWallets(){
     const syncUsdt = document.getElementById('syncUsdt')?.checked ?? true;
     const syncUsdc = document.getElementById('syncUsdc')?.checked ?? false;
     const doEthCall = async (rpc, to, data) => {
-      const r = await fetch(rpc, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({jsonrpc:'2.0', id:1, method:'eth_call', params:[{to, data}, 'latest']})});
+      const r = await tFetch(rpc, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({jsonrpc:'2.0', id:1, method:'eth_call', params:[{to, data}, 'latest']})});
       if(!r.ok) return null; const j = await r.json(); return j.result;
     };
     if(syncEth){
-      try { const r = await fetch(`https://api.blockcypher.com/v1/eth/main/addrs/${evm}/balance`); if(r.ok){ const j = await r.json(); const amt = j.balance / 1e18; apply('ETH', amt); msgs.push(fmt('ETH', amt.toFixed(6))); } } catch(e){}
+      try {
+        const r = await tFetch(`https://rpc.ankr.com/eth`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({jsonrpc:'2.0',id:1,method:'eth_getBalance',params:[evm,'latest']})});
+        if(r.ok){ const j = await r.json(); const amt = parseInt(j.result,16) / 1e18; apply('ETH', amt); msgs.push(fmt('ETH', amt.toFixed(6))); }
+      } catch(e){}
     }
     if(syncBnb){
-      try { const r = await fetch('https://bsc-dataseed.binance.org/', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({jsonrpc:'2.0', id:1, method:'eth_getBalance', params:[evm, 'latest']})}); if(r.ok){ const j = await r.json(); const amt = parseInt(j.result,16) / 1e18; apply('BNB', amt); msgs.push(fmt('BNB', amt.toFixed(6))); } } catch(e){}
+      try { const r = await tFetch('https://bsc-dataseed.binance.org/', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({jsonrpc:'2.0', id:1, method:'eth_getBalance', params:[evm, 'latest']})}); if(r.ok){ const j = await r.json(); const amt = parseInt(j.result,16) / 1e18; apply('BNB', amt); msgs.push(fmt('BNB', amt.toFixed(6))); } } catch(e){}
     }
     const addrPad = evm.toLowerCase().replace('0x','').padStart(64,'0');
     const balData = '0x70a08231' + addrPad;
@@ -366,14 +381,14 @@ async function syncWallets(){
   // SOL
   if(sol){
     localStorage.setItem('onewallet_sol_addr', sol);
-    try { const r = await fetch('https://api.mainnet-beta.solana.com', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({jsonrpc:'2.0',id:1,method:'getBalance',params:[sol]})}); if(r.ok){ const j = await r.json(); if(j.result){ const amt = j.result.value / 1e9; apply('SOL', amt); msgs.push(fmt('SOL', amt.toFixed(6))); } } } catch(e){}
+    try { const r = await tFetch('https://api.mainnet-beta.solana.com', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({jsonrpc:'2.0',id:1,method:'getBalance',params:[sol]})}); if(r.ok){ const j = await r.json(); if(j.result){ const amt = j.result.value / 1e9; apply('SOL', amt); msgs.push(fmt('SOL', amt.toFixed(6))); } } } catch(e){}
   }
   // KAS
   if(kas){
     localStorage.setItem('onewallet_kas_addr', kas);
     try {
       const cleanAddr = kas.replace('kaspa:', '');
-      const r = await fetch(`https://api.kaspa.org/addresses/${encodeURIComponent(cleanAddr)}/balance`);
+      const r = await tFetch(`https://api.kaspa.org/addresses/${encodeURIComponent(cleanAddr)}/balance`);
       if(r.ok){ const j = await r.json(); const amt = (j.balance || 0) / 1e8; apply('KAS', amt); msgs.push(fmt('KAS', amt.toFixed(2))); }
     } catch(e){}
   }
@@ -381,7 +396,7 @@ async function syncWallets(){
   if(/^0x[a-fA-F0-9]{40}$/.test(hype)){
     localStorage.setItem('onewallet_hype_addr', hype);
     try {
-      const r = await fetch('https://api.hyperliquid.xyz/info', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({type:'spotClearinghouseState', user: hype})});
+      const r = await tFetch('https://api.hyperliquid.xyz/info', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({type:'spotClearinghouseState', user: hype})});
       if(r.ok){ const j = await r.json(); const balances = j.balances || []; const h = balances.find(b => b.coin === 'HYPE'); if(h){ const amt = parseFloat(h.total); apply('HYPE', amt); msgs.push(fmt('HYPE', amt.toFixed(4))); } }
     } catch(e){}
   }
