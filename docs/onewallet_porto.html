@@ -96,7 +96,13 @@ button[data-kind="reset0"]:hover{border-color:#00e5cc;color:#00e5cc}
       <div class="card p-5">
         <div class="flex items-center justify-between mb-3">
           <div class="font-[700]">Aset – <span id="assetCount">27</span> token</div>
-          <div class="flex gap-3"><button id="exportCsvBtn" class="text-xs text-slate-300 hover:text-teal-400">Export CSV</button><button id="resetBtn" class="text-xs text-teal-400 hover:underline">Reset ke CMC</button></div>
+          <div class="flex gap-3 items-center">
+            <label class="flex items-center gap-1 text-xs text-slate-400 cursor-pointer select-none" title="Sembunyikan aset dengan holdings = 0">
+              <input type="checkbox" id="hideZerosChk"> Sembunyikan nol
+            </label>
+            <button id="exportCsvBtn" class="text-xs text-slate-300 hover:text-teal-400">Export CSV</button>
+            <button id="resetBtn" class="text-xs text-teal-400 hover:underline">Reset ke CMC</button>
+          </div>
         </div>
         <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -151,8 +157,13 @@ const DEFAULT_ASSETS = {"BTC": 0.1421, "PAXG": 0.9444, "AMDon": 0.2046, "vBNB": 
 const ASSETS_META = [{"code": "BTC", "name": "Bitcoin", "holdings": 0.1421, "cg": "bitcoin", "fixed_idr": 1076495425.7565095}, {"code": "PAXG", "name": "PAX Gold", "holdings": 0.9444, "cg": "pax-gold", "fixed_idr": 72755188.47945786}, {"code": "AMDon", "name": "AMD (Ondo)", "holdings": 0.2046, "cg": null, "fixed_idr": 9335288.367546432}, {"code": "vBNB", "name": "Venus BNB", "holdings": 4.266, "cg": null, "fixed_idr": 267229.2545710267}, {"code": "NVDAon", "name": "NVIDIA (Ondo)", "holdings": 0.2173, "cg": null, "fixed_idr": 3752642.613897837}, {"code": "ARMon", "name": "ARM (Ondo)", "holdings": 0.07865, "cg": null, "fixed_idr": 7829913.413858868}, {"code": "HYPE", "name": "Hyperliquid", "holdings": 0.435, "cg": "hyperliquid", "fixed_idr": 1147618.4137931035}, {"code": "GRAM", "name": "Gram", "holdings": 16.08, "cg": null, "fixed_idr": 27801.60447761194}, {"code": "USOon", "name": "USO (Ondo)", "holdings": 0.1554, "cg": null, "fixed_idr": 2042393.6936936935}, {"code": "AAPLOn", "name": "Apple (Ondo)", "holdings": 0.05518, "cg": null, "fixed_idr": 5313179.412830736}, {"code": "QQQon", "name": "QQQ (Ondo)", "holdings": 0.01713, "cg": null, "fixed_idr": 13247742.556917688}, {"code": "GOOGLon", "name": "Google (Ondo)", "holdings": 0.02944, "cg": null, "fixed_idr": 6544658.967391305}, {"code": "ORCLon", "name": "Oracle (Ondo)", "holdings": 0.05269, "cg": null, "fixed_idr": 3299215.221104574}, {"code": "AMZNon", "name": "Amazon (Ondo)", "holdings": 0.03932, "cg": null, "fixed_idr": 4328076.042726348}, {"code": "MSFTon", "name": "Microsoft (Ondo)", "holdings": 0.02333, "cg": null, "fixed_idr": 6791807.1153021855}, {"code": "VRSC", "name": "VerusCoin", "holdings": 10.83, "cg": "verus-coin", "fixed_idr": 6278.948291782086}, {"code": "BNB", "name": "BNB", "holdings": 0.005893, "cg": "binancecoin", "fixed_idr": 10363853.72475819}, {"code": "NOCK", "name": "Nockchain", "holdings": 45.55, "cg": null, "fixed_idr": 656.9795828759604}, {"code": "USDC", "name": "USD Coin", "holdings": 0.6827, "cg": "usd-coin", "fixed_idr": 17857.521605390364}, {"code": "ETH", "name": "Ethereum", "holdings": 0.0001685, "cg": "ethereum", "fixed_idr": 30476854.59940653}, {"code": "SOL", "name": "Solana", "holdings": 0.002775, "cg": "solana", "fixed_idr": 1238933.3333333333}, {"code": "OMG", "name": "OMG Network", "holdings": 1.544, "cg": "omg-network", "fixed_idr": 877.389896373057}, {"code": "ZIK", "name": "Ziktalk", "holdings": 444.0, "cg": null, "fixed_idr": 1.6723648648648648}, {"code": "USDT", "name": "USDT", "holdings": 0.03, "cg": "tether", "fixed_idr": 17843.333333333332}, {"code": "ETHFI", "name": "ether.fi", "holdings": 0.003301, "cg": "ether-fi", "fixed_idr": 6034.5349893971525}, {"code": "9MM", "name": "9MM", "holdings": 30.0, "cg": null, "fixed_idr": 0.3456666666666666}, {"code": "KAS", "name": "Kaspa", "holdings": 0, "cg": "kaspa", "fixed_idr": 1000}];
 
 const USD_IDR = 16850;
+const BINANCE_MAP = {
+  BTC:'BTCUSDT', ETH:'ETHUSDT', SOL:'SOLUSDT', BNB:'BNBUSDT',
+  KAS:'KASUSDT', PAXG:'PAXGUSDT', HYPE:'HYPEUSDT', ETHFI:'ETHFIUSDT', OMG:'OMGUSDT'
+};
 let prices = {};
 let holdings = {};
+let hideZeros = false;
 
 function loadHoldings(){
   try {
@@ -168,17 +179,40 @@ const cgIds = [...new Set(Object.values(cgMap))].join(',');
 
 async function fetchPrices(){
   const url = `https://api.coingecko.com/api/v3/simple/price?ids=${cgIds}&vs_currencies=usd,idr`;
+  let cgOk = false;
   try {
     const r = await fetch(url, {cache:'no-store'});
+    if(!r.ok) throw new Error('cg');
     const j = await r.json();
     const idToCode = Object.fromEntries(Object.entries(cgMap).map(([k,v])=>[v,k]));
     for(const [id, val] of Object.entries(j)){
       const code = idToCode[id];
       if(code) prices[code] = {usd: val.usd, idr: val.idr, live: true};
     }
+    cgOk = true;
     document.getElementById('lastUpdate').textContent = 'Harga live • ' + new Date().toLocaleTimeString('id-ID');
   } catch(e) {
-    document.getElementById('lastUpdate').textContent = 'Gagal fetch – pakai harga fixed';
+    document.getElementById('lastUpdate').textContent = 'CoinGecko gagal – mencoba Binance…';
+  }
+  if(!cgOk){
+    try {
+      const syms = Object.values(BINANCE_MAP);
+      const bnbUrl = `https://api.binance.com/api/v3/ticker/price?symbols=${encodeURIComponent(JSON.stringify(syms))}`;
+      const rb = await fetch(bnbUrl, {cache:'no-store'});
+      if(rb.ok){
+        const jb = await rb.json();
+        const sp = {};
+        jb.forEach(t => sp[t.symbol] = parseFloat(t.price));
+        for(const [code, sym] of Object.entries(BINANCE_MAP)){
+          if(sp[sym]) prices[code] = {usd: sp[sym], idr: sp[sym]*USD_IDR, live: true};
+        }
+        if(!prices['USDT']) prices['USDT'] = {usd:1, idr:USD_IDR, live:true};
+        if(!prices['USDC']) prices['USDC'] = {usd:1, idr:USD_IDR, live:true};
+        document.getElementById('lastUpdate').textContent = 'Harga via Binance • ' + new Date().toLocaleTimeString('id-ID');
+      }
+    } catch(e2){
+      document.getElementById('lastUpdate').textContent = 'Gagal fetch – pakai harga fixed';
+    }
   }
   ASSETS_META.forEach(a => {
     if(!prices[a.code]) {
@@ -205,11 +239,13 @@ function render(){
   const totalUSD = rows.reduce((s,r)=>s+r.valUSD,0);
   document.getElementById('totalIDR').textContent = fmtIDR(totalIDR);
   document.getElementById('totalUSD').textContent = fmtUSD(totalUSD);
-  const ac = document.getElementById('assetCount'); if(ac) ac.textContent = ASSETS_META.length;
+  const visibleRows = hideZeros ? rows.filter(r => r.h > 0) : rows;
+  const ac = document.getElementById('assetCount');
+  if(ac) ac.textContent = hideZeros ? `${visibleRows.length}/${ASSETS_META.length}` : ASSETS_META.length;
 
   const tbody = document.getElementById('assetBody');
   tbody.innerHTML = '';
-  rows.forEach(r => {
+  visibleRows.forEach(r => {
     const tr = document.createElement('tr');
     tr.className = 'border-t border-white/[0.06]';
     const pct = totalIDR ? (r.valIDR/totalIDR*100) : 0;
@@ -412,6 +448,16 @@ const exportBtn = document.getElementById('exportCsvBtn');
 if(exportBtn) exportBtn.onclick = exportPortfolioCSV;
 const syncBtn = document.getElementById('syncBtn');
 if(syncBtn) syncBtn.onclick = syncWallets;
+const hideChk = document.getElementById('hideZerosChk');
+if(hideChk){
+  hideZeros = localStorage.getItem('onewallet_hidezeros') === '1';
+  hideChk.checked = hideZeros;
+  hideChk.onchange = () => {
+    hideZeros = hideChk.checked;
+    localStorage.setItem('onewallet_hidezeros', hideZeros ? '1' : '0');
+    render();
+  };
+}
 
 loadHoldings();
 buildEditGrid();
