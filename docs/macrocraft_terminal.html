@@ -765,6 +765,175 @@ body[data-theme="pencil"] #frog { filter: grayscale(1) contrast(1.15); }
 <div class="foot px" style="font-size:8px;" id="foot-txt">LIVE: BINANCE · COINGECKO · ECB-FX (DXY) · GOLD-API · ALTERNATIVE.ME · CRYPTOCOMPARE NEWS — MANUAL: WTI, FED, M2, M1 (KLIK "MANUAL ✎" UNTUK UPDATE) · BUKAN NASIHAT KEUANGAN · DYOR ⛏</div>
 
 
+<script>
+/*
+  Halaman ini adalah snapshot MHTML statis (JavaScript aslinya tidak ikut
+  tersimpan), jadi canvas #chart tidak pernah tergambar. Skrip ini
+  menggambar ulang chart candlestick BTC-USD secara mandiri, mengambil data
+  publik langsung dari browser saat halaman dibuka (butuh koneksi internet).
+*/
+(function () {
+  var canvas = document.getElementById('chart');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W, H, dpr = window.devicePixelRatio || 1;
+  var COL_UP = '#55FF55', COL_DOWN = '#FF5555', COL_GRID = '#222', COL_AXIS = '#888';
+  var lastCandles = null, lastLabel = null;
 
+  // Canvas punya atribut width/height tetap (560x520) tapi tampil di ukuran
+  // CSS lain (lebar 100%, tinggi 260px) -> tanpa ini gambar jadi gepeng/molor.
+  function fitCanvasToDisplaySize() {
+    var rect = canvas.getBoundingClientRect();
+    W = Math.max(1, Math.round(rect.width));
+    H = Math.max(1, Math.round(rect.height));
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (lastCandles) drawCandles(lastCandles, lastLabel);
+    else drawMessage('Memuat data...');
+  }
+
+  function drawMessage(msg) {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = COL_AXIS;
+    ctx.font = '13px monospace';
+    ctx.textAlign = 'center';
+    var lines = msg.split('\n');
+    lines.forEach(function (line, i) {
+      ctx.fillText(line, W / 2, H / 2 - (lines.length - 1) * 8 + i * 16);
+    });
+  }
+
+  function drawCandles(candles, label) {
+    lastCandles = candles;
+    lastLabel = label;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+    if (!candles.length) { drawMessage('Tidak ada data candle'); return; }
+
+    var padL = 46, padR = 6, padT = 8, padB = 18;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+
+    var lo = Math.min.apply(null, candles.map(function (c) { return c.l; }));
+    var hi = Math.max.apply(null, candles.map(function (c) { return c.h; }));
+    var pad = (hi - lo) * 0.05 || hi * 0.01 || 1;
+    lo -= pad; hi += pad;
+
+    function y(v) { return padT + plotH * (1 - (v - lo) / (hi - lo)); }
+
+    var n = candles.length;
+    var slot = plotW / n;
+    var bodyW = Math.max(1, Math.min(10, slot * 0.6));
+
+    // grid + axis labels (4 horizontal lines)
+    ctx.strokeStyle = COL_GRID;
+    ctx.fillStyle = COL_AXIS;
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'right';
+    ctx.lineWidth = 1;
+    for (var g = 0; g <= 4; g++) {
+      var v = lo + (hi - lo) * (g / 4);
+      var yy = y(v);
+      ctx.beginPath();
+      ctx.moveTo(padL, yy);
+      ctx.lineTo(W - padR, yy);
+      ctx.stroke();
+      ctx.fillText(v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v.toFixed(0), padL - 4, yy + 3);
+    }
+
+    candles.forEach(function (c, i) {
+      var cx = padL + slot * i + slot / 2;
+      var up = c.c >= c.o;
+      ctx.strokeStyle = ctx.fillStyle = up ? COL_UP : COL_DOWN;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(cx, y(c.h));
+      ctx.lineTo(cx, y(c.l));
+      ctx.stroke();
+      var openY = y(c.o), closeY = y(c.c);
+      var top = Math.min(openY, closeY), h = Math.max(1, Math.abs(closeY - openY));
+      ctx.fillRect(cx - bodyW / 2, top, bodyW, h);
+    });
+
+    var info = document.getElementById('chartinfo');
+    if (info) info.textContent = '· ' + n + ' CANDLES · ' + label;
+  }
+
+  function normalizeOkx(json) {
+    if (!json || !Array.isArray(json.data) || !json.data.length) return null;
+    return json.data.slice().reverse().map(function (row) {
+      return { t: +row[0], o: +row[1], h: +row[2], l: +row[3], c: +row[4] };
+    });
+  }
+
+  function normalizeBinance(json) {
+    if (!Array.isArray(json) || !json.length) return null;
+    return json.map(function (row) {
+      return { t: +row[0], o: +row[1], h: +row[2], l: +row[3], c: +row[4] };
+    });
+  }
+
+  // untuk 1D/7D pakai candle intraday, 30D/90D/1Y pakai candle harian (OKX max 300 per request)
+  var RANGE_CONFIG = {
+    1:   { okxBar: '15m', binInterval: '15m', limit: 96 },
+    7:   { okxBar: '1H',  binInterval: '1h',  limit: 168 },
+    30:  { okxBar: '1D',  binInterval: '1d',  limit: 30 },
+    90:  { okxBar: '1D',  binInterval: '1d',  limit: 90 },
+    365: { okxBar: '1D',  binInterval: '1d',  limit: 300 }
+  };
+
+  function loadRange(days) {
+    var cfg = RANGE_CONFIG[days] || RANGE_CONFIG[30];
+    drawMessage('Memuat data OKX...');
+
+    fetch('https://www.okx.com/api/v5/market/candles?instId=BTC-USDT&bar=' + cfg.okxBar + '&limit=' + cfg.limit)
+      .then(function (r) { return r.json(); })
+      .then(function (json) {
+        var candles = normalizeOkx(json);
+        if (!candles) throw new Error('OKX kosong');
+        drawCandles(candles, 'OKX');
+      })
+      .catch(function () {
+        // fallback: Binance public klines (tanpa API key)
+        fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=' + cfg.binInterval + '&limit=' + cfg.limit)
+          .then(function (r) { return r.json(); })
+          .then(function (json) {
+            var candles = normalizeBinance(json);
+            if (!candles) throw new Error('Binance kosong');
+            drawCandles(candles, 'BINANCE');
+          })
+          .catch(function () {
+            drawMessage('Chart tidak bisa dimuat.\nPerlu koneksi internet ke OKX/Binance.');
+          });
+      });
+  }
+
+  function setActiveRange(days) {
+    document.querySelectorAll('.tf[data-d]').forEach(function (b) {
+      b.classList.toggle('active', parseInt(b.getAttribute('data-d'), 10) === days);
+    });
+    document.querySelectorAll('.tfslot[data-d]').forEach(function (b) {
+      b.classList.toggle('sel', parseInt(b.getAttribute('data-d'), 10) === days);
+    });
+  }
+
+  document.querySelectorAll('.tf[data-d], .tfslot[data-d]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var days = parseInt(btn.getAttribute('data-d'), 10);
+      setActiveRange(days);
+      loadRange(days);
+    });
+  });
+
+  window.addEventListener('resize', fitCanvasToDisplaySize);
+
+  fitCanvasToDisplaySize();
+  var activeBtn = document.querySelector('.tf[data-d].active') || document.querySelector('.tf[data-d="30"]');
+  loadRange(activeBtn ? parseInt(activeBtn.getAttribute('data-d'), 10) : 30);
+})();
+</script>
 
 </body></html>
