@@ -959,6 +959,12 @@ body[data-theme="pencil"] #frog { filter: grayscale(1) contrast(1.15); }
 
   var PROXY = 'https://api.allorigins.win/raw?url=';
 
+  var tFetch = function(url, opts) {
+    var ctrl = new AbortController();
+    var id = setTimeout(function() { ctrl.abort(); }, 10000);
+    return fetch(url, Object.assign({}, opts||{}, {signal: ctrl.signal})).finally(function() { clearTimeout(id); });
+  };
+
   function set(id, html) { var e = document.getElementById(id); if (e) e.innerHTML = html; }
   function setText(id, t) { var e = document.getElementById(id); if (e) e.textContent = t; }
   function fmtB(n) { return n >= 1e12 ? '$' + (n / 1e12).toFixed(2) + 'T' : n >= 1e9 ? '$' + (n / 1e9).toFixed(0) + 'B' : '$' + Math.round(n); }
@@ -969,7 +975,7 @@ body[data-theme="pencil"] #frog { filter: grayscale(1) contrast(1.15); }
   /* --- FETCHES --- */
 
   function fetchCG() {
-    fetch('https://api.coingecko.com/api/v3/global')
+    tFetch('https://api.coingecko.com/api/v3/global')
       .then(function (r) { return r.json(); })
       .then(function (j) {
         var d = j.data;
@@ -984,7 +990,7 @@ body[data-theme="pencil"] #frog { filter: grayscale(1) contrast(1.15); }
         renderInternals();
       }).catch(function () {});
 
-    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true')
+    tFetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true')
       .then(function (r) { return r.json(); })
       .then(function (j) {
         S.btc = j.bitcoin.usd;
@@ -996,7 +1002,7 @@ body[data-theme="pencil"] #frog { filter: grayscale(1) contrast(1.15); }
   }
 
   function fetchFG() {
-    fetch('https://api.alternative.me/fng/?limit=8')
+    tFetch('https://api.alternative.me/fng/?limit=8')
       .then(function (r) { return r.json(); })
       .then(function (j) {
         var d = j.data;
@@ -1008,7 +1014,7 @@ body[data-theme="pencil"] #frog { filter: grayscale(1) contrast(1.15); }
   }
 
   function fetchFunding() {
-    fetch('https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT')
+    tFetch('https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT')
       .then(function (r) { return r.json(); })
       .then(function (j) { S.funding = parseFloat(j.lastFundingRate) * 100; renderRisk(); })
       .catch(function () {});
@@ -1016,7 +1022,7 @@ body[data-theme="pencil"] #frog { filter: grayscale(1) contrast(1.15); }
 
   function fetchYahoo(sym, cb) {
     var url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + sym + '?interval=1d&range=5d';
-    fetch(PROXY + encodeURIComponent(url))
+    tFetch(PROXY + encodeURIComponent(url))
       .then(function (r) { return r.json(); })
       .then(function (j) {
         var meta = j.chart.result[0].meta;
@@ -1286,7 +1292,7 @@ body[data-theme="pencil"] #frog { filter: grayscale(1) contrast(1.15); }
   function fetchNews() {
     var feeds = { crypto: 'https://cointelegraph.com/rss', macro: 'https://feeds.a.dj.com/rss/RSSMarketsMain.xml' };
     Object.keys(feeds).forEach(function (tab) {
-      fetch(PROXY + encodeURIComponent(feeds[tab]))
+      tFetch(PROXY + encodeURIComponent(feeds[tab]))
         .then(function (r) { return r.text(); })
         .then(function (txt) {
           var xml = new DOMParser().parseFromString(txt, 'application/xml');
@@ -1452,15 +1458,18 @@ body[data-theme="pencil"] #frog { filter: grayscale(1) contrast(1.15); }
     renderBTC(); renderDXY(); renderGold(); renderInternals(); renderFG();
     renderRates(); renderRisk(); renderSignals(); renderEngine(); renderLog(); renderTape();
     updateClock();
-    setInterval(updateClock, 1000);
+    var _iv1 = setInterval(updateClock, 1000);
     setTimeout(function () { fetchCG(); fetchFG(); fetchFunding(); fetchMarket(); fetchNews(); }, 700);
-    setInterval(function () { fetchCG(); fetchFG(); fetchFunding(); fetchMarket(); }, 60000);
-    setInterval(fetchNews, 300000);
-    setInterval(genCalendar, 3600000);
+    var _iv2 = setInterval(function () { fetchCG(); fetchFG(); fetchFunding(); fetchMarket(); }, 60000);
+    var _iv3 = setInterval(fetchNews, 300000);
+    var _iv4 = setInterval(genCalendar, 3600000);
     var dot = document.getElementById('livedot');
-    setInterval(function () {
+    var _iv5 = setInterval(function () {
       if (dot) { dot.classList.remove('on'); setTimeout(function () { dot.classList.add('on'); }, 250); }
     }, 60000);
+    window.addEventListener('beforeunload', function() {
+      clearInterval(_iv1); clearInterval(_iv2); clearInterval(_iv3); clearInterval(_iv4); clearInterval(_iv5);
+    });
   }
 
   if (document.readyState === 'loading') {

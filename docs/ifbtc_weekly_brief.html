@@ -979,6 +979,12 @@
 const FORM_ENDPOINT_NEWSLETTER = ""; // contoh: "https://formspree.io/f/xxxxxx"
 const FORM_ENDPOINT_HCA = "";        // contoh: "https://formspree.io/f/yyyyyy"
 
+const tFetch = (url, opts) => {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), 10000);
+  return fetch(url, {...(opts||{}), signal: ctrl.signal}).finally(() => clearTimeout(id));
+};
+
 /* ---------- Tab / Hash routing ---------- */
 const views = {
   newsletter: document.getElementById('view-newsletter'),
@@ -1083,7 +1089,7 @@ function initNewsletterForm(formId, statusId, successId) {
       if(isDemo) {
         await new Promise(r => setTimeout(r, 550));
       } else {
-        const res = await fetch(FORM_ENDPOINT_NEWSLETTER, {
+        const res = await tFetch(FORM_ENDPOINT_NEWSLETTER, {
           method: 'POST',
           headers: { 'Accept': 'application/json' },
           body: new FormData(form)
@@ -1185,7 +1191,7 @@ initNewsletterForm('nl-form-2', 'nl-status-2', 'nl-success-2');
       if(isDemo){
         await new Promise(r => setTimeout(r, 650));
       } else {
-        const res = await fetch(FORM_ENDPOINT_HCA, {
+        const res = await tFetch(FORM_ENDPOINT_HCA, {
           method: 'POST',
           headers: { 'Accept': 'application/json' },
           body: fd

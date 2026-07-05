@@ -681,24 +681,29 @@ function renderChart(perCat, hasExpense){
   const colors = [
     '#72e0a3','#7bc7f5','#d9c07a','#c297e6','#f29a6a','#6fd1bd','#e892a7','#9ab0c6','#cdb49a','#8f9fc1'
   ];
-  if(donutChart) donutChart.destroy();
-  donutChart = new Chart(ctx, {
-    type:'doughnut',
-    data: {
-      labels,
-      datasets:[{
-        data: values,
-        backgroundColor: colors,
-        borderWidth: 0,
-        hoverOffset: 6
-      }]
-    },
-    options: {
-      cutout:'68%',
-      plugins:{ legend:{ display:false } },
-      animation: { duration: 380 }
-    }
-  });
+  if(donutChart) {
+    donutChart.data.labels = labels;
+    donutChart.data.datasets[0].data = values;
+    donutChart.update('none');
+  } else {
+    donutChart = new Chart(ctx, {
+      type:'doughnut',
+      data: {
+        labels,
+        datasets:[{
+          data: values,
+          backgroundColor: colors,
+          borderWidth: 0,
+          hoverOffset: 6
+        }]
+      },
+      options: {
+        cutout:'68%',
+        plugins:{ legend:{ display:false } },
+        animation: { duration: 380 }
+      }
+    });
+  }
   // legend
   const legendEl = document.getElementById('chartLegend');
   legendEl.innerHTML = '';

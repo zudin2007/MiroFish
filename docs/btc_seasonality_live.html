@@ -424,6 +424,13 @@ const seasonChart = new Chart(ctx, {
   }
 });
 
+// ---- tFetch: fetch with 10 s AbortController timeout ----
+const tFetch = (url, opts) => {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), 10000);
+  return fetch(url, {...(opts||{}), signal: ctrl.signal}).finally(() => clearTimeout(id));
+};
+
 // ---- Live July MTD fetch ----
 function updateJulLive(julMTD, currentPrice) {
   const sign = julMTD >= 0 ? '+' : '';
@@ -471,7 +478,7 @@ function updateJulLive(julMTD, currentPrice) {
   if (priceEl) priceEl.textContent = 'BTC: $' + Math.round(currentPrice).toLocaleString('en-US');
 }
 
-fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true')
+tFetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true')
   .then(r => r.json())
   .then(j => {
     const price = j.bitcoin.usd;
@@ -480,7 +487,7 @@ fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=u
   })
   .catch(() => {
     // Fallback to Binance
-    fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT')
+    tFetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT')
       .then(r => r.json())
       .then(j => {
         const price = parseFloat(j.price);

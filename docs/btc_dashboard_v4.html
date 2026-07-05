@@ -1,27 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
-<head><style>
-@font-face {
-  font-family: "Optimistic";
-  font-style: normal;
-  font-weight: 400 600;
-  font-display: swap;
-  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Optimistic Mono";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
-}
-:where(html) {
-  font-family: "Optimistic", system-ui, sans-serif;
-}
-:where(code, pre, kbd, samp) {
-  font-family: "Optimistic Mono", ui-monospace, monospace;
-}
-</style>
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BTC SR & Liquidation Monitor v4 – S2F / Rainbow</title>
@@ -192,15 +171,22 @@ const levels = [
 let currentPrice = 62700;
 let alertOn = false; let lastBeep=0;
 
+/* ---- tFetch: fetch with 10 s AbortController timeout ---- */
+const tFetch = (url, opts) => {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), 10000);
+  return fetch(url, {...(opts||{}), signal: ctrl.signal}).finally(() => clearTimeout(id));
+};
+
 /* ---- Live price multi-source ---- */
 const priceEl = document.getElementById('price');
 const livePriceEl = document.getElementById('livePrice');
 const statusPill = document.getElementById('statusPill');
 const sources = {
-  coingecko: async()=>{const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',{cache:'no-store'});const j=await r.json();return j.bitcoin.usd},
-  binance: async()=>{const r=await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');const j=await r.json();return parseFloat(j.price)},
-  kraken: async()=>{const r=await fetch('https://api.kraken.com/0/public/Ticker?pair=XBTUSD');const j=await r.json();return parseFloat(j.result.XXBTZUSD.c[0])},
-  coincap: async()=>{const r=await fetch('https://api.coincap.io/v2/assets/bitcoin');const j=await r.json();return parseFloat(j.data.priceUsd)}
+  coingecko: async()=>{const r=await tFetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',{cache:'no-store'});const j=await r.json();return j.bitcoin.usd},
+  binance: async()=>{const r=await tFetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');const j=await r.json();return parseFloat(j.price)},
+  kraken: async()=>{const r=await tFetch('https://api.kraken.com/0/public/Ticker?pair=XBTUSD');const j=await r.json();return parseFloat(j.result.XXBTZUSD.c[0])},
+  coincap: async()=>{const r=await tFetch('https://api.coincap.io/v2/assets/bitcoin');const j=await r.json();return parseFloat(j.data.priceUsd)}
 };
 async function fetchPrice(preferred){
   const order=[preferred,'coingecko','binance','kraken','coincap'].filter((v,i,a)=>a.indexOf(v)===i);
@@ -216,7 +202,10 @@ async function updateLive(){
 }
 document.getElementById('refreshBtn').onclick=updateLive;
 document.getElementById('source').onchange=updateLive;
-setInterval(updateLive,15000);
+const iId1 = setInterval(updateLive,15000);
+window.addEventListener('beforeunload', () => {
+  clearInterval(iId1);
+});
 
 /* ---- Alert SMA 200W ---- */
 const alertBtn=document.getElementById('alertBtn');

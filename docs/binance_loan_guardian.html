@@ -296,10 +296,16 @@
     let monitorTimer = null;
     let lastNotifiedLevel = 0;
 
+    const tFetch = (url, opts) => {
+      const ctrl = new AbortController();
+      const id = setTimeout(() => ctrl.abort(), 10000);
+      return fetch(url, {...(opts||{}), signal: ctrl.signal}).finally(() => clearTimeout(id));
+    };
+
     async function getPrice(coin) {
         if(coin === 'USDT') return 1;
         try {
-            const res = await fetch(`https://data-api.binance.vision/api/v3/ticker/price?symbol=${coin}USDT`);
+            const res = await tFetch(`https://data-api.binance.vision/api/v3/ticker/price?symbol=${coin}USDT`);
             const data = await res.json();
             return parseFloat(data.price);
         } catch(e) {

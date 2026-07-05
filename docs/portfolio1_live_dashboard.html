@@ -150,9 +150,14 @@ async function doUpdate(){
  s.innerText='Mengambil harga live...';
  const prices={};
  const proxies=['https://api.allorigins.win/raw?url=','https://corsproxy.io/?url='];
+ const tFetch = (url, opts) => {
+   const ctrl = new AbortController();
+   const id = setTimeout(() => ctrl.abort(), 10000);
+   return fetch(url, {...(opts||{}), signal: ctrl.signal}).finally(() => clearTimeout(id));
+ };
  async function viaProxy(targetUrl,parse){
    for(const proxy of proxies){
-     try{ const r=await fetch(proxy+encodeURIComponent(targetUrl)); if(!r.ok) continue; const val=await parse(r); if(val!=null) return val; }catch(e){}
+     try{ const r=await tFetch(proxy+encodeURIComponent(targetUrl)); if(!r.ok) continue; const val=await parse(r); if(val!=null) return val; }catch(e){}
    }
    return null;
  }

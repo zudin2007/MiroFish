@@ -1,27 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
-<head><style>
-@font-face {
-  font-family: "Optimistic";
-  font-style: normal;
-  font-weight: 400 600;
-  font-display: swap;
-  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Optimistic Mono";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
-}
-:where(html) {
-  font-family: "Optimistic", system-ui, sans-serif;
-}
-:where(code, pre, kbd, samp) {
-  font-family: "Optimistic Mono", ui-monospace, monospace;
-}
-</style>
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jurnal Sehat - Diabetes & Asam Urat</title>
@@ -803,158 +782,177 @@ function renderCharts(){
   const targetMaxArr = filtered.map(()=> targets.glucose_fasting_max);
 
   const gCtx = document.getElementById('glucoseChart');
-  if(glucoseChart) glucoseChart.destroy();
-  glucoseChart = new Chart(gCtx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'Target Min',
-          data: targetMinArr,
-          borderColor: 'rgba(16,185,129,0.75)',
-          borderDash: [6,4],
-          borderWidth: 1.4,
-          pointRadius: 0,
-          fill: false,
-          tension: 0
-        },
-        {
-          label: 'Target Max',
-          data: targetMaxArr,
-          borderColor: 'rgba(16,185,129,0.75)',
-          borderDash: [6,4],
-          borderWidth: 1.4,
-          pointRadius: 0,
-          fill: '-1',
-          backgroundColor: 'rgba(16,185,129,0.10)',
-          tension: 0
-        },
-        {
-          label: 'Glukosa mg/dL',
-          data: gData,
-          borderColor: '#0ea5b7',
-          backgroundColor: 'rgba(14,165,183,0.06)',
-          tension: .38,
-          pointRadius: 3,
-          pointBackgroundColor: '#0ea5b7',
-          spanGaps: true,
-          borderWidth: 2.4,
-          fill: false
-        }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display:false },
-        zoom: {
-          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
-          pan: { enabled: true, mode: 'x' }
-        },
-        tooltip: {
-          mode:'index', intersect:false,
-          filter: (item) => item.dataset.label.includes('Glukosa')
-        }
+  if(glucoseChart) {
+    glucoseChart.data.labels = labels;
+    glucoseChart.data.datasets[0].data = targetMinArr;
+    glucoseChart.data.datasets[1].data = targetMaxArr;
+    glucoseChart.data.datasets[2].data = gData;
+    glucoseChart.update('none');
+  } else {
+    glucoseChart = new Chart(gCtx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Target Min',
+            data: targetMinArr,
+            borderColor: 'rgba(16,185,129,0.75)',
+            borderDash: [6,4],
+            borderWidth: 1.4,
+            pointRadius: 0,
+            fill: false,
+            tension: 0
+          },
+          {
+            label: 'Target Max',
+            data: targetMaxArr,
+            borderColor: 'rgba(16,185,129,0.75)',
+            borderDash: [6,4],
+            borderWidth: 1.4,
+            pointRadius: 0,
+            fill: '-1',
+            backgroundColor: 'rgba(16,185,129,0.10)',
+            tension: 0
+          },
+          {
+            label: 'Glukosa mg/dL',
+            data: gData,
+            borderColor: '#0ea5b7',
+            backgroundColor: 'rgba(14,165,183,0.06)',
+            tension: .38,
+            pointRadius: 3,
+            pointBackgroundColor: '#0ea5b7',
+            spanGaps: true,
+            borderWidth: 2.4,
+            fill: false
+          }
+        ]
       },
-      scales: {
-        x: { grid:{ display:false }, ticks:{ color:'#7b8798', maxRotation:0, autoSkip:true, maxTicksLimit:6 } },
-        y: { grid:{ color:'#eef1f5' }, ticks:{ color:'#7b8798' }, beginAtZero:false }
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display:false },
+          zoom: {
+            zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
+            pan: { enabled: true, mode: 'x' }
+          },
+          tooltip: {
+            mode:'index', intersect:false,
+            filter: (item) => item.dataset.label.includes('Glukosa')
+          }
+        },
+        scales: {
+          x: { grid:{ display:false }, ticks:{ color:'#7b8798', maxRotation:0, autoSkip:true, maxTicksLimit:6 } },
+          y: { grid:{ color:'#eef1f5' }, ticks:{ color:'#7b8798' }, beginAtZero:false }
+        }
       }
-    }
-  });
+    });
+  }
 
   const uaCtx = document.getElementById('uaChart');
-  if(uaChart) uaChart.destroy();
   const uaRefLine = uaData.map(() => Number(targets.ua_max) || 7);
-  uaChart = new Chart(uaCtx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'Asam Urat',
-          data: uaData,
-          borderColor: '#119e6f',
-          backgroundColor: 'rgba(17,158,111,0.09)',
-          tension: .38,
-          pointRadius: 3,
-          spanGaps: true,
-          borderWidth: 2.3,
-          fill: true
-        },
-        {
-          label: 'Batas target',
-          data: uaRefLine,
-          borderColor: '#e35b5b',
-          borderDash: [6,5],
-          pointRadius: 0,
-          borderWidth: 1.6,
-          fill: false
-        }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display:false },
-        zoom: {
-          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
-          pan: { enabled: true, mode: 'x' }
-        }
+  if(uaChart) {
+    uaChart.data.labels = labels;
+    uaChart.data.datasets[0].data = uaData;
+    uaChart.data.datasets[1].data = uaRefLine;
+    uaChart.update('none');
+  } else {
+    uaChart = new Chart(uaCtx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Asam Urat',
+            data: uaData,
+            borderColor: '#119e6f',
+            backgroundColor: 'rgba(17,158,111,0.09)',
+            tension: .38,
+            pointRadius: 3,
+            spanGaps: true,
+            borderWidth: 2.3,
+            fill: true
+          },
+          {
+            label: 'Batas target',
+            data: uaRefLine,
+            borderColor: '#e35b5b',
+            borderDash: [6,5],
+            pointRadius: 0,
+            borderWidth: 1.6,
+            fill: false
+          }
+        ]
       },
-      scales: {
-        x: { grid:{ display:false }, ticks:{ color:'#7b8798', maxRotation:0, autoSkip:true, maxTicksLimit:6 } },
-        y: { grid:{ color:'#eef1f5' }, ticks:{ color:'#7b8798' }, suggestedMin:4, suggestedMax:9 }
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display:false },
+          zoom: {
+            zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
+            pan: { enabled: true, mode: 'x' }
+          }
+        },
+        scales: {
+          x: { grid:{ display:false }, ticks:{ color:'#7b8798', maxRotation:0, autoSkip:true, maxTicksLimit:6 } },
+          y: { grid:{ color:'#eef1f5' }, ticks:{ color:'#7b8798' }, suggestedMin:4, suggestedMax:9 }
+        }
       }
-    }
-  });
+    });
+  }
 
   const hbaCtx = document.getElementById('hba1cChart');
-  if(hba1cChart) hba1cChart.destroy();
   const hbaRefLine = hbaData.map(()=> Number(targets.hba1c_target) || 7);
-  hba1cChart = new Chart(hbaCtx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'HbA1c %',
-          data: hbaData,
-          borderColor: '#c2711a',
-          backgroundColor: 'rgba(194,113,26,0.08)',
-          tension: .38,
-          pointRadius: 3.5,
-          spanGaps: true,
-          borderWidth: 2.3,
-          fill: true
-        },
-        {
-          label: 'Target HbA1c',
-          data: hbaRefLine,
-          borderColor: '#d97706',
-          borderDash: [6,5],
-          pointRadius: 0,
-          borderWidth: 1.5,
-          fill: false
-        }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display:false },
-        zoom: {
-          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
-          pan: { enabled: true, mode: 'x' }
-        }
+  if(hba1cChart) {
+    hba1cChart.data.labels = labels;
+    hba1cChart.data.datasets[0].data = hbaData;
+    hba1cChart.data.datasets[1].data = hbaRefLine;
+    hba1cChart.update('none');
+  } else {
+    hba1cChart = new Chart(hbaCtx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'HbA1c %',
+            data: hbaData,
+            borderColor: '#c2711a',
+            backgroundColor: 'rgba(194,113,26,0.08)',
+            tension: .38,
+            pointRadius: 3.5,
+            spanGaps: true,
+            borderWidth: 2.3,
+            fill: true
+          },
+          {
+            label: 'Target HbA1c',
+            data: hbaRefLine,
+            borderColor: '#d97706',
+            borderDash: [6,5],
+            pointRadius: 0,
+            borderWidth: 1.5,
+            fill: false
+          }
+        ]
       },
-      scales: {
-        x: { grid:{ display:false }, ticks:{ color:'#7b8798', maxRotation:0, autoSkip:true, maxTicksLimit:6 } },
-        y: { grid:{ color:'#eef1f5' }, ticks:{ color:'#7b8798' }, suggestedMin:5, suggestedMax:9 }
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display:false },
+          zoom: {
+            zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
+            pan: { enabled: true, mode: 'x' }
+          }
+        },
+        scales: {
+          x: { grid:{ display:false }, ticks:{ color:'#7b8798', maxRotation:0, autoSkip:true, maxTicksLimit:6 } },
+          y: { grid:{ color:'#eef1f5' }, ticks:{ color:'#7b8798' }, suggestedMin:5, suggestedMax:9 }
+        }
       }
-    }
-  });
+    });
+  }
 
   // Aktivitas Mingguan
   const activityEntries = entries.filter(e => parseActivityMinutes(e.aktivitas) > 0);
@@ -971,28 +969,33 @@ function renderCharts(){
   const weekValues = weekKeys.map(k => Math.round(weekMap[k]));
 
   const actCtx = document.getElementById('activityChart');
-  if(activityChart) activityChart.destroy();
-  activityChart = new Chart(actCtx, {
-    type: 'bar',
-    data: {
-      labels: weekLabels.length ? weekLabels : ['Belum ada data'],
-      datasets: [{
-        label: 'Menit',
-        data: weekValues.length ? weekValues : [0],
-        backgroundColor: 'rgba(14,165,183,0.72)',
-        borderRadius: 7,
-        borderSkipped: false
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display:false } },
-      scales: {
-        x: { grid:{ display:false }, ticks:{ color:'#7b8798' } },
-        y: { beginAtZero:true, grid:{ color:'#eef1f5' }, ticks:{ color:'#7b8798' } }
+  if(activityChart) {
+    activityChart.data.labels = weekLabels.length ? weekLabels : ['Belum ada data'];
+    activityChart.data.datasets[0].data = weekValues.length ? weekValues : [0];
+    activityChart.update('none');
+  } else {
+    activityChart = new Chart(actCtx, {
+      type: 'bar',
+      data: {
+        labels: weekLabels.length ? weekLabels : ['Belum ada data'],
+        datasets: [{
+          label: 'Menit',
+          data: weekValues.length ? weekValues : [0],
+          backgroundColor: 'rgba(14,165,183,0.72)',
+          borderRadius: 7,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display:false } },
+        scales: {
+          x: { grid:{ display:false }, ticks:{ color:'#7b8798' } },
+          y: { beginAtZero:true, grid:{ color:'#eef1f5' }, ticks:{ color:'#7b8798' } }
+        }
       }
-    }
-  });
+    });
+  }
 
   // update activity note total
   const totalActivityMins = Object.values(weekMap).reduce((a,b)=>a+b,0);
