@@ -32,6 +32,7 @@ const data=[{"sym":"PANW","shares":0.24325,"avg":311.4,"price":348.06},{"sym":"F
 let pc, pj;
 
 function calc(){
+  // Pass 1: hitung semua nilai dan total terlebih dahulu
   let tv=0, tc=0;
   data.forEach(h=>{
     h.value=h.shares*h.price;
@@ -39,6 +40,7 @@ function calc(){
     tv+=h.value;
     tc+=h.cost;
   });
+  // Pass 2: update DOM dengan total yang sudah benar
   const rows=document.querySelectorAll('tbody tr');
   data.forEach((h,i)=>{
     const tr=rows[i];
@@ -66,17 +68,25 @@ function drawProj(){
   const dep=(+document.getElementById('dep').value)/16853.7;
   const c=(+document.getElementById('cagr').value)/100;
   const start=data.reduce((s,d)=>s+d.value,0);
+  const tcost=data.reduce((s,d)=>s+(d.cost||0),0);
   const t1=500000000/16853.7, t2=100000000/16853.7;
-  const l=[],f=[],g=[],a=[],b=[];
+  const l=[],f=[],g=[],a=[],b=[],cv=[],cc=[];
   let bf=start, bg=start;
   for(let i=0;i<=36;i++){
-    l.push(i);f.push(bf);g.push(bg);a.push(t1);b.push(t2);
+    l.push(i);f.push(bf);g.push(bg);a.push(t1);b.push(t2);cv.push(start);cc.push(tcost);
     bf+=dep;
     bg=(bg+dep)*Math.pow(1+c,1/12);
   }
   const ctx=document.getElementById('proj').getContext('2d');
   if(pj)pj.destroy();
-  pj=new Chart(ctx,{type:'line',data:{labels:l,datasets:[{label:'Flat',data:f,borderColor:'blue'},{label:'CAGR '+c*100+'%',data:g,borderColor:'green'},{label:'Rp500jt',data:a,borderDash:[5,5],borderColor:'orange'},{label:'Rp100jt',data:b,borderDash:[3,3],borderColor:'purple'}]},options:{}});
+  pj=new Chart(ctx,{type:'line',data:{labels:l,datasets:[
+    {label:'Flat',data:f,borderColor:'blue',pointRadius:0},
+    {label:'CAGR '+c*100+'%',data:g,borderColor:'green',pointRadius:0},
+    {label:'Rp500jt',data:a,borderDash:[5,5],borderColor:'orange',pointRadius:0},
+    {label:'Rp100jt',data:b,borderDash:[3,3],borderColor:'purple',pointRadius:0},
+    {label:'Value $'+start.toFixed(0),data:cv,borderDash:[6,3],borderColor:'#00bcd4',borderWidth:1.5,pointRadius:0},
+    {label:'Cost $'+tcost.toFixed(0),data:cc,borderDash:[6,3],borderColor:'#ff7043',borderWidth:1.5,pointRadius:0}
+  ]},options:{}});
 }
 
 async function upd(){
