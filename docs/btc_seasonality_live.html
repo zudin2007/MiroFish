@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bitcoin Seasonality 2020–2026 – Update 5 Juli 2026</title>
+<meta name="description" content="Heatmap return bulanan BTC 2020–2026. Juni 2026 final -15.63%. Juli 2026 MTD live via CoinGecko. YTD -29.2%. Rata-rata historis 2020–2025.">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -296,7 +297,7 @@ heatData.forEach(row => {
       julCell2026 = td;
     } else {
       const label = v === null ? '—' : (v > 0 ? '+' : '') + v.toFixed(2);
-      td.textContent = v === null ? '—' : label + (isJunFinal ? '' : '');
+      td.textContent = v === null ? '—' : label;
     }
     if (v !== null && !isLiveJul) td.title = `${row.year} • ${months[i]}: ${(v > 0 ? '+' : '') + v.toFixed(2)}%`;
     tr.appendChild(td);
@@ -305,7 +306,7 @@ heatData.forEach(row => {
   const totalTd = document.createElement('td');
   totalTd.className = 'py-[11px] sm:py-[13px] pl-4 pr-3 text-right font-[700] border-l border-neutral-200 dark:border-neutral-800 bg-neutral-50/70 dark:bg-neutral-900/40 sticky right-0 tabular';
   let tVal = row.yearTotal;
-  totalTd.textContent = (tVal > 0 ? '' : '') + tVal.toFixed(2) + '%' + (row.live ? '*' : '');
+  totalTd.textContent = tVal.toFixed(2) + '%' + (row.live ? '*' : '');
   if (tVal >= 0) totalTd.classList.add('text-[#11785a]', 'dark:text-[#3ec99a]');
   else totalTd.classList.add('text-[#c92d21]', 'dark:text-[#ff6657]');
   if (row.live) {
@@ -464,7 +465,7 @@ function updateJulLive(julMTD, currentPrice) {
 
   // Chart update
   seasonChart.data.datasets[1].data[6] = julMTD;
-  seasonChart.update();
+  seasonChart.update('none');
 
   // Header badges
   const julBadge = document.getElementById('jul-badge');
@@ -478,28 +479,34 @@ function updateJulLive(julMTD, currentPrice) {
   if (priceEl) priceEl.textContent = 'BTC: $' + Math.round(currentPrice).toLocaleString('en-US');
 }
 
-tFetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true')
-  .then(r => r.json())
-  .then(j => {
-    const price = j.bitcoin.usd;
-    const julMTD = (price - JUN_CLOSE) / JUN_CLOSE * 100;
-    updateJulLive(julMTD, price);
-  })
-  .catch(() => {
-    // Fallback to Binance
-    tFetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT')
-      .then(r => r.json())
-      .then(j => {
-        const price = parseFloat(j.price);
-        const julMTD = (price - JUN_CLOSE) / JUN_CLOSE * 100;
-        updateJulLive(julMTD, price);
-      })
-      .catch(() => {
-        if (julCell2026) julCell2026.textContent = 'N/A';
-        const priceEl = document.getElementById('btc-live-price');
-        if (priceEl) priceEl.textContent = 'BTC: offline';
-      });
-  });
+function fetchJulLive() {
+  tFetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd')
+    .then(r => r.json())
+    .then(j => {
+      const price = j.bitcoin.usd;
+      const julMTD = (price - JUN_CLOSE) / JUN_CLOSE * 100;
+      updateJulLive(julMTD, price);
+    })
+    .catch(() => {
+      // Fallback to Binance
+      tFetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT')
+        .then(r => r.json())
+        .then(j => {
+          const price = parseFloat(j.price);
+          const julMTD = (price - JUN_CLOSE) / JUN_CLOSE * 100;
+          updateJulLive(julMTD, price);
+        })
+        .catch(() => {
+          if (julCell2026) julCell2026.textContent = 'N/A';
+          const priceEl = document.getElementById('btc-live-price');
+          if (priceEl) priceEl.textContent = 'BTC: offline';
+        });
+    });
+}
+
+fetchJulLive();
+const _ivJul = setInterval(fetchJulLive, 5 * 60 * 1000); // refresh tiap 5 menit
+window.addEventListener('beforeunload', () => clearInterval(_ivJul));
 
 // Nudge scroll hint fade out after user scrolls
 const wrap = document.getElementById('heatmap-wrap');
