@@ -116,7 +116,7 @@
       </div>
       <div class="grid sm:grid-cols-2 gap-3" id="deltaCards"></div>
       <div class="mt-4 p-3 rounded-xl bg-white/5 border border-white/10 text-xs text-slate-300">
-        H1 2026 mayoritas underperform historis. Q1 anomali besar: Jan delta <span class="text-red-400 font-medium">-23.90pp</span>, Feb delta <span class="text-red-400 font-medium">-25.71pp</span>, Mar delta <span class="text-red-400 font-medium">-6.46pp</span>. Apr +11.85% (delta <span class="text-emerald-400 font-medium">+9.08pp</span>) & Mei -3.75% (delta <span class="text-emerald-400 font-medium">+0.81pp</span>) mendekati rata-rata. Jun final -15.63% vs rata-rata -6.43% (delta <span class="text-red-400 font-medium">-9.20pp</span>). Jul MTD <span id="julSumText" class="text-amber-300">—</span> vs rata-rata +10.98% (delta <span id="julDeltaSumText" class="text-slate-300">—</span>). YTD live <span id="ytdSumText" class="text-amber-300">~-29.2%</span>.
+        H1 2026 mayoritas underperform historis. Q1 anomali besar: Jan delta <span class="text-red-400 font-medium">-23.90pp</span>, Feb delta <span class="text-red-400 font-medium">-25.71pp</span>, Mar delta <span class="text-red-400 font-medium">-6.46pp</span>. Apr +11.85% (delta <span class="text-emerald-400 font-medium">+9.08pp</span>) &amp; Mei -3.75% (delta <span class="text-emerald-400 font-medium">+0.81pp</span>) mendekati rata-rata. Jun final -15.63% vs rata-rata -6.43% (delta <span class="text-red-400 font-medium">-9.20pp</span>). Jul MTD <span id="julSumText" class="text-amber-300">—</span> vs rata-rata +10.98% (delta <span id="julDeltaSumText" class="text-slate-300">—</span>). YTD live <span id="ytdSumText" class="text-amber-300">~-29.2%</span>.
       </div>
     </div>
 
@@ -129,6 +129,38 @@
         <div class="text-[11px] text-slate-500 mt-1">Oktober terbaik (+18.15%), Juni terburuk (-6.43%)</div>
         <div class="text-[11px] text-slate-500 mt-2 pt-2 border-t border-white/10">2026 YTD live ~-29.2% (Jun final) + Jul MTD live</div>
       </div>
+    </div>
+  </div>
+
+  <!-- Bear Market History -->
+  <div class="glass rounded-[28px] border border-white/10 shadow-2xl mt-6 overflow-hidden">
+    <div class="p-4 md:p-6 border-b border-white/5 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-red-600 to-rose-800 flex items-center justify-center font-bold text-white text-base leading-none">↓</div>
+        <div>
+          <div class="font-semibold">Sejarah Bear Market BTC</div>
+          <div class="text-xs text-slate-400">ATH → bottom terkonfirmasi · 2025–2026 masih berjalan</div>
+        </div>
+      </div>
+      <div class="text-[11px] text-slate-400">Sumber: <span class="text-amber-300 font-medium">River</span></div>
+    </div>
+    <div class="overflow-x-auto scrollbar">
+      <table class="w-full text-[13px] md:text-[14px]">
+        <thead class="bg-white/[0.03] backdrop-blur">
+          <tr class="text-slate-300 text-[11px] uppercase tracking-wider">
+            <th class="text-left px-4 py-3 font-medium sticky left-0 bg-[#0a0f1c] z-10">Bear Market</th>
+            <th class="px-4 py-3 font-medium text-right">High (ATH)</th>
+            <th class="px-4 py-3 font-medium text-right">Low</th>
+            <th class="px-4 py-3 font-medium text-center">% Drawdown</th>
+            <th class="px-4 py-3 font-medium text-center">Durasi</th>
+          </tr>
+        </thead>
+        <tbody id="bearTbody" class="divide-y divide-white/5"></tbody>
+      </table>
+    </div>
+    <div class="px-4 md:px-6 py-3 bg-white/[0.02] border-t border-white/5 text-[11px] text-slate-400 flex flex-wrap justify-between gap-2">
+      <span>▶ = masih berjalan · current DD dihitung dari ATH $126,073 ke harga live</span>
+      <span id="bearLiveInfo" class="text-amber-300/70">Menunggu harga live…</span>
     </div>
   </div>
 
@@ -295,6 +327,58 @@ const deltaCards = document.getElementById('deltaCards');
   deltaCards.appendChild(card);
 });
 
+// Bear market history (source: River)
+const BTC_ATH = 126073;
+const bearMarkets = [
+  {label:'2011',      high:31.91,   highDate:'Jun 2011', low:2.14,    lowDate:'Nov 2011', drawdown:-93, duration:'~5 bln',  live:false},
+  {label:'2013–2015', high:1163,    highDate:'Nov 2013', low:152,     lowDate:'Jan 2015', drawdown:-87, duration:'~14 bln', live:false},
+  {label:'2017–2018', high:19800,   highDate:'Des 2017', low:3200,    lowDate:'Des 2018', drawdown:-84, duration:'~12 bln', live:false},
+  {label:'2021–2022', high:69044,   highDate:'Nov 2021', low:15500,   lowDate:'Nov 2022', drawdown:-77, duration:'~12 bln', live:false},
+  {label:'2025–2026', high:126073,  highDate:'Okt 2025', low:58000,   lowDate:'Jun 2026', drawdown:-53, duration:'~9 bln',  live:true},
+];
+
+function fmtUSD(v){
+  if(v >= 1000) return '$' + v.toLocaleString('en-US');
+  return '$' + v.toFixed(2);
+}
+
+function bearDDStyle(dd){
+  if(dd <= -90) return {bg:'rgba(127,29,29,0.85)', fg:'#fca5a5'};
+  if(dd <= -80) return {bg:'rgba(153,27,27,0.75)', fg:'#fca5a5'};
+  if(dd <= -70) return {bg:'rgba(185,28,28,0.60)', fg:'#fecaca'};
+  if(dd <= -60) return {bg:'rgba(239,68,68,0.40)', fg:'#fecaca'};
+  return {bg:'rgba(253,186,116,0.20)', fg:'#fdba74'};
+}
+
+const bearTbody = document.getElementById('bearTbody');
+bearMarkets.forEach(bm => {
+  const tr = document.createElement('tr');
+  if(bm.live) tr.style.boxShadow = 'inset 0 0 0 1px rgba(245,158,11,0.4)';
+  const s = bearDDStyle(bm.drawdown);
+  const liveBadge = bm.live ? ' <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 text-amber-400 font-normal">LIVE</span>' : '';
+  const lowPrefix = bm.live ? '~' : '';
+
+  const ddId = bm.live ? 'id="bearDDLive"' : '';
+  const durId = bm.live ? 'id="bearDurLive"' : '';
+
+  tr.innerHTML = `
+    <td class="sticky left-0 z-10 px-4 py-3.5 mono font-semibold text-[13px] border-r border-white/5" style="background:${bm.live?'#0f172a':'#0a0f1c'}">${bm.label}${liveBadge}</td>
+    <td class="px-4 py-3.5 text-right mono">
+      <div class="font-semibold text-emerald-400">${fmtUSD(bm.high)}</div>
+      <div class="text-[11px] text-slate-500">${bm.highDate}</div>
+    </td>
+    <td class="px-4 py-3.5 text-right mono">
+      <div class="font-semibold ${bm.live?'text-amber-400':'text-red-400'}">${lowPrefix}${fmtUSD(bm.low)}</div>
+      <div class="text-[11px] text-slate-500">${bm.lowDate}${bm.live?' ▶':''}</div>
+    </td>
+    <td class="px-4 py-3.5 text-center">
+      <span ${ddId} class="inline-block px-3 py-1.5 rounded-lg mono font-bold" style="background:${s.bg};color:${s.fg}">${bm.drawdown}%</span>
+    </td>
+    <td ${durId} class="px-4 py-3.5 text-center text-slate-300 mono">${bm.duration}${bm.live?' ▶':''}</td>
+  `;
+  bearTbody.appendChild(tr);
+});
+
 // Live July MTD fetch
 const JUN_CLOSE = 62082;
 const H1_PRODUCT = 0.70755; // compound product Jan–Jun 2026
@@ -373,6 +457,20 @@ async function fetchJulLive(){
     julDeltaSumEl.className = delta<0?'text-red-400 font-medium':'text-emerald-400 font-medium';
   }
   if(ytdSumEl) ytdSumEl.textContent = fmt(ytd);
+
+  // Update bear market live row
+  const currentDD = (price - BTC_ATH) / BTC_ATH * 100;
+  const bearDDEl = document.getElementById('bearDDLive');
+  if(bearDDEl){
+    bearDDEl.textContent = currentDD.toFixed(0) + '%';
+    const s = bearDDStyle(currentDD);
+    bearDDEl.style.background = s.bg;
+    bearDDEl.style.color = s.fg;
+  }
+  const bearLiveInfoEl = document.getElementById('bearLiveInfo');
+  if(bearLiveInfoEl){
+    bearLiveInfoEl.textContent = `Harga live: $${price.toLocaleString('en-US',{maximumFractionDigits:0})} · Current DD dari ATH: ${currentDD.toFixed(1)}%`;
+  }
 }
 
 fetchJulLive();
