@@ -347,6 +347,90 @@ h2.s-title em { font-style: italic; color: var(--gold); }
   border-top: 1px solid var(--border);
 }
 
+/* UPCOMING EPISODES */
+#mendatang { background: var(--bg2); }
+.upcoming-list {
+  margin-top: 52px;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.ep-upcoming {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  opacity: 0.72;
+  position: relative;
+}
+.ep-upcoming::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 8px,
+    rgba(255,255,255,0.012) 8px,
+    rgba(255,255,255,0.012) 9px
+  );
+  pointer-events: none;
+}
+.ep-upcoming-row {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 22px; align-items: center;
+  padding: 22px 28px 20px;
+}
+.ep-upcoming-n {
+  font-family: var(--fm);
+  font-size: 10px; color: var(--text3);
+  letter-spacing: 0.5px; text-align: center;
+}
+.ep-upcoming-n .n {
+  display: block; font-size: 26px; font-weight: 600;
+  color: var(--text3); line-height: 1; margin-bottom: 2px;
+}
+.ep-upcoming-ti {
+  font-family: var(--fd);
+  font-size: 18px; font-weight: 600;
+  color: var(--text2); line-height: 1.2; margin-bottom: 7px;
+}
+.ep-upcoming-sub {
+  font-size: 12.5px; color: var(--text3); font-weight: 600;
+  letter-spacing: 0.2px; margin-bottom: 8px;
+}
+.ep-upcoming-desc {
+  font-family: var(--fd); font-style: italic; font-weight: 300;
+  font-size: 13.5px; color: var(--text3); line-height: 1.6;
+  max-width: 520px;
+}
+.ep-upcoming-right {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+  flex-shrink: 0;
+}
+.ep-soon-badge {
+  font-family: var(--fm); font-size: 8px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--text3);
+  border: 1px solid var(--border2);
+  padding: 3px 10px; border-radius: 3px;
+  background: var(--surface2);
+  white-space: nowrap;
+}
+.ep-upcoming-dur {
+  font-family: var(--fm); font-size: 12px; color: var(--text3);
+  white-space: nowrap;
+}
+.upcoming-note {
+  margin-top: 28px;
+  display: flex; align-items: center; gap: 12px;
+  font-family: var(--fm); font-size: 10.5px; letter-spacing: 0.5px;
+  color: var(--text3);
+}
+.upcoming-note::before { content: ""; flex: 1; height: 1px; background: var(--border); }
+.upcoming-note::after  { content: ""; flex: 1; height: 1px; background: var(--border); }
+@media (max-width: 640px) {
+  .ep-upcoming-row { grid-template-columns: 48px 1fr; padding: 18px 18px 16px; gap: 14px; }
+  .ep-upcoming-right { display: none; }
+}
+
 /* HOST */
 #host { background: var(--bg2); }
 .host-wrap {
@@ -490,6 +574,7 @@ footer {
   </a>
   <div class="nav-right">
     <a href="#episodes">Episode</a>
+    <a href="#mendatang">Mendatang</a>
     <a href="#host">Host</a>
     <a href="#platforms">Platform</a>
     <a href="https://open.spotify.com/show/033GdByxOvu264tMkk1SEb" target="_blank" rel="noopener" class="nav-cta">🎧 Dengarkan</a>
@@ -702,6 +787,92 @@ footer {
     </div>
 
   </div>
+</section>
+
+<section id="mendatang">
+  <div class="s-label">Segera Hadir</div>
+  <h2 class="s-title">Episode <em>Mendatang</em></h2>
+
+  <div class="upcoming-list">
+
+    <div class="ep-upcoming">
+      <div class="ep-upcoming-row">
+        <div class="ep-upcoming-n"><span class="n">08</span>EP</div>
+        <div>
+          <div class="ep-upcoming-ti">RWA — Aset Nyata di Blockchain</div>
+          <div class="ep-upcoming-sub">Rumah, Emas, Sukuk dalam Satu Dompet Digital</div>
+          <div class="ep-upcoming-desc">Real World Assets (RWA): tokenisasi properti, emas fisik, dan sukuk di blockchain — apakah ini instrumen halal berikutnya untuk portofolio Muslim modern?</div>
+        </div>
+        <div class="ep-upcoming-right">
+          <span class="ep-upcoming-dur">~35 menit</span>
+          <span class="ep-soon-badge">SEGERA</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ep-upcoming">
+      <div class="ep-upcoming-row">
+        <div class="ep-upcoming-n"><span class="n">09</span>EP</div>
+        <div>
+          <div class="ep-upcoming-ti">Stablecoin Syariah</div>
+          <div class="ep-upcoming-sub">Mana yang Aman, Mana yang Ribawi?</div>
+          <div class="ep-upcoming-desc">USDT, USDC, PAXG, dan stablecoin berbasis emas — analisa fiqh muamalat dan panduan praktis memilih stablecoin sesuai prinsip syariah di era 2026.</div>
+        </div>
+        <div class="ep-upcoming-right">
+          <span class="ep-upcoming-dur">~30 menit</span>
+          <span class="ep-soon-badge">SEGERA</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ep-upcoming">
+      <div class="ep-upcoming-row">
+        <div class="ep-upcoming-n"><span class="n">10</span>EP</div>
+        <div>
+          <div class="ep-upcoming-ti">Zakat Digital</div>
+          <div class="ep-upcoming-sub">Menghitung Zakat Bitcoin, Saham &amp; Aset Kripto</div>
+          <div class="ep-upcoming-desc">Panduan praktis menghitung zakat untuk aset digital: Bitcoin, saham, reksa dana, staking rewards, dan DeFi yield — dengan rujukan fatwa ulama Indonesia.</div>
+        </div>
+        <div class="ep-upcoming-right">
+          <span class="ep-upcoming-dur">~35 menit</span>
+          <span class="ep-soon-badge">SEGERA</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ep-upcoming">
+      <div class="ep-upcoming-row">
+        <div class="ep-upcoming-n"><span class="n">11</span>EP</div>
+        <div>
+          <div class="ep-upcoming-ti">Waqf Digital</div>
+          <div class="ep-upcoming-sub">Wakaf Bitcoin &amp; Infrastruktur Islam di Web3</div>
+          <div class="ep-upcoming-desc">Bagaimana blockchain memungkinkan wakaf produktif yang transparan, abadi, dan lintas batas — project-project waqf digital yang sudah berjalan di dunia Islam.</div>
+        </div>
+        <div class="ep-upcoming-right">
+          <span class="ep-upcoming-dur">~40 menit</span>
+          <span class="ep-soon-badge">SEGERA</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ep-upcoming">
+      <div class="ep-upcoming-row">
+        <div class="ep-upcoming-n"><span class="n">12</span>EP</div>
+        <div>
+          <div class="ep-upcoming-ti">Portofolio Syariah 2026</div>
+          <div class="ep-upcoming-sub">Screening Halal: Saham, Sukuk, Kripto &amp; Emas</div>
+          <div class="ep-upcoming-desc">Framework seleksi portofolio halal end-to-end: dari screening saham syariah BEI, obligasi negara, hingga alokasi BTC dan emas sebagai store of value Islami.</div>
+        </div>
+        <div class="ep-upcoming-right">
+          <span class="ep-upcoming-dur">~45 menit</span>
+          <span class="ep-soon-badge">SEGERA</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="upcoming-note">Subscribe di Spotify untuk notifikasi saat episode rilis</p>
 </section>
 
 <section id="host">
