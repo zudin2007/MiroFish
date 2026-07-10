@@ -565,10 +565,65 @@ footer {
   h1.hero-h { letter-spacing: -1.8px; }
   .cta-band { padding: 40px 28px; }
 }
+/* SHOWNOTES PANEL */
+.ep-notes {
+  max-height: 0; overflow: hidden;
+  transition: max-height .4s ease;
+  border-top: 0 solid var(--border);
+}
+.ep-notes.open {
+  max-height: 900px;
+  border-top: 1px solid var(--border);
+}
+.ep-notes-inner {
+  padding: 24px 28px 26px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 36px;
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+@media (max-width: 700px) {
+  .ep-notes-inner { grid-template-columns: 1fr; padding: 18px 18px 20px; }
+}
+.ep-notes-section { }
+.ep-notes-h {
+  font-family: var(--fm); font-size: 9px; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--green);
+  margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+}
+.ep-notes-h::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.ep-notes-list {
+  list-style: none; display: flex; flex-direction: column; gap: 7px;
+}
+.ep-notes-list li {
+  color: var(--text2); padding-left: 14px; position: relative;
+}
+.ep-notes-list li::before {
+  content: "›"; position: absolute; left: 0;
+  color: var(--green); font-weight: 700;
+}
+.ep-notes-ref {
+  color: var(--text3); font-size: 12.5px;
+  font-family: var(--fm); letter-spacing: 0.2px;
+  line-height: 1.8;
+}
+.ep-notes-ref a { color: var(--text3); text-decoration: underline; }
+.ep-notes-ref a:hover { color: var(--green); }
+.ep-notes-tugas {
+  grid-column: 1 / -1;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 8px; padding: 14px 16px;
+  font-size: 13px; color: var(--text2);
+  border-left: 3px solid var(--gold);
+}
+.ep-notes-tugas strong { color: var(--gold); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 4px; font-family: var(--fm); }
+.ep-notes-btn.active { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+
 @media (prefers-reduced-motion: reduce) {
   .cursor { animation: none; opacity: 1; }
   .btn-green, .btn-out, .ep-card, .pl-card { transition: none; }
-  .ep-embed { transition: none; }
+  .ep-embed, .ep-notes { transition: none; }
 }
 </style>
 </head>
@@ -668,7 +723,7 @@ footer {
           <div class="ep-quote">Kamu kerja keras setiap hari. Tapi kenapa tidak pernah benar-benar maju? Ada jebakan diam-diam yang menguras waktu dan energi tanpa disadari.</div>
           <div class="ep-actions">
             <button class="ep-play-btn" data-play aria-label="Putar episode 01">▶ Putar</button>
-            <a class="ep-notes-btn" href="https://github.com/zudin2007/zudin2007/blob/main/episodes/E01-jebakan-sunyi.md" target="_blank" rel="noopener">📎 Shownotes</a>
+            <button class="ep-notes-btn" data-notes>📎 Shownotes</button>
           </div>
         </div>
         <div class="ep-right">
@@ -677,6 +732,30 @@ footer {
         </div>
       </div>
       <div class="ep-embed"></div>
+      <div class="ep-notes">
+        <div class="ep-notes-inner">
+          <div class="ep-notes-section">
+            <div class="ep-notes-h">Yang Kamu Pelajari</div>
+            <ul class="ep-notes-list">
+              <li>Inflasi ~4%/tahun vs bunga tabungan bank ~1% = daya beli turun 3% per tahun</li>
+              <li>Perbedaan saldo nominal dan daya beli nyata</li>
+              <li>Mengapa "hanya menabung" adalah jebakan diam-diam</li>
+              <li>Langkah pertama keluar dari jebakan sunyi</li>
+            </ul>
+          </div>
+          <div class="ep-notes-section">
+            <div class="ep-notes-h">Referensi</div>
+            <div class="ep-notes-ref">
+              bi.go.id · bps.go.id<br>
+              Rich Dad Poor Dad — Robert Kiyosaki
+            </div>
+          </div>
+          <div class="ep-notes-tugas">
+            <strong>Tugas Episode</strong>
+            Hitung: (Inflasi % − Bunga Tabungan %) × Total Tabungan = Kerugian Tahunan kamu. Berapa rupiah yang hilang tanpa kamu sadari setiap tahun?
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="ep-card" data-spotify="29brerHMZ6EuPi5ohmywSN">
@@ -688,7 +767,7 @@ footer {
           <div class="ep-quote">Masalahnya bukan penghasilan kurang besar. Masalahnya adalah cara berpikir tentang uang yang tidak pernah diubah.</div>
           <div class="ep-actions">
             <button class="ep-play-btn" data-play aria-label="Putar episode 02">▶ Putar</button>
-            <a class="ep-notes-btn" href="https://github.com/zudin2007/zudin2007/blob/main/episodes/E02-3-jenis-aset.md" target="_blank" rel="noopener">📎 Shownotes</a>
+            <button class="ep-notes-btn" data-notes>📎 Shownotes</button>
           </div>
         </div>
         <div class="ep-right">
@@ -696,6 +775,30 @@ footer {
         </div>
       </div>
       <div class="ep-embed"></div>
+      <div class="ep-notes">
+        <div class="ep-notes-inner">
+          <div class="ep-notes-section">
+            <div class="ep-notes-h">3 Jenis Aset</div>
+            <ul class="ep-notes-list">
+              <li><b>Produktif</b> — saham dividen, properti sewa, obligasi, bisnis</li>
+              <li><b>Lindung Nilai</b> — emas, Bitcoin, tanah</li>
+              <li><b>Spekulatif</b> — altcoin, saham startup, forex (maks 5–10%)</li>
+            </ul>
+          </div>
+          <div class="ep-notes-section">
+            <div class="ep-notes-h">Framework Alokasi 3-Layer</div>
+            <ul class="ep-notes-list">
+              <li>Layer 1 (aman): 60–70% — saham blue chip, obligasi, emas</li>
+              <li>Layer 2 (tumbuh): 20–30% — saham growth, reksa dana saham</li>
+              <li>Layer 3 (spekulatif): 5–10% — kripto altcoin, early stage</li>
+            </ul>
+          </div>
+          <div class="ep-notes-tugas">
+            <strong>Tugas Episode</strong>
+            Hitung portofolio kamu sekarang. Berapa % di tiap layer? Apakah ada layer yang kosong atau terlalu berat?
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="ep-card" data-spotify="280pu8YlIUPNGkxoN4JSVG">
@@ -707,7 +810,7 @@ footer {
           <div class="ep-quote">Data nyata. Analisis berbasis riset. Perspektif Islamic finance yang jarang didengar di podcast crypto lain.</div>
           <div class="ep-actions">
             <button class="ep-play-btn" data-play aria-label="Putar episode 03">▶ Putar</button>
-            <a class="ep-notes-btn" href="https://github.com/zudin2007/zudin2007/blob/main/episodes/E03-instrumen-indonesia.md" target="_blank" rel="noopener">📎 Shownotes</a>
+            <button class="ep-notes-btn" data-notes>📎 Shownotes</button>
           </div>
         </div>
         <div class="ep-right">
@@ -715,6 +818,31 @@ footer {
         </div>
       </div>
       <div class="ep-embed"></div>
+      <div class="ep-notes">
+        <div class="ep-notes-inner">
+          <div class="ep-notes-section">
+            <div class="ep-notes-h">Yang Kamu Pelajari</div>
+            <ul class="ep-notes-list">
+              <li>Volume stablecoin (USDT+USDC) sudah melampaui Visa &amp; Mastercard</li>
+              <li>Analisis berbasis riset on-chain &amp; data Chainalysis</li>
+              <li>Perspektif Islamic finance tentang stablecoin yang jarang dibahas</li>
+              <li>Potensi stablecoin dalam sistem keuangan global ke depan</li>
+            </ul>
+          </div>
+          <div class="ep-notes-section">
+            <div class="ep-notes-h">Referensi</div>
+            <div class="ep-notes-ref">
+              Chainalysis Crypto Report<br>
+              bappebti.go.id · ojk.go.id<br>
+              Tokocrypto · Indodax · Pintu · Rekeningku (exchange legal)
+            </div>
+          </div>
+          <div class="ep-notes-tugas">
+            <strong>Tugas Episode</strong>
+            Cek satu exchange crypto yang kamu gunakan di bappebti.go.id — apakah terdaftar legal? Kalau belum, segera pindahkan asetmu.
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="ep-card" data-spotify="1jpz2fJ5Mdzt18Ay28BhPd">
@@ -726,7 +854,7 @@ footer {
           <div class="ep-quote">Ini bukan masalah boros. Ini masalah sistem. Kalau uang tidak diarahkan ke aset, uang akan selalu menemukan jalan keluar sendiri.</div>
           <div class="ep-actions">
             <button class="ep-play-btn" data-play aria-label="Putar episode 04">▶ Putar</button>
-            <a class="ep-notes-btn" href="https://github.com/zudin2007/zudin2007/blob/main/episodes/E04-compounding.md" target="_blank" rel="noopener">📎 Shownotes</a>
+            <button class="ep-notes-btn" data-notes>📎 Shownotes</button>
           </div>
         </div>
         <div class="ep-right">
@@ -734,6 +862,31 @@ footer {
         </div>
       </div>
       <div class="ep-embed"></div>
+      <div class="ep-notes">
+        <div class="ep-notes-inner">
+          <div class="ep-notes-section">
+            <div class="ep-notes-h">Yang Kamu Pelajari</div>
+            <ul class="ep-notes-list">
+              <li>Kisah Andi vs Budi — investasi 8 tahun mengalahkan 25 tahun penuh</li>
+              <li>Simulasi Rp10 juta @12%/tahun: 10 thn = Rp31 juta · 30 thn = Rp300 juta</li>
+              <li>3 variabel compounding: <b>Waktu</b>, <b>Rate of Return</b>, <b>Konsistensi</b></li>
+              <li>Rp1 juta/bulan selama 30 tahun di saham @15% = Rp7 miliar</li>
+            </ul>
+          </div>
+          <div class="ep-notes-section">
+            <div class="ep-notes-h">Masalah Utama</div>
+            <ul class="ep-notes-list">
+              <li>Gaji datang → belanja dulu → sisanya nol → tidak ada yang diinvestasikan</li>
+              <li>Solusi: <i>bayar diri sendiri duluan</i> — investasi dulu, sisanya baru belanja</li>
+              <li>Pisah rekening: Masuk | Investasi | Belanja</li>
+            </ul>
+          </div>
+          <div class="ep-notes-tugas">
+            <strong>Tugas Episode</strong>
+            Buka Bibit/Bareksa → gunakan fitur simulasi compounding → masukkan angka tabunganmu sekarang. Lihat hasilnya di tahun ke-10, 20, dan 30. Angka mana yang paling mengagetkan?
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="ep-card" data-spotify="4EzjPhsopYpr8qio4B4Rai">
@@ -745,7 +898,7 @@ footer {
           <div class="ep-quote">Bukan motivasi. Ini perubahan cara berpikir yang didukung langkah nyata: instrumen, strategi, dan blueprint yang bisa langsung dijalankan.</div>
           <div class="ep-actions">
             <button class="ep-play-btn" data-play aria-label="Putar episode 05">▶ Putar</button>
-            <a class="ep-notes-btn" href="https://github.com/zudin2007/zudin2007/blob/main/episodes/E05-digital-leverage.md" target="_blank" rel="noopener">📎 Shownotes</a>
+            <button class="ep-notes-btn" data-notes>📎 Shownotes</button>
           </div>
         </div>
         <div class="ep-right">
@@ -753,6 +906,32 @@ footer {
         </div>
       </div>
       <div class="ep-embed"></div>
+      <div class="ep-notes">
+        <div class="ep-notes-inner">
+          <div class="ep-notes-section">
+            <div class="ep-notes-h">4 Jenis Digital Leverage</div>
+            <ul class="ep-notes-list">
+              <li><b>Modal</b> — auto-invest yang bekerja tanpa kamu ingat</li>
+              <li><b>Kode</b> — program berjalan 24 jam tanpa gaji</li>
+              <li><b>Konten</b> — artikel/video yang terus menghasilkan bertahun-tahun</li>
+              <li><b>Network</b> — follower/subscriber yang compounding setiap hari</li>
+            </ul>
+          </div>
+          <div class="ep-notes-section">
+            <div class="ep-notes-h">4 Red Flag Investasi Bodong</div>
+            <ul class="ep-notes-list">
+              <li>Janji return pasti &gt;30% per tahun</li>
+              <li>Platform tidak terdaftar OJK / Bappebti</li>
+              <li>Ada tekanan untuk rekrut member (tanda Ponzi)</li>
+              <li>Cara kerjanya tidak bisa dijelaskan dengan jelas</li>
+            </ul>
+          </div>
+          <div class="ep-notes-tugas">
+            <strong>Tugas Episode</strong>
+            Identifikasi satu skill yang kamu miliki yang bisa diubah jadi konten atau produk digital. Berapa lama waktu yang dibutuhkan untuk mulai? Mulai minggu ini.
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="ep-card" data-spotify="7swdWjUlEuPV1ShgOwyNdH">
@@ -764,7 +943,7 @@ footer {
           <div class="ep-quote">Untuk pertama kali dalam sejarah, AI punya rekening — dan ini bukan metafora. Fokus pada cara aman kelola AI yang pegang uang.</div>
           <div class="ep-actions">
             <button class="ep-play-btn" data-play aria-label="Putar episode 06">▶ Putar</button>
-            <a class="ep-notes-btn" href="https://github.com/zudin2007/zudin2007/blob/main/episodes/E06-sistem-3-layer.md" target="_blank" rel="noopener">📎 Shownotes</a>
+            <button class="ep-notes-btn" data-notes>📎 Shownotes</button>
           </div>
         </div>
         <div class="ep-right">
@@ -772,6 +951,31 @@ footer {
         </div>
       </div>
       <div class="ep-embed"></div>
+      <div class="ep-notes">
+        <div class="ep-notes-inner">
+          <div class="ep-notes-section">
+            <div class="ep-notes-h">AI + Wallet Kripto</div>
+            <ul class="ep-notes-list">
+              <li>Untuk pertama kali dalam sejarah: AI punya rekening sendiri</li>
+              <li>Coinbase AgentKit: SDK resmi untuk AI wallet native di Base Network</li>
+              <li>Framework 3 Dompet: Hot (harian) · Warm (menengah) · Cold (jangka panjang)</li>
+              <li>Risiko utama: unauthorized access, smart contract bug, phishing</li>
+            </ul>
+          </div>
+          <div class="ep-notes-section">
+            <div class="ep-notes-h">Perspektif Syariah</div>
+            <ul class="ep-notes-list">
+              <li>Siapa yang bertanggung jawab atas transaksi AI? — manusia sebagai khalifah</li>
+              <li>Prinsip amanah dalam pengelolaan aset digital oleh mesin</li>
+              <li>Batasan dan pengawasan yang wajib ada dalam sistem AI wallet</li>
+            </ul>
+          </div>
+          <div class="ep-notes-tugas">
+            <strong>Tugas Episode</strong>
+            Audit dompet kriptomu sekarang: apakah sudah menggunakan sistem 3-layer (hot/warm/cold)? Jika belum, rancang pembagiannya berdasarkan tujuan penggunaan.
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="ep-card" data-spotify="0cuDyd8JpASlDvjoCaZseC">
@@ -783,7 +987,7 @@ footer {
           <div class="ep-quote">AI sekarang nggak cuma mikir, tapi juga checkout. Pelanggan berikutnya bisa jadi bukan manusia — ini peluang yang belum banyak dilirik.</div>
           <div class="ep-actions">
             <button class="ep-play-btn" data-play aria-label="Putar episode 07">▶ Putar</button>
-            <a class="ep-notes-btn" href="https://github.com/zudin2007/MiroFish/blob/main/docs/episodes/E07-ai-belanja-pakai-kripto.md" target="_blank" rel="noopener">📎 Shownotes</a>
+            <button class="ep-notes-btn" data-notes>📎 Shownotes</button>
           </div>
         </div>
         <div class="ep-right">
@@ -791,6 +995,31 @@ footer {
         </div>
       </div>
       <div class="ep-embed"></div>
+      <div class="ep-notes">
+        <div class="ep-notes-inner">
+          <div class="ep-notes-section">
+            <div class="ep-notes-h">Agent-to-Agent Economy</div>
+            <ul class="ep-notes-list">
+              <li>AI bisa checkout dari AI lain secara otonom — ini bukan fiksi ilmiah</li>
+              <li>Infrastruktur: Base Network (L2) + USDC + protokol x402 micropayment</li>
+              <li>Pelanggan berikutnya bisa jadi bukan manusia — tapi AI agent lain</li>
+            </ul>
+          </div>
+          <div class="ep-notes-section">
+            <div class="ep-notes-h">Peluang Bisnis</div>
+            <ul class="ep-notes-list">
+              <li>API marketplace yang bisa dibayar per-request oleh AI agents</li>
+              <li>Data feed berkualitas tinggi untuk AI consumption</li>
+              <li>Compute marketplace untuk AI workloads</li>
+              <li>Tool dan plugin berbayar yang bisa digunakan AI</li>
+            </ul>
+          </div>
+          <div class="ep-notes-tugas">
+            <strong>Tugas Episode</strong>
+            Identifikasi satu layanan digital yang kamu miliki atau bisa kamu bangun yang bisa dijual ke AI agents secara otomatis. Apa akad syariahnya dalam transaksi machine-to-machine?
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="ep-card ep-special" data-spotify="55NEDObIQl3fetE63saHHB">
@@ -802,7 +1031,7 @@ footer {
           <div class="ep-quote">Bukan sekadar trading — ini tentang membangun mesin yang bekerja bahkan saat kamu tidur. Dari mindset, manajemen risiko, hingga mengubah skill swing trading jadi cashflow bulanan yang konsisten.</div>
           <div class="ep-actions">
             <button class="ep-play-btn" data-play aria-label="Putar episode 08">▶ Putar</button>
-            <a class="ep-notes-btn" href="https://github.com/zudin2007/MiroFish/blob/main/docs/episodes/E08-membangun-sistem-penghasil-gaji.md" target="_blank" rel="noopener">📎 Shownotes</a>
+            <button class="ep-notes-btn" data-notes>📎 Shownotes</button>
           </div>
         </div>
         <div class="ep-right">
@@ -811,6 +1040,32 @@ footer {
         </div>
       </div>
       <div class="ep-embed"></div>
+      <div class="ep-notes">
+        <div class="ep-notes-inner">
+          <div class="ep-notes-section">
+            <div class="ep-notes-h">Framework 3 Lapisan Mesin Uang</div>
+            <ul class="ep-notes-list">
+              <li><b>Foundation (30%)</b> — emas fisik, PAXG, tabungan syariah</li>
+              <li><b>Growth (40%)</b> — saham syariah, sukuk, reksa dana syariah</li>
+              <li><b>Leverage (20%)</b> — BTC, swing trading terstruktur, RWA halal</li>
+              <li><b>Likuiditas (10%)</b> — cash / stablecoin syariah</li>
+            </ul>
+          </div>
+          <div class="ep-notes-section">
+            <div class="ep-notes-h">Manajemen Risiko Islami</div>
+            <ul class="ep-notes-list">
+              <li>Leverage berlebihan mendekati gharar — batasi ketat</li>
+              <li>Diversifikasi adalah wajib, bukan opsional</li>
+              <li>Zakat diperhitungkan sejak awal dalam target return</li>
+              <li>Stop-loss wajib dipasang di setiap posisi aktif</li>
+            </ul>
+          </div>
+          <div class="ep-notes-tugas">
+            <strong>Tugas Episode</strong>
+            Hitung: berapa jam per minggu kamu "menjual waktu" (kerja aktif) vs menghasilkan secara pasif? Target 2 tahun ke depan: bawa ke rasio 50/50.
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="ep-card ep-special" data-spotify="1rp0HFIc8U35x2sqp9Xg5k">
@@ -822,7 +1077,7 @@ footer {
           <div class="ep-quote">Semua aset bisa ditokenisasi. Tapi apakah semua token otomatis jadi Syariah? Kita bongkar ilusi Syariah dalam hype RWA — dari token emas, properti, hingga perkebunan sawit yang diklaim 100% halal.</div>
           <div class="ep-actions">
             <button class="ep-play-btn" data-play aria-label="Putar episode 09">▶ Putar</button>
-            <a class="ep-notes-btn" href="https://github.com/zudin2007/MiroFish/blob/main/docs/episodes/E09-rwa-aset-nyata-di-blockchain.md" target="_blank" rel="noopener">📎 Shownotes</a>
+            <button class="ep-notes-btn" data-notes>📎 Shownotes</button>
           </div>
         </div>
         <div class="ep-right">
@@ -832,6 +1087,33 @@ footer {
         </div>
       </div>
       <div class="ep-embed"></div>
+      <div class="ep-notes">
+        <div class="ep-notes-inner">
+          <div class="ep-notes-section">
+            <div class="ep-notes-h">4 Modus Shariah-Washing</div>
+            <ul class="ep-notes-list">
+              <li><b>Label Tanpa Akad</b> — klaim syariah hanya di marketing, tidak ada akad tertulis</li>
+              <li><b>Underlying Fiktif</b> — token tidak backed 1:1 dengan aset nyata yang bisa diaudit</li>
+              <li><b>Gharar Berlapis</b> — kepemilikan, likuidasi &amp; hak hukum tidak jelas</li>
+              <li><b>Maysir Terselubung</b> — yield bergantung pada spekulasi, bukan hasil nyata</li>
+            </ul>
+          </div>
+          <div class="ep-notes-section">
+            <div class="ep-notes-h">Checklist 5 Poin Audit Token Syariah</div>
+            <ul class="ep-notes-list">
+              <li><b>Akad</b> — ada akad jelas (murabahah/ijarah/musyarakah)?</li>
+              <li><b>Underlying</b> — aset fisiknya ada &amp; bisa diaudit independen?</li>
+              <li><b>Kepemilikan</b> — pemegang token punya hak hukum nyata?</li>
+              <li><b>Yield Source</b> — return dari aktivitas ekonomi nyata, bukan spekulasi?</li>
+              <li><b>DPS</b> — ada Dewan Pengawas Syariah independen &amp; kredibel?</li>
+            </ul>
+          </div>
+          <div class="ep-notes-tugas">
+            <strong>Tugas Episode</strong>
+            Gunakan checklist 5 poin untuk mengevaluasi satu proyek RWA yang sedang kamu pertimbangkan. Berapa poin yang lolos? Di bawah 4 poin = waspada.
+          </div>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -1001,6 +1283,24 @@ footer {
       navRight.style.display = navRight.style.display === "flex" ? "none" : "flex";
     });
   }
+
+  document.querySelectorAll(".ep-card [data-notes]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const card = btn.closest(".ep-card");
+      const notes = card.querySelector(".ep-notes");
+      const isOpen = notes.classList.contains("open");
+      if (!isOpen) {
+        notes.classList.add("open");
+        btn.textContent = "✕ Tutup";
+        btn.classList.add("active");
+      } else {
+        notes.classList.remove("open");
+        btn.textContent = "📎 Shownotes";
+        btn.classList.remove("active");
+      }
+    });
+  });
 
   document.querySelectorAll(".ep-card [data-play]").forEach((btn) => {
     btn.addEventListener("click", (e) => {
