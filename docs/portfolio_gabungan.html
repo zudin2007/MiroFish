@@ -512,7 +512,7 @@ async function updAll() {
 document.getElementById('updAll').onclick = updAll;
 
 // ===== INIT =====
-window.addEventListener('load', () => { mCalc(); gtCalc(); });
+window.addEventListener('load', () => { mCalc(); gtCalc(); setTimeout(updAll, 1500); });
 </script>
 </body>
 </html>
