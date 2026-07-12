@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bitcoin Seasonality 2011–2026 — Live + Rata-rata</title>
-<meta name="description" content="Heatmap return bulanan BTC 2011–2026. Rata-rata 2020–2025. Delta 2026 vs historis. Jul 2026 MTD live otomatis via CoinGecko. Bear market history.">
+<meta name="description" content="Heatmap return bulanan BTC 2011–2026. Rata-rata 2020–2025. Delta 2026 vs historis. Jul 2026 MTD live otomatis via Binance API. Bear market history.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -312,8 +312,8 @@ body {
         <span class="pulse-dot" style="width:6px;height:6px;background:#2563eb;display:inline-block"></span>
         Live Jul 2026
       </span>
-      <span class="badge badge-loss">YTD -29.2%</span>
-      <span class="badge badge-dark">Jun final -15.63%</span>
+      <span class="badge badge-loss">YTD -33.0%</span>
+      <span class="badge badge-dark">Jun final -20.15%</span>
       <span class="badge badge-btc" id="btc-price-badge">BTC: …</span>
       <span id="jul-badge" class="badge badge-live">Jul MTD: …</span>
     </div>
@@ -362,9 +362,9 @@ body {
     <div class="card-gap" style="background:var(--paper2);border:1px solid var(--border);border-radius:14px;padding:13px 16px;font-size:12.5px;color:var(--muted);line-height:1.7">
       H1 2026 mayoritas underperform historis. Q1 anomali besar: Jan Δ<span class="loss-text font-semibold"> -23.90pp</span>, Feb Δ<span class="loss-text font-semibold"> -25.71pp</span>, Mar Δ<span class="loss-text font-semibold"> -6.46pp</span>.
       Apr +11.85% (Δ<span class="gain-text font-semibold"> +9.08pp</span>) &amp; Mei -3.75% (Δ<span class="gain-text font-semibold"> +0.81pp</span>) mendekati rata-rata.
-      Jun final -15.63% vs avg -6.43% (Δ<span class="loss-text font-semibold"> -9.20pp</span>).
+      Jun final -20.15% vs avg -6.43% (Δ<span class="loss-text font-semibold"> -13.72pp</span>).
       Jul MTD <span id="jul-summary-text" class="btc-text font-semibold">…</span> vs avg +10.98% (Δ <span id="jul-delta-text" class="loss-text font-semibold">…</span>).
-      YTD live: <span id="ytd-summary" class="loss-text font-semibold">~-29.2%</span>
+      YTD live: <span id="ytd-summary" class="loss-text font-semibold">~-33.0%</span>
     </div>
   </section>
 
@@ -430,7 +430,7 @@ body {
         <div class="mono gain-text" style="font-size:28px;font-weight:700;margin:4px 0">+96.88%</div>
         <div style="font-size:12px;color:var(--muted)">Oktober terbaik (+18.15%) · Juni terburuk (-6.43%)</div>
         <div style="font-size:11.5px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border2)">
-          2026 YTD live ~-29.2% (Jun final) + Jul MTD live
+          2026 YTD live ~-33.0% (Jun final) + Jul MTD live
         </div>
       </div>
     </div>
@@ -468,10 +468,10 @@ body {
   <!-- ── NOTES ─────────────────────────────────────────────────── -->
   <div class="section-gap notes">
     <strong>Catatan data &amp; metodologi</strong><br>
-    Jan–Jun 2026 dari data historis yang telah dikonfirmasi. <strong>Juni 2026 final: -15.63%</strong> (May close $73,579.69 → Jun close ~$62,082).
-    <strong>Juli 2026 MTD</strong>: dihitung live dari harga BTC saat ini via Binance API, berbasis Jun close $62,082. Auto-refresh tiap 5 menit.<br><br>
+    Jan–Jun 2026 dari data historis yang telah dikonfirmasi. <strong>Juni 2026 final: -20.15%</strong> (May close $73,419 → Jun close $58,624).
+    <strong>Juli 2026 MTD</strong>: dihitung live dari harga BTC saat ini via Binance API, berbasis Jun close $58,624. Auto-refresh tiap 5 menit.<br><br>
     <span style="color:var(--subtle)">
-      Data 2020–2026 dari screenshot pengguna yang dikonfirmasi. Data 2011–2019 (~) merupakan perkiraan historis berdasarkan harga BTC publik yang dikenal — verifikasi ke CoinGecko/CoinMarketCap untuk akurasi penuh (deviasi ±5–15% untuk data pre-2016). YTD -29.2% dihitung compound dari Jan–Jun final. Bukan nasihat keuangan — DYOR.
+      Data 2020–2026 dari screenshot pengguna yang dikonfirmasi. Data 2011–2019 (~) merupakan perkiraan historis berdasarkan harga BTC publik yang dikenal — verifikasi ke CoinGecko/CoinMarketCap untuk akurasi penuh (deviasi ±5–15% untuk data pre-2016). YTD -33.0% dihitung compound dari Jan–Jun final. Bukan nasihat keuangan — DYOR.
     </span>
   </div>
 
@@ -485,9 +485,9 @@ body {
 
 <script>
 // ── DATA ─────────────────────────────────────────────────────────────
-const JUN_CLOSE = 62082;
+const JUN_CLOSE = 58624;
 const BTC_ATH   = 126073;
-const H1_PRODUCT = 0.70755; // compound Jan-Jun 2026
+const H1_PRODUCT = 0.6700; // compound Jan-Jun 2026
 
 const MONTHS     = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
 const MONTHS_KEY = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
@@ -508,7 +508,7 @@ const ROWS = [
   {y:2023, v:[39.63,0.05,22.96,2.83,-7.01,11.98,-4.02,-11.29,3.91,28.52,8.86,12.18], yr:155.70},
   {y:2024, v:[0.62,43.55,16.81,-14.76,11.07,-6.96,2.95,-8.60,7.29,10.76,37.29,-3.19], yr:119.68},
   {y:2025, v:[14.11,-18.00,-0.74,13.25,9.97,2.95,7.66,-5.68,4.42,-3.57,-19.26,-2.23], yr:9.20},
-  {y:2026, v:[-10.21,-14.71,1.75,11.85,-3.75,-15.63,null,null,null,null,null,null], yr:null, live:true},
+  {y:2026, v:[-10.21,-14.71,1.75,11.85,-3.75,-20.15,null,null,null,null,null,null], yr:null, live:true},
 ];
 
 const AVG = { y:'Rata-rata\n2020–2025', v:[13.69,11.00,8.21,2.77,-4.56,-6.43,10.98,-3.85,-0.34,18.15,7.75,5.19], yr:96.88, isAvg:true };
@@ -518,7 +518,7 @@ const BEAR_MARKETS = [
   {label:'2013–2015', high:1163,   highDate:'Nov 2013', low:152,    lowDate:'Jan 2015', dd:-87, dur:'~14 bln'},
   {label:'2017–2018', high:19800,  highDate:'Des 2017', low:3200,   lowDate:'Des 2018', dd:-84, dur:'~12 bln'},
   {label:'2021–2022', high:69044,  highDate:'Nov 2021', low:15500,  lowDate:'Nov 2022', dd:-77, dur:'~12 bln'},
-  {label:'2025–2026', high:126073, highDate:'Okt 2025', low:58000,  lowDate:'Jun 2026', dd:-54, dur:'~10 bln', live:true},
+  {label:'2025–2026', high:126073, highDate:'Okt 2025', low:57950,  lowDate:'Jul 2026', dd:-54, dur:'~9 bln', live:true},
 ];
 
 // ── HEAT COLOR ───────────────────────────────────────────────────────
@@ -608,7 +608,7 @@ function buildHeatmap() {
     totTd.className = 'year-total';
     if (row.live) {
       totTd.style.color = 'var(--live)';
-      totTd.textContent = '-29.2%*';
+      totTd.textContent = '-33.0%*';
       ytdCell = totTd;
     } else if (row.yr !== null) {
       const c = heatColor(row.yr / 10); // scale for year
@@ -626,7 +626,7 @@ function buildHeatmap() {
 }
 
 // ── DELTA CARDS ───────────────────────────────────────────────────────
-const DATA_2026 = [-10.21, -14.71, 1.75, 11.85, -3.75, -15.63, null]; // Jul filled live
+const DATA_2026 = [-10.21, -14.71, 1.75, 11.85, -3.75, -20.15, null]; // Jul filled live
 const AVG_H1JUL = [13.69, 11.00, 8.21, 2.77, -4.56, -6.43, 10.98];
 
 function buildDeltaCards() {
