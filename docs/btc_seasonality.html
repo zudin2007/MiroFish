@@ -312,7 +312,7 @@ body {
         <span class="pulse-dot" style="width:6px;height:6px;background:#2563eb;display:inline-block"></span>
         Live Jul 2026
       </span>
-      <span class="badge badge-loss">YTD -33.0%</span>
+      <span class="badge badge-loss" id="ytd-badge">YTD -33.0%</span>
       <span class="badge badge-dark">Jun final -20.15%</span>
       <span class="badge badge-btc" id="btc-price-badge">BTC: …</span>
       <span id="jul-badge" class="badge badge-live">Jul MTD: …</span>
@@ -488,6 +488,7 @@ body {
 const JUN_CLOSE = 58624;
 const BTC_ATH   = 126073;
 const H1_PRODUCT = 0.6700; // compound Jan-Jun 2026
+const isDark = true; // page is always dark-themed
 
 const MONTHS     = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
 const MONTHS_KEY = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
@@ -885,6 +886,8 @@ function updateAllLive(julMTD, price) {
   const footerPrice = document.getElementById('footer-price');
   if (priceBadge) priceBadge.textContent = 'BTC: ' + priceStr;
   if (footerPrice) footerPrice.textContent = 'BTC: ' + priceStr;
+  const ytdBadge = document.getElementById('ytd-badge');
+  if (ytdBadge) { ytdBadge.textContent = 'YTD ' + (ytd>=0?'+':'') + ytd.toFixed(1) + '%'; ytdBadge.style.color = ytd>=0?'var(--gain)':''; }
 
   // Bear market live row
   const currentDD = (price - BTC_ATH) / BTC_ATH * 100;
@@ -906,15 +909,30 @@ function updateAllLive(julMTD, price) {
 
 async function fetchLive() {
   let price = null;
-  try {
-    const r = await tFetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
-    if (r.ok) { const d = await r.json(); price = parseFloat(d?.price) || null; }
-  } catch(e) {}
-  if (!price) {
-    try {
+  const endpoints = [
+    async () => {
+      const r = await tFetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
+      if (r.ok) { const d = await r.json(); return parseFloat(d?.price) || null; }
+      return null;
+    },
+    async () => {
+      const r = await tFetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT'));
+      if (r.ok) { const d = await r.json(); return parseFloat(d?.price) || null; }
+      return null;
+    },
+    async () => {
       const r = await tFetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
-      if (r.ok) { const d = await r.json(); price = d?.bitcoin?.usd ?? null; }
-    } catch(e) {}
+      if (r.ok) { const d = await r.json(); return d?.bitcoin?.usd ?? null; }
+      return null;
+    },
+    async () => {
+      const r = await tFetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd'));
+      if (r.ok) { const d = await r.json(); return d?.bitcoin?.usd ?? null; }
+      return null;
+    },
+  ];
+  for (const fn of endpoints) {
+    try { price = await fn(); if (price) break; } catch(e) {}
   }
   if (!price) {
     if (julCell) julCell.textContent = 'N/A';
@@ -927,12 +945,9 @@ async function fetchLive() {
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────
-buildHeatmap();
-buildDeltaCards();
-buildSummaryTable();
-buildChart();
-buildAvgList();
-buildBearTable();
+[buildHeatmap, buildDeltaCards, buildSummaryTable, buildChart, buildAvgList, buildBearTable].forEach(fn => {
+  try { fn(); } catch(e) { console.error(fn.name, e); }
+});
 fetchLive();
 
 const _iv = setInterval(fetchLive, 5 * 60 * 1000);
