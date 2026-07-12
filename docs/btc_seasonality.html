@@ -12,33 +12,19 @@
 
 <style>
 :root {
-  --bg:       #f8f6f2;
-  --surface:  #ffffff;
-  --border:   #e4e2de;
-  --border2:  #f0ede8;
-  --text:     #1a1d23;
-  --muted:    #6b7280;
-  --subtle:   #9ca3af;
-  --paper2:   #f1eee8;
-  --gain:     #139669;
-  --loss:     #d7352a;
-  --live:     #2563eb;
+  --bg:       #0d0f14;
+  --surface:  #181b22;
+  --border:   #272b34;
+  --border2:  #1f2330;
+  --text:     #e8e6e1;
+  --muted:    #9ca3af;
+  --subtle:   #6b7280;
+  --paper2:   #1c1f27;
+  --gain:     #34d399;
+  --loss:     #f87171;
+  --live:     #60a5fa;
   --bitcoin:  #f59e0b;
-  --surface-hover: #fafaf8;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg:       #0d0f14;
-    --surface:  #181b22;
-    --border:   #272b34;
-    --border2:  #1f2330;
-    --text:     #e8e6e1;
-    --muted:    #9ca3af;
-    --subtle:   #6b7280;
-    --paper2:   #1c1f27;
-    --surface-hover: #1e2130;
-  }
+  --surface-hover: #1e2130;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -109,13 +95,9 @@ body {
   border: 1px solid;
 }
 .badge-live    { background: rgba(37,99,235,.08);  color: #2563eb; border-color: rgba(37,99,235,.2); }
-.badge-loss    { background: rgba(215,53,42,.08);  color: #c93020; border-color: rgba(215,53,42,.2); }
+.badge-loss    { background: rgba(248,113,113,.1);  color: #ff6a5e; border-color: rgba(248,113,113,.25); }
 .badge-dark    { background: var(--text);           color: var(--bg); border-color: transparent; }
-.badge-btc     { background: rgba(245,158,11,.10); color: #b45309; border-color: rgba(245,158,11,.25); }
-@media (prefers-color-scheme: dark) {
-  .badge-btc { color: #fcd34d; }
-  .badge-loss { color: #ff6a5e; }
-}
+.badge-btc     { background: rgba(245,158,11,.12); color: #fcd34d; border-color: rgba(245,158,11,.3); }
 
 .pulse-dot { animation: pulse 2s cubic-bezier(.4,0,.6,1) infinite; border-radius: 50%; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
@@ -208,12 +190,8 @@ body {
   border-radius: 99px;
   margin-left: auto;
 }
-.delta-pp-neg { background: rgba(215,53,42,.1); color: #c93020; border: 1px solid rgba(215,53,42,.2); }
-.delta-pp-pos { background: rgba(19,150,105,.1); color: #0e7a56; border: 1px solid rgba(19,150,105,.2); }
-@media (prefers-color-scheme: dark) {
-  .delta-pp-neg { color: #ff6a5e; }
-  .delta-pp-pos { color: #34d399; }
-}
+.delta-pp-neg { background: rgba(248,113,113,.1);  color: #ff6a5e; border: 1px solid rgba(248,113,113,.2); }
+.delta-pp-pos { background: rgba(52,211,153,.1);  color: #34d399; border: 1px solid rgba(52,211,153,.2); }
 
 /* ── Summary Table ── */
 .sum-table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -737,9 +715,8 @@ function buildSummaryTable() {
 
 // ── BAR CHART ─────────────────────────────────────────────────────────
 function buildChart() {
-  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const gridColor = isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.07)';
-  const tickColor = isDark ? '#9ca3af' : '#6b7280';
+  const gridColor = 'rgba(255,255,255,.07)';
+  const tickColor = '#9ca3af';
 
   const ctx = document.getElementById('season-chart');
   chartRef = new Chart(ctx, {
