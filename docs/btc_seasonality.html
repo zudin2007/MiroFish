@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitcoin Seasonality 2011–2026 — Live + Rata-rata</title>
+<meta name="description" content="Heatmap return bulanan BTC 2011–2026. Rata-rata 2020–2025. Delta 2026 vs historis. Jul 2026 MTD live otomatis via CoinGecko. Bear market history.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<style>
+:root {
+  --bg:       #f8f6f2;
+  --surface:  #ffffff;
+  --border:   #e4e2de;
+  --border2:  #f0ede8;
+  --text:     #1a1d23;
+  --muted:    #6b7280;
+  --subtle:   #9ca3af;
+  --paper2:   #f1eee8;
+  --gain:     #139669;
+  --loss:     #d7352a;
+  --live:     #2563eb;
+  --bitcoin:  #f59e0b;
+  --surface-hover: #fafaf8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:       #0d0f14;
+    --surface:  #181b22;
+    --border:   #272b34;
+    --border2:  #1f2330;
+    --text:     #e8e6e1;
+    --muted:    #9ca3af;
+    --subtle:   #6b7280;
+    --paper2:   #1c1f27;
+    --surface-hover: #1e2130;
+  }
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+.display { font-family: 'Fraunces', Georgia, serif; }
+.mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+/* ── Layout ── */
+.wrap { max-width: 1340px; margin: 0 auto; padding: 32px 20px 60px; }
+
+/* ── Cards ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 4px 24px -8px rgba(0,0,0,.06);
+  overflow: hidden;
+}
+.card-head {
+  padding: 20px 28px 18px;
+  border-bottom: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.card-title { font-size: 17px; font-weight: 700; }
+.card-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.card-body { padding: 20px 28px; }
+
+/* ── Header ── */
+.site-header { margin-bottom: 36px; }
+.header-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.header-h1 { font-size: clamp(32px, 5vw, 56px); line-height: .95; letter-spacing: -.02em; font-weight: 700; }
+.header-h1 .bitcoin-gradient {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.header-sub { margin-top: 10px; font-size: 16px; color: var(--muted); }
+.badges { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid;
+}
+.badge-live    { background: rgba(37,99,235,.08);  color: #2563eb; border-color: rgba(37,99,235,.2); }
+.badge-loss    { background: rgba(215,53,42,.08);  color: #c93020; border-color: rgba(215,53,42,.2); }
+.badge-dark    { background: var(--text);           color: var(--bg); border-color: transparent; }
+.badge-btc     { background: rgba(245,158,11,.10); color: #b45309; border-color: rgba(245,158,11,.25); }
+@media (prefers-color-scheme: dark) {
+  .badge-btc { color: #fcd34d; }
+  .badge-loss { color: #ff6a5e; }
+}
+
+.pulse-dot { animation: pulse 2s cubic-bezier(.4,0,.6,1) infinite; border-radius: 50%; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+/* ── Heatmap Table ── */
+.table-scroll-wrap { position: relative; }
+.table-scroll-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 32px;
+  background: linear-gradient(to left, var(--surface), transparent);
+  pointer-events: none;
+}
+@media (min-width: 900px) { .table-scroll-wrap::after { display: none; } }
+
+.table-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding: 0 20px 8px;
+}
+.table-scroll::-webkit-scrollbar { height: 6px; }
+.table-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+.heatmap {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  min-width: 900px;
+}
+.heatmap th {
+  text-align: right;
+  padding: 10px 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.heatmap th:first-child { text-align: left; padding-left: 8px; }
+.heatmap td {
+  text-align: right;
+  padding: 8px;
+  font-size: 12.5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  transition: filter .12s;
+  white-space: nowrap;
+}
+.heatmap td:first-child { text-align: left; padding-left: 8px; font-family: 'Inter', sans-serif; font-weight: 600; }
+.heatmap tbody tr:hover td { filter: brightness(1.06); }
+.heatmap .year-total {
+  text-align: right;
+  border-left: 1px solid var(--border2);
+  font-weight: 700;
+  font-size: 12.5px;
+  position: sticky;
+  right: 0;
+  background: var(--surface);
+  padding-left: 12px;
+  padding-right: 8px;
+}
+
+/* ── Two col / three col grids ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.grid-7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+
+@media (max-width: 1000px) { .grid-2 { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .grid-3 { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .grid-3, .grid-7 { grid-template-columns: 1fr 1fr; } }
+
+/* ── Delta cards ── */
+.delta-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  transition: background .15s;
+}
+.delta-card:hover { background: var(--surface-hover); }
+.delta-month { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 8px; }
+.delta-row { display: flex; align-items: flex-end; gap: 8px; margin-bottom: 4px; }
+.delta-val { font-size: 19px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.delta-pp {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 99px;
+  margin-left: auto;
+}
+.delta-pp-neg { background: rgba(215,53,42,.1); color: #c93020; border: 1px solid rgba(215,53,42,.2); }
+.delta-pp-pos { background: rgba(19,150,105,.1); color: #0e7a56; border: 1px solid rgba(19,150,105,.2); }
+@media (prefers-color-scheme: dark) {
+  .delta-pp-neg { color: #ff6a5e; }
+  .delta-pp-pos { color: #34d399; }
+}
+
+/* ── Summary Table ── */
+.sum-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.sum-table th {
+  text-align: right;
+  padding: 9px 10px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.sum-table th:first-child { text-align: left; }
+.sum-table td {
+  padding: 10px 10px;
+  text-align: right;
+  border-bottom: 1px solid var(--border2);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+}
+.sum-table td:first-child { text-align: left; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px; }
+.sum-table tr:last-child td { border-bottom: none; }
+
+/* ── Avg list ── */
+.avg-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: var(--paper2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  font-size: 13px;
+}
+.avg-bar-wrap { flex: 1; height: 4px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.avg-bar { height: 100%; border-radius: 99px; }
+
+/* ── Bear table ── */
+.bear-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 680px; }
+.bear-table th {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--paper2);
+  border-bottom: 1px solid var(--border);
+}
+.bear-table th:not(:first-child) { text-align: right; }
+.bear-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border2);
+}
+.bear-table td:not(:first-child) { text-align: right; font-family: 'JetBrains Mono', monospace; }
+.bear-table tr:last-child td { border-bottom: none; }
+.bear-table tr:hover td { background: var(--surface-hover); }
+.dd-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 7px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* ── Notes ── */
+.notes {
+  background: var(--paper2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 22px 28px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.notes strong { color: var(--text); }
+
+/* ── Misc ── */
+.section-gap { margin-top: 28px; }
+.card-gap { margin-top: 16px; }
+.legend-row { display: flex; align-items: center; gap: 16px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+.legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+.approx { opacity: .8; }
+.gain-text { color: var(--gain); }
+.loss-text { color: var(--loss); }
+.live-text { color: var(--live); }
+.btc-text  { color: var(--bitcoin); }
+.footer-bar {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ── HEADER ──────────────────────────────────────────────── -->
+  <header class="site-header">
+    <p class="header-eyebrow">Bitcoin Seasonality Tracker · BTCUSD · 2011–2026</p>
+    <h1 class="display header-h1">
+      Bitcoin Seasonality<br>
+      <span class="bitcoin-gradient">2011–2026</span>
+    </h1>
+    <p class="header-sub">Return bulanan · Rata-rata 2020–2025 · Jul 2026 MTD live · Bear market history</p>
+    <div class="badges">
+      <span class="badge badge-live">
+        <span class="pulse-dot" style="width:6px;height:6px;background:#2563eb;display:inline-block"></span>
+        Live Jul 2026
+      </span>
+      <span class="badge badge-loss">YTD -29.2%</span>
+      <span class="badge badge-dark">Jun final -15.63%</span>
+      <span class="badge badge-btc" id="btc-price-badge">BTC: …</span>
+      <span id="jul-badge" class="badge badge-live">Jul MTD: …</span>
+    </div>
+  </header>
+
+  <!-- ── FULL HEATMAP 2011–2026 ───────────────────────────────── -->
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <div class="card-title">Heatmap Return Bulanan 2011–2026</div>
+        <div class="card-sub">Baris <span class="approx">~ = perkiraan historis</span> · Row rata-rata = 2020–2025 baseline · 2026 highlighted amber</div>
+      </div>
+      <div class="legend-row">
+        <span style="display:flex;align-items:center;gap:5px"><span class="legend-dot" style="background:#139669"></span>Positif</span>
+        <span style="display:flex;align-items:center;gap:5px"><span class="legend-dot" style="background:#d7352a"></span>Negatif</span>
+        <span style="display:flex;align-items:center;gap:5px"><span class="legend-dot" style="background:#f59e0b"></span>2026 / Rata-rata</span>
+        <span style="display:flex;align-items:center;gap:5px">
+          <span style="width:13px;height:13px;border:2px solid #2563eb;display:inline-block;border-radius:3px"></span>Jul live
+        </span>
+      </div>
+    </div>
+    <div class="table-scroll-wrap">
+      <div class="table-scroll" id="main-scroll">
+        <table class="heatmap" id="main-table">
+          <thead>
+            <tr>
+              <th style="min-width:78px">Tahun</th>
+              <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>Mei</th><th>Jun</th>
+              <th>Jul</th><th>Agt</th><th>Sep</th><th>Okt</th><th>Nov</th><th>Des</th>
+              <th class="year-total" style="min-width:68px">Year</th>
+            </tr>
+          </thead>
+          <tbody id="main-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div style="padding:10px 24px 14px;font-size:11.5px;color:var(--muted)">
+      Geser tabel ke samping di ponsel → · Jul 2026 = MTD live auto-fetch tiap 5 menit · Jun 2026 = final · 2011–2019 = ~ perkiraan historis
+    </div>
+  </section>
+
+  <!-- ── DELTA CARDS ──────────────────────────────────────────── -->
+  <section class="section-gap">
+    <h2 style="font-size:16px;font-weight:700;margin-bottom:12px">2026 vs Rata-rata 2020–2025 — Delta per Bulan</h2>
+    <div class="grid-7" id="delta-cards"></div>
+    <div class="card-gap" style="background:var(--paper2);border:1px solid var(--border);border-radius:14px;padding:13px 16px;font-size:12.5px;color:var(--muted);line-height:1.7">
+      H1 2026 mayoritas underperform historis. Q1 anomali besar: Jan Δ<span class="loss-text font-semibold"> -23.90pp</span>, Feb Δ<span class="loss-text font-semibold"> -25.71pp</span>, Mar Δ<span class="loss-text font-semibold"> -6.46pp</span>.
+      Apr +11.85% (Δ<span class="gain-text font-semibold"> +9.08pp</span>) &amp; Mei -3.75% (Δ<span class="gain-text font-semibold"> +0.81pp</span>) mendekati rata-rata.
+      Jun final -15.63% vs avg -6.43% (Δ<span class="loss-text font-semibold"> -9.20pp</span>).
+      Jul MTD <span id="jul-summary-text" class="btc-text font-semibold">…</span> vs avg +10.98% (Δ <span id="jul-delta-text" class="loss-text font-semibold">…</span>).
+      YTD live: <span id="ytd-summary" class="loss-text font-semibold">~-29.2%</span>
+    </div>
+  </section>
+
+  <!-- ── SUMMARY TABLE + CHART ────────────────────────────────── -->
+  <div class="section-gap grid-2" style="align-items:start">
+
+    <!-- Summary table -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">H1 Final + Jul MTD: 2026 vs Rata-rata</div>
+          <div class="card-sub">Jan – Jul* (2026 vs rata-rata 2020–2025)</div>
+        </div>
+      </div>
+      <div class="card-body" style="padding:16px 24px 20px">
+        <div style="overflow-x:auto">
+          <table class="sum-table" id="sum-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>Mei</th><th>Jun</th><th>Jul*</th>
+              </tr>
+            </thead>
+            <tbody id="sum-tbody"></tbody>
+          </table>
+        </div>
+        <p style="margin-top:12px;font-size:12px;color:var(--muted);line-height:1.6">
+          Delta pp = perbedaan poin persentase 2026 terhadap rata-rata 2020–2025. * Jul = MTD live. Jun = final.
+        </p>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">2026 vs Rata-rata — Bar Chart</div>
+        <span style="font-size:12px;color:var(--muted)">Jan–Jul (%)</span>
+      </div>
+      <div class="card-body" style="padding:16px 24px 20px">
+        <div style="position:relative;height:240px">
+          <canvas id="season-chart"></canvas>
+        </div>
+        <div class="legend-row" style="margin-top:12px">
+          <span style="display:flex;align-items:center;gap:5px"><span class="legend-dot" style="background:#2563eb"></span>2026</span>
+          <span style="display:flex;align-items:center;gap:5px"><span class="legend-dot" style="background:#cfcac3"></span>Rata-rata 2020–2025</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── AVG SIDEBAR + BEAR MARKET ────────────────────────────── -->
+  <div class="section-gap grid-2" style="align-items:start">
+
+    <!-- Seasonal avg -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Rata-rata Musiman 2020–2025</div>
+      </div>
+      <div class="card-body" id="avg-list" style="display:flex;flex-direction:column;gap:8px">
+      </div>
+      <div style="padding:14px 24px 18px;border-top:1px solid var(--border2)">
+        <div style="font-size:11.5px;color:var(--muted)">Rata-rata return tahunan 2020–2025</div>
+        <div class="mono gain-text" style="font-size:28px;font-weight:700;margin:4px 0">+96.88%</div>
+        <div style="font-size:12px;color:var(--muted)">Oktober terbaik (+18.15%) · Juni terburuk (-6.43%)</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border2)">
+          2026 YTD live ~-29.2% (Jun final) + Jul MTD live
+        </div>
+      </div>
+    </div>
+
+    <!-- Bear market table -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Sejarah Bear Market BTC</div>
+          <div class="card-sub">ATH → bottom terkonfirmasi · 2025–2026 masih berjalan ▶</div>
+        </div>
+        <span style="font-size:11px;color:var(--muted)">Sumber: River</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="bear-table" id="bear-table">
+          <thead>
+            <tr>
+              <th>Bear Market</th>
+              <th>High (ATH)</th>
+              <th>Low</th>
+              <th>Drawdown</th>
+              <th>Durasi</th>
+            </tr>
+          </thead>
+          <tbody id="bear-tbody"></tbody>
+        </table>
+      </div>
+      <div style="padding:10px 20px 14px;font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border2)">
+        <span>▶ = masih berjalan · current DD dari ATH $126,073</span>
+        <span id="bear-live-info" class="btc-text" style="font-weight:600">Menunggu harga live…</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── NOTES ─────────────────────────────────────────────────── -->
+  <div class="section-gap notes">
+    <strong>Catatan data &amp; metodologi</strong><br>
+    Jan–Mei 2026 dari data historis yang telah dikonfirmasi. <strong>Juni 2026 final: -15.63%</strong> (May close $73,579.69 → Jun close ~$62,082).
+    <strong>Juli 2026 MTD</strong>: dihitung live dari harga BTC saat ini via CoinGecko API, berbasis Jun close $62,082. Auto-refresh tiap 5 menit.<br><br>
+    <span style="color:var(--subtle)">
+      Data 2020–2026 dari screenshot pengguna yang dikonfirmasi. Data 2011–2019 (~) merupakan perkiraan historis berdasarkan harga BTC publik yang dikenal — verifikasi ke CoinGecko/CoinMarketCap untuk akurasi penuh (deviasi ±5–15% untuk data pre-2016). YTD -29.2% dihitung compound dari Jan–Jun final. Bukan nasihat keuangan — DYOR.
+    </span>
+  </div>
+
+  <!-- ── FOOTER ─────────────────────────────────────────────────── -->
+  <footer class="footer-bar">
+    <span>Bitcoin Seasonality 2011–2026 · Update 5 Juli 2026 · Jun Final + Jul Live</span>
+    <span id="footer-price" class="live-text mono" style="font-weight:700">BTC: …</span>
+  </footer>
+
+</div><!-- /wrap -->
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────
+const JUN_CLOSE = 62082;
+const BTC_ATH   = 126073;
+const H1_PRODUCT = 0.70755; // compound Jan-Jun 2026
+
+const MONTHS     = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+const MONTHS_KEY = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+
+const ROWS = [
+  {y:2011, v:[57.1,66.7,-3.8,115.4,354.5,107.7,-61.9,59.5,-39.8,-35.3,-7.4,65.5], yr:1473.0, approx:true},
+  {y:2012, v:[8.5,22.0,2.8,-6.1,0.6,-8.0,6.2,14.4,20.3,12.8,65.5,6.0],            yr:186.5,  approx:true},
+  {y:2013, v:[48.2,61.2,183.6,53.4,34.2,-28.8,8.5,31.1,13.5,57.9,453.6,-34.0],    yr:5507.0, approx:true},
+  {y:2014, v:[8.6,-31.0,-21.5,-1.8,11.5,11.9,5.0,-20.9,-22.8,-10.2,9.3,-16.0],   yr:-57.9,  approx:true},
+  {y:2015, v:[-31.1,17.5,0.0,-11.0,3.1,11.5,6.1,-17.3,2.6,39.6,10.1,19.1],       yr:36.5,   approx:true},
+  {y:2016, v:[-13.5,16.6,-4.8,8.2,19.2,26.2,-3.7,-10.8,5.9,14.5,5.1,30.4],       yr:124.2,  approx:true},
+  {y:2017, v:[5.7,17.5,-9.5,25.0,54.5,19.1,15.8,64.1,-7.4,40.1,60.3,40.9],       yr:1342.0, approx:true},
+  {y:2018, v:[-27.3,4.1,-32.0,33.2,-19.0,-14.4,28.3,-14.4,-5.9,-3.9,-36.6,-7.4], yr:-73.1,  approx:true},
+  {y:2019, v:[-7.6,11.6,6.0,30.2,64.1,23.6,-11.2,0.0,-13.6,10.8,-17.6,-4.9],     yr:92.3,   approx:true},
+  {y:2020, v:[29.95,-8.60,-25.00,34.26,9.51,-3.32,24.03,2.83,-7.51,27.70,42.95,46.92], yr:301.30},
+  {y:2021, v:[14.51,36.79,29.84,-1.66,-35.31,-5.95,18.46,13.52,-7.03,39.93,-7.11,-18.90], yr:59.70},
+  {y:2022, v:[-16.68,12.21,5.39,-17.30,-15.59,-37.28,16.80,-13.88,-3.12,5.56,-16.23,-3.64], yr:-64.30},
+  {y:2023, v:[39.63,0.05,22.96,2.83,-7.01,11.98,-4.02,-11.29,3.91,28.52,8.86,12.18], yr:155.70},
+  {y:2024, v:[0.62,43.55,16.81,-14.76,11.07,-6.96,2.95,-8.60,7.29,10.76,37.29,-3.19], yr:119.68},
+  {y:2025, v:[14.11,-18.00,-0.74,13.25,9.97,2.95,7.66,-5.68,4.42,-3.57,-19.26,-2.23], yr:9.20},
+  {y:2026, v:[-10.21,-14.71,1.75,11.85,-3.75,-15.63,null,null,null,null,null,null], yr:null, live:true},
+];
+
+const AVG = { y:'Rata-rata\n2020–2025', v:[13.69,11.00,8.21,2.77,-4.56,-6.43,10.98,-3.85,-0.34,18.15,7.75,5.19], yr:96.88, isAvg:true };
+
+const BEAR_MARKETS = [
+  {label:'2011',      high:31.91,  highDate:'Jun 2011', low:2.14,   lowDate:'Nov 2011', dd:-93, dur:'~5 bln'},
+  {label:'2013–2015', high:1163,   highDate:'Nov 2013', low:152,    lowDate:'Jan 2015', dd:-87, dur:'~14 bln'},
+  {label:'2017–2018', high:19800,  highDate:'Des 2017', low:3200,   lowDate:'Des 2018', dd:-84, dur:'~12 bln'},
+  {label:'2021–2022', high:69044,  highDate:'Nov 2021', low:15500,  lowDate:'Nov 2022', dd:-77, dur:'~12 bln'},
+  {label:'2025–2026', high:126073, highDate:'Okt 2025', low:58000,  lowDate:'Jun 2026', dd:-53, dur:'~9 bln', live:true},
+];
+
+// ── HEAT COLOR ───────────────────────────────────────────────────────
+function heatColor(v) {
+  if (v === null || v === undefined) return null;
+  const abs = Math.abs(v);
+  const a = Math.min(abs / 42, 1);
+  const alpha = .08 + a * .72;
+  if (v >= 0) return { bg: `rgba(19,150,105,${alpha})`,    fg: a > .5 ? '#fff'    : '' };
+  else        return { bg: `rgba(215,53,42,${alpha})`,     fg: a > .5 ? '#fff'    : '' };
+}
+
+function fmt(v, sign=true) {
+  if (v === null || v === undefined) return '—';
+  const s = (sign && v > 0) ? '+' : '';
+  return s + v.toFixed(2) + '%';
+}
+
+function fmtUSD(v) {
+  return v >= 1000 ? '$' + v.toLocaleString('en-US') : '$' + v.toFixed(2);
+}
+
+// ── DOM REFS for live updates ─────────────────────────────────────────
+let julCell, ytdCell, sumJulCell, sumDeltaCell;
+let chartRef = null;
+
+// ── MAIN HEATMAP ─────────────────────────────────────────────────────
+function buildHeatmap() {
+  const tbody = document.getElementById('main-tbody');
+
+  const allRows = [...ROWS, AVG];
+  allRows.forEach(row => {
+    const tr = document.createElement('tr');
+    if (row.live) tr.style.outline = '2px solid rgba(37,99,235,.5)';
+    if (row.isAvg) tr.style.outline = '2px solid rgba(245,158,11,.5)';
+
+    // Year cell
+    const yearTd = document.createElement('td');
+    yearTd.style.fontFamily = "'JetBrains Mono', monospace";
+    yearTd.style.fontWeight = '600';
+    if (row.live)    { yearTd.style.color = '#2563eb'; yearTd.textContent = '2026 *'; }
+    else if (row.isAvg) { yearTd.style.color = '#b45309'; yearTd.innerHTML = 'Rata-rata<br><span style="font-size:10px;color:var(--muted);font-weight:500">2020–2025</span>'; }
+    else if (row.approx) { yearTd.innerHTML = `${row.y}<span style="font-size:9px;color:var(--subtle);margin-left:3px">~</span>`; }
+    else { yearTd.textContent = row.y; }
+    tr.appendChild(yearTd);
+
+    // Month cells
+    row.v.forEach((v, i) => {
+      const td = document.createElement('td');
+      const isLiveJul = row.live && i === 6;
+
+      if (isLiveJul) {
+        td.textContent = '…';
+        td.style.color = '#2563eb';
+        td.style.outline = '2px solid #2563eb';
+        td.style.outlineOffset = '-1px';
+        julCell = td;
+      } else {
+        const c = heatColor(v);
+        if (c) {
+          td.style.background = c.bg;
+          if (c.fg) td.style.color = c.fg;
+        } else {
+          td.style.color = 'var(--subtle)';
+        }
+        td.textContent = v === null ? '—' : (v > 0 ? '+' : '') + v.toFixed(2);
+        if (v !== null) {
+          if (row.isAvg) {
+            td.title = `Rata-rata ${MONTHS[i]}: ${fmt(v)}`;
+          } else if (row.live && v !== null) {
+            const delta = v - AVG.v[i];
+            td.title = `2026 ${MONTHS[i]}: ${fmt(v)} vs avg ${fmt(AVG.v[i])} (Δ ${delta>0?'+':''}${delta.toFixed(2)}pp)`;
+            td.style.cursor = 'help';
+            td.style.boxShadow = 'inset 0 -2px 0 rgba(37,99,235,.4)';
+          } else if (row.approx) {
+            td.title = `${row.y} ${MONTHS[i]}: ${fmt(v)} (perkiraan historis)`;
+            td.style.cursor = 'help';
+          }
+        }
+        if (row.isAvg) td.style.fontWeight = '700';
+      }
+      tr.appendChild(td);
+    });
+
+    // Year total
+    const totTd = document.createElement('td');
+    totTd.className = 'year-total';
+    if (row.live) {
+      totTd.style.color = 'var(--live)';
+      totTd.textContent = '-29.2%*';
+      ytdCell = totTd;
+    } else if (row.yr !== null) {
+      const c = heatColor(row.yr / 10); // scale for year
+      totTd.textContent = (row.yr > 0 ? '+' : '') + row.yr.toFixed(2) + '%';
+      totTd.style.color = row.yr >= 0 ? 'var(--gain)' : 'var(--loss)';
+    } else {
+      totTd.textContent = '—';
+      totTd.style.color = 'var(--subtle)';
+    }
+    if (row.isAvg) { totTd.style.color = '#b45309'; totTd.style.fontWeight = '700'; }
+    tr.appendChild(totTd);
+
+    tbody.appendChild(tr);
+  });
+}
+
+// ── DELTA CARDS ───────────────────────────────────────────────────────
+const DATA_2026 = [-10.21, -14.71, 1.75, 11.85, -3.75, -15.63, null]; // Jul filled live
+const AVG_H1JUL = [13.69, 11.00, 8.21, 2.77, -4.56, -6.43, 10.98];
+
+function buildDeltaCards() {
+  const container = document.getElementById('delta-cards');
+  DATA_2026.forEach((v, i) => {
+    const card = document.createElement('div');
+    card.className = 'delta-card';
+    const isJul = (i === 6);
+
+    if (isJul) {
+      card.id = 'jul-delta-card';
+      card.innerHTML = `
+        <div class="delta-month" style="color:var(--live)">Jul 2026 <span style="font-size:9px;background:rgba(37,99,235,.1);color:#2563eb;padding:1px 6px;border-radius:99px;border:1px solid rgba(37,99,235,.2)">LIVE</span></div>
+        <div class="delta-row">
+          <span id="jul-delta-val" class="delta-val" style="color:var(--muted)">—</span>
+          <span id="jul-delta-pp" class="delta-pp" style="margin-left:auto;background:rgba(156,163,175,.15);color:var(--muted);border:1px solid var(--border)">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)">
+          <span>Avg: <b class="gain-text">${fmt(AVG_H1JUL[i])}</b></span>
+          <span id="jul-delta-sub" style="color:var(--muted)">menunggu…</span>
+        </div>
+      `;
+    } else {
+      const delta = v - AVG_H1JUL[i];
+      card.innerHTML = `
+        <div class="delta-month">${MONTHS[i]} 2026</div>
+        <div class="delta-row">
+          <span class="delta-val" style="color:${v>=0?'var(--gain)':'var(--loss)'}">${fmt(v)}</span>
+          <span class="delta-pp ${delta<0?'delta-pp-neg':'delta-pp-pos'}">${delta>0?'+':''}${delta.toFixed(2)}pp</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted)">
+          Avg: <b style="color:${AVG_H1JUL[i]>=0?'var(--gain)':'var(--loss)'}">${fmt(AVG_H1JUL[i])}</b>
+          &nbsp;·&nbsp; ${delta<0?'tertinggal':'unggul'}
+        </div>
+      `;
+    }
+    container.appendChild(card);
+  });
+}
+
+// ── SUMMARY TABLE ─────────────────────────────────────────────────────
+function buildSummaryTable() {
+  const tbody = document.getElementById('sum-tbody');
+  const deltaVals = [-23.90, -25.71, -6.46, 9.08, 0.81, -9.20, null];
+
+  const summaryRows = [
+    { label: 'Rata-rata 2020–2025', vals: AVG_H1JUL, muted: true },
+    { label: '2026',                vals: [...DATA_2026.slice(0,6), null], bold: true, live: true },
+    { label: 'Delta pp',            vals: deltaVals, delta: true },
+  ];
+
+  summaryRows.forEach((r, ri) => {
+    const tr = document.createElement('tr');
+    const th = document.createElement('td');
+    th.textContent = r.label;
+    if (r.live) th.style.color = 'var(--live)';
+    if (r.muted) th.style.color = 'var(--muted)';
+    tr.appendChild(th);
+
+    r.vals.forEach((v, i) => {
+      const td = document.createElement('td');
+      const isJul = (i === 6);
+      if (isJul && v === null) {
+        td.textContent = '…';
+        td.style.color = 'var(--live)';
+        if (r.live) sumJulCell = td;
+        if (r.delta) sumDeltaCell = td;
+      } else {
+        const sign = v > 0 ? '+' : '';
+        td.textContent = v !== null ? sign + v.toFixed(2) + '%' : '—';
+        if (r.delta) {
+          td.style.color = v < 0 ? 'var(--loss)' : v > 0 ? 'var(--gain)' : 'var(--muted)';
+          td.style.fontWeight = '600';
+        } else if (r.bold) {
+          td.style.color = v >= 0 ? 'var(--gain)' : 'var(--loss)';
+          td.style.fontWeight = '700';
+        } else {
+          td.style.color = 'var(--muted)';
+        }
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+// ── BAR CHART ─────────────────────────────────────────────────────────
+function buildChart() {
+  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const gridColor = isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.07)';
+  const tickColor = isDark ? '#9ca3af' : '#6b7280';
+
+  const ctx = document.getElementById('season-chart');
+  chartRef = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: MONTHS.slice(0, 7),
+      datasets: [
+        {
+          label: 'Rata-rata 2020–2025',
+          data: AVG_H1JUL,
+          backgroundColor: isDark ? '#3e434c' : '#cfcac3',
+          borderRadius: 5,
+          barPercentage: .72,
+          categoryPercentage: .72,
+        },
+        {
+          label: '2026',
+          data: [...DATA_2026.slice(0,6), null],
+          backgroundColor: '#2563eb',
+          borderRadius: 5,
+          barPercentage: .72,
+          categoryPercentage: .72,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: { label: c => c.raw !== null ? ` ${c.dataset.label}: ${c.raw > 0 ? '+' : ''}${c.raw.toFixed(2)}%` : ` ${c.dataset.label}: —` }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: tickColor, font: { family: 'Inter', size: 12, weight: '600' } }, border: { display: false } },
+        y: { grid: { color: gridColor }, border: { display: false }, ticks: { color: tickColor, callback: v => v + '%', font: { family: 'Inter', size: 11 } } }
+      }
+    }
+  });
+}
+
+// ── AVG SIDEBAR ───────────────────────────────────────────────────────
+function buildAvgList() {
+  const container = document.getElementById('avg-list');
+  const allAvg = MONTHS.map((m, i) => ({ name: m, val: AVG.v[i] }));
+  const sorted = [...allAvg].sort((a, b) => b.val - a.val);
+  sorted.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'avg-row';
+    const isPos = item.val >= 0;
+    const barW = Math.min(Math.abs(item.val) / 18 * 100, 100);
+    div.innerHTML = `
+      <span style="width:36px;font-size:12px;font-weight:600;color:var(--muted)">${item.name}</span>
+      <div class="avg-bar-wrap"><div class="avg-bar" style="width:${barW}%;background:${isPos?'var(--gain)':'var(--loss)'}"></div></div>
+      <span class="mono" style="font-size:12.5px;font-weight:700;color:${isPos?'var(--gain)':'var(--loss)'};min-width:52px;text-align:right">${fmt(item.val)}</span>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// ── BEAR MARKET TABLE ─────────────────────────────────────────────────
+function buildBearTable() {
+  const tbody = document.getElementById('bear-tbody');
+  BEAR_MARKETS.forEach(bm => {
+    const tr = document.createElement('tr');
+    if (bm.live) tr.style.outline = '1px solid rgba(245,158,11,.35)';
+
+    const ddAbs = Math.abs(bm.dd);
+    const ddColor = ddAbs >= 90 ? '#7f1d1d' : ddAbs >= 80 ? '#991b1b' : ddAbs >= 70 ? '#b91c1c' : ddAbs >= 60 ? '#ef4444' : '#f59e0b';
+    const ddBg = ddAbs >= 90 ? 'rgba(127,29,29,.7)' : ddAbs >= 80 ? 'rgba(153,27,27,.5)' : ddAbs >= 70 ? 'rgba(185,28,28,.35)' : ddAbs >= 60 ? 'rgba(239,68,68,.2)' : 'rgba(245,158,11,.15)';
+    const ddFg = ddAbs >= 60 ? '#fff' : '#b45309';
+
+    const liveBadge = bm.live ? ' <span style="font-size:9.5px;padding:2px 7px;border-radius:99px;background:rgba(245,158,11,.15);color:#b45309;border:1px solid rgba(245,158,11,.3);font-weight:700">LIVE ▶</span>' : '';
+
+    tr.innerHTML = `
+      <td style="font-weight:700;font-size:13px">${bm.label}${liveBadge}</td>
+      <td><div style="font-weight:700;color:var(--gain)">${fmtUSD(bm.high)}</div><div style="font-size:11px;color:var(--muted)">${bm.highDate}</div></td>
+      <td><div id="${bm.live?'bear-low-live':''}" style="font-weight:700;color:${bm.live?'var(--bitcoin)':'var(--loss)'}">${bm.live?'~':''}${fmtUSD(bm.low)}</div><div style="font-size:11px;color:var(--muted)">${bm.lowDate}${bm.live?' ▶':''}</div></td>
+      <td><span id="${bm.live?'bear-dd-live':''}" class="dd-pill" style="background:${ddBg};color:${ddFg}">${bm.dd}%</span></td>
+      <td id="${bm.live?'bear-dur-live':''}" style="color:var(--muted)">${bm.dur}${bm.live?' ▶':''}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── LIVE FETCH ────────────────────────────────────────────────────────
+const tFetch = (url) => {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), 10000);
+  return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(id));
+};
+
+function updateAllLive(julMTD, price) {
+  const sign = julMTD >= 0 ? '+' : '';
+  const label = sign + julMTD.toFixed(2) + '%';
+  const ytd = (H1_PRODUCT * (1 + julMTD / 100) - 1) * 100;
+  const delta = julMTD - AVG.v[6];
+
+  // Main heatmap July cell
+  if (julCell) {
+    const c = heatColor(julMTD);
+    julCell.textContent = label + '*';
+    if (c) julCell.style.background = c.bg;
+    julCell.style.color = julMTD >= 0 ? 'var(--gain)' : 'var(--loss)';
+    julCell.style.outline = '2px solid #2563eb';
+    julCell.style.outlineOffset = '-1px';
+    julCell.title = `Jul 2026 MTD LIVE: ${label} vs avg ${fmt(AVG.v[6])} (Δ ${delta>0?'+':''}${delta.toFixed(2)}pp)`;
+  }
+
+  // YTD cell
+  if (ytdCell) {
+    ytdCell.textContent = (ytd>0?'+':'') + ytd.toFixed(2) + '%*';
+    ytdCell.style.color = ytd >= 0 ? 'var(--gain)' : 'var(--loss)';
+  }
+
+  // Summary table
+  if (sumJulCell) {
+    sumJulCell.textContent = label;
+    sumJulCell.style.color = julMTD >= 0 ? 'var(--gain)' : 'var(--loss)';
+  }
+  if (sumDeltaCell) {
+    sumDeltaCell.textContent = (delta>=0?'+':'') + delta.toFixed(2) + '%';
+    sumDeltaCell.style.color = delta >= 0 ? 'var(--gain)' : 'var(--loss)';
+    sumDeltaCell.style.fontWeight = '600';
+  }
+
+  // Chart
+  if (chartRef) {
+    chartRef.data.datasets[1].data[6] = julMTD;
+    chartRef.update('none');
+  }
+
+  // Delta card Jul
+  const julDeltaVal = document.getElementById('jul-delta-val');
+  const julDeltaPP  = document.getElementById('jul-delta-pp');
+  const julDeltaSub = document.getElementById('jul-delta-sub');
+  if (julDeltaVal) { julDeltaVal.textContent = label; julDeltaVal.style.color = julMTD>=0?'var(--gain)':'var(--loss)'; }
+  if (julDeltaPP) {
+    julDeltaPP.textContent = (delta>=0?'+':'') + delta.toFixed(2) + 'pp';
+    julDeltaPP.className = 'delta-pp ' + (delta<0?'delta-pp-neg':'delta-pp-pos');
+  }
+  if (julDeltaSub) julDeltaSub.textContent = delta < 0 ? 'tertinggal' : 'unggul';
+
+  // Header badges
+  const julBadge = document.getElementById('jul-badge');
+  if (julBadge) {
+    julBadge.innerHTML = `<span class="pulse-dot" style="width:6px;height:6px;background:#2563eb;display:inline-block"></span> Jul MTD ${label}`;
+    julBadge.style.color = julMTD>=0 ? 'var(--gain)' : 'var(--loss)';
+  }
+
+  // Summary text
+  const julSumEl  = document.getElementById('jul-summary-text');
+  const julDeltaT = document.getElementById('jul-delta-text');
+  const ytdSumEl  = document.getElementById('ytd-summary');
+  if (julSumEl) { julSumEl.textContent = label; julSumEl.style.color = julMTD>=0?'var(--gain)':'var(--loss)'; }
+  if (julDeltaT) {
+    julDeltaT.textContent = (delta>=0?'+':'') + delta.toFixed(2) + 'pp';
+    julDeltaT.style.color = delta>=0?'var(--gain)':'var(--loss)';
+  }
+  if (ytdSumEl) { ytdSumEl.textContent = (ytd>0?'+':'') + ytd.toFixed(2) + '%'; ytdSumEl.style.color = 'var(--loss)'; }
+
+  // Price badges
+  const priceStr = '$' + Math.round(price).toLocaleString('en-US');
+  const priceBadge = document.getElementById('btc-price-badge');
+  const footerPrice = document.getElementById('footer-price');
+  if (priceBadge) priceBadge.textContent = 'BTC: ' + priceStr;
+  if (footerPrice) footerPrice.textContent = 'BTC: ' + priceStr;
+
+  // Bear market live row
+  const currentDD = (price - BTC_ATH) / BTC_ATH * 100;
+  const bearDDEl = document.getElementById('bear-dd-live');
+  if (bearDDEl) {
+    const ddAbs = Math.abs(currentDD);
+    bearDDEl.textContent = currentDD.toFixed(0) + '%';
+    const bg = ddAbs>=80?'rgba(153,27,27,.5)':ddAbs>=70?'rgba(185,28,28,.35)':ddAbs>=60?'rgba(239,68,68,.2)':'rgba(245,158,11,.15)';
+    const fg = ddAbs>=60?'#fff':'#b45309';
+    bearDDEl.style.background = bg;
+    bearDDEl.style.color = fg;
+  }
+  const bearLowEl = document.getElementById('bear-low-live');
+  if (bearLowEl) bearLowEl.textContent = priceStr;
+
+  const bearLiveInfo = document.getElementById('bear-live-info');
+  if (bearLiveInfo) bearLiveInfo.textContent = `${priceStr} · DD dari ATH: ${currentDD.toFixed(1)}%`;
+}
+
+async function fetchLive() {
+  let price = null;
+  try {
+    const r = await tFetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+    if (r.ok) { const d = await r.json(); price = d?.bitcoin?.usd ?? null; }
+  } catch(e) {}
+  if (!price) {
+    try {
+      const r = await tFetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
+      if (r.ok) { const d = await r.json(); price = parseFloat(d?.price) || null; }
+    } catch(e) {}
+  }
+  if (!price) {
+    if (julCell) julCell.textContent = 'N/A';
+    const fp = document.getElementById('footer-price');
+    if (fp) fp.textContent = 'BTC: offline';
+    return;
+  }
+  const julMTD = (price - JUN_CLOSE) / JUN_CLOSE * 100;
+  updateAllLive(julMTD, price);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────
+buildHeatmap();
+buildDeltaCards();
+buildSummaryTable();
+buildChart();
+buildAvgList();
+buildBearTable();
+fetchLive();
+
+const _iv = setInterval(fetchLive, 5 * 60 * 1000);
+window.addEventListener('beforeunload', () => clearInterval(_iv));
+
+// Scroll fade remove
+const scrollEl = document.getElementById('main-scroll');
+if (scrollEl) {
+  scrollEl.addEventListener('scroll', () => {
+    if (scrollEl.scrollLeft > 18) scrollEl.parentElement.classList.remove('table-scroll-wrap');
+  }, { passive: true });
+}
+</script>
+</body>
+</html>
