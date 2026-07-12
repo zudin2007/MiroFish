@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Portfolio Gabungan — Monster & Gotrade</title>
+<meta name="description" content="Dashboard gabungan Monster DCA (IDR) dan Gotrade US Stocks (USD). Harga live, Chart.js, dark mode.">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0b0e14;
+  --card: #161b22;
+  --border: #21262d;
+  --text: #f0f6fc;
+  --muted: #8b949e;
+  --green: #10b981;
+  --red: #ef4444;
+  --blue: #58a6ff;
+  --accent: #10b981;
+  --accent2: #3b82f6;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; font-size: 14px; }
+.wrap { max-width: 720px; margin: auto; padding: 12px 12px 40px; }
+h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.3px; }
+
+/* Summary chips */
+.summary-bar { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 14px; }
+.chip { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; text-align: center; flex: 1; min-width: 100px; }
+.chip-label { font-size: 11px; color: var(--muted); letter-spacing: 0.3px; }
+.chip-val { font-size: 1.05rem; font-weight: 700; margin-top: 3px; font-variant-numeric: tabular-nums; }
+
+/* Tabs */
+.tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+.tab { flex: 1; padding: 10px 8px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--muted); font-size: 13px; font-weight: 500; text-align: center; transition: all 0.12s; user-select: none; }
+.tab.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+.tab:not(.active):hover { color: var(--text); border-color: #444; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* Cards */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+.card-title { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 10px; }
+
+/* Tables */
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { text-align: right; color: var(--muted); font-weight: 500; padding: 6px 5px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+th:first-child { text-align: left; }
+td { text-align: right; padding: 5px 5px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td:first-child { text-align: left; font-weight: 600; }
+tbody tr:last-child td { border-bottom: none; }
+
+/* Colours */
+.pos { color: var(--green); }
+.neg { color: var(--red); }
+
+/* Inputs */
+input[type=number] { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 6px 10px; font-size: 13px; }
+input[type=range] { width: 100%; accent-color: var(--accent); margin: 4px 0; }
+input[type=checkbox] { accent-color: var(--accent); }
+
+/* Buttons */
+.btn { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 10px; cursor: pointer; font-size: 14px; font-weight: 600; transition: opacity 0.12s; white-space: nowrap; }
+.btn:hover { opacity: 0.85; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 6px; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Stats */
+.stat { font-size: 1.2rem; font-weight: 700; margin-top: 3px; font-variant-numeric: tabular-nums; }
+.stat-sm { font-size: 1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.small { font-size: 11px; color: var(--muted); }
+
+/* Layout helpers */
+.flex { display: flex; align-items: center; }
+.between { justify-content: space-between; }
+.gap8 { gap: 8px; }
+.gap12 { gap: 12px; }
+.wrap-row { flex-wrap: wrap; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* Gotrade summary row */
+.gt-summary { display: flex; justify-content: space-around; text-align: center; }
+
+/* Status */
+.status-bar { font-size: 11px; color: var(--muted); text-align: center; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="flex between gap8" style="margin-bottom:10px">
+    <div>
+      <h1>Portfolio Gabungan</h1>
+      <div class="small" style="margin-top:3px">Monster DCA (IDR) &amp; Gotrade US Stocks (USD)</div>
+    </div>
+    <button class="btn btn-sm" id="updAll">🔄 Update</button>
+  </div>
+
+  <!-- Summary bar -->
+  <div class="summary-bar">
+    <div class="chip">
+      <div class="chip-label">Gotrade Value</div>
+      <div class="chip-val" id="s-gt-val">—</div>
+    </div>
+    <div class="chip">
+      <div class="chip-label">GT Unrealized</div>
+      <div class="chip-val" id="s-gt-unr">—</div>
+    </div>
+    <div class="chip">
+      <div class="chip-label">Monster Unrlzd</div>
+      <div class="chip-val" id="s-m-unr">—</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" id="tab-monster" onclick="switchTab('monster')">📊 Monster DCA</div>
+    <div class="tab" id="tab-gotrade" onclick="switchTab('gotrade')">🇺🇸 Gotrade US</div>
+  </div>
+
+  <!-- ======== MONSTER PANEL ======== -->
+  <div class="panel active" id="panel-monster">
+
+    <div class="card">
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Saham</th><th>%</th><th>Rp/bln</th><th>Harga</th><th>Lembar</th><th>Unrlzd</th></tr>
+          </thead>
+          <tbody id="m-tbody">
+            <tr><td>MU</td>  <td>25</td><td>2,5jt</td><td>$982.00</td> <td>0.152</td><td>—</td></tr>
+            <tr><td>ANET</td><td>20</td><td>2,0jt</td><td>$187.62</td> <td>0.742</td><td>—</td></tr>
+            <tr><td>NVDA</td><td>20</td><td>2,0jt</td><td>$210.96</td> <td>0.609</td><td>—</td></tr>
+            <tr><td>LRCX</td><td>11</td><td>1,1jt</td><td>$350.33</td> <td>0.186</td><td>—</td></tr>
+            <tr><td>WDC</td> <td>8</td> <td>0,8jt</td><td>$590.00</td> <td>0.088</td><td>—</td></tr>
+            <tr><td>STX</td> <td>8</td> <td>0,8jt</td><td>$890.00</td> <td>0.058</td><td>—</td></tr>
+            <tr><td>CAT</td> <td>8</td> <td>0,8jt</td><td>$952.00</td> <td>0.049</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">DCA Calculator</div>
+      <div>
+        <div class="small">Deposit/bulan (Rp)</div>
+        <input type="number" id="m-dep" value="10000000" min="1000000" step="500000" oninput="mCalc()" style="width:100%;margin-top:4px">
+      </div>
+      <div class="grid2" style="margin-top:10px">
+        <div>
+          <div class="small">Return/tahun: <span id="m-rv">34.4</span>%</div>
+          <input type="range" id="m-r" min="-30" max="60" value="34.4" step="0.1" oninput="document.getElementById('m-rv').innerText=this.value;mCalc()">
+        </div>
+        <div>
+          <div class="small">Bulan: <span id="m-mv">36</span></div>
+          <input type="range" id="m-m" min="12" max="60" value="36" oninput="document.getElementById('m-mv').innerText=this.value;mCalc()">
+        </div>
+      </div>
+      <label class="small" style="display:flex;align-items:center;gap:6px;margin-top:8px">
+        <input type="checkbox" id="m-inc" checked onchange="mCalc()"> Naik 10%/thn
+      </label>
+      <div class="grid2" style="margin-top:12px">
+        <div>
+          <div class="small">Total setor</div>
+          <div class="stat" id="m-inv">—</div>
+        </div>
+        <div>
+          <div class="small">Nilai akhir</div>
+          <div class="stat" id="m-fin">—</div>
+          <div class="small" style="margin-top:8px">Unrealized Total</div>
+          <div class="stat-sm" id="m-unrTot">—</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /panel-monster -->
+
+  <!-- ======== GOTRADE PANEL ======== -->
+  <div class="panel" id="panel-gotrade">
+
+    <div class="card">
+      <div class="gt-summary">
+        <div><div class="small">Value</div><div class="stat-sm" id="gt-tv">—</div></div>
+        <div><div class="small">Cost</div><div class="stat-sm" id="gt-tc">—</div></div>
+        <div><div class="small">Unrealized</div><div class="stat-sm" id="gt-tu">—</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Sym</th><th>Shares</th><th>Avg</th><th>Harga</th><th>Val</th><th>%</th><th>Unr</th></tr>
+          </thead>
+          <tbody id="gt-tbody">
+            <tr><td>PANW</td><td>0.24325</td><td>311.40</td><td>337.00</td><td>—</td><td>—</td><td>—</td></tr>
+            <tr><td>FTNT</td><td>0.50182</td><td>149.76</td><td>164.00</td><td>—</td><td>—</td><td>—</td></tr>
+            <tr><td>CRWD</td><td>0.28463</td><td>174.62</td><td>187.00</td><td>—</td><td>—</td><td>—</td></tr>
+            <tr><td>CELH</td><td>1.50180</td><td>33.16</td> <td>30.52</td> <td>—</td><td>—</td><td>—</td></tr>
+            <tr><td>ZS</td>  <td>0.33802</td><td>147.33</td><td>139.00</td><td>—</td><td>—</td><td>—</td></tr>
+            <tr><td>OKTA</td><td>0.32442</td><td>141.42</td><td>138.00</td><td>—</td><td>—</td><td>—</td></tr>
+            <tr><td>AMD</td> <td>0.08856</td><td>526.31</td><td>557.89</td><td>—</td><td>—</td><td>—</td></tr>
+            <tr><td>CB</td>  <td>0.11527</td><td>353.42</td><td>348.00</td><td>—</td><td>—</td><td>—</td></tr>
+            <tr><td>KO</td>  <td>0.36755</td><td>80.92</td> <td>82.63</td> <td>—</td><td>—</td><td>—</td></tr>
+            <tr><td>CNC</td> <td>0.36386</td><td>68.35</td> <td>67.86</td> <td>—</td><td>—</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Alokasi Portfolio</div>
+      <canvas id="gt-pie" height="200"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Proyeksi 36 Bulan</div>
+      <div class="flex gap8 wrap-row" style="margin-bottom:10px">
+        <div class="flex gap8"><span class="small">Deposit $</span><input type="number" id="gt-dep" value="297" style="width:72px"></div>
+        <div class="flex gap8"><span class="small">CAGR %</span><input type="number" id="gt-cagr" value="40" style="width:56px"></div>
+        <button class="btn btn-sm btn-outline" onclick="gtDrawProj()">Hitung</button>
+      </div>
+      <canvas id="gt-proj" height="220"></canvas>
+    </div>
+
+  </div><!-- /panel-gotrade -->
+
+  <div class="status-bar" id="upd-status">Jul 12, 2026 · harga hardcode</div>
+</div>
+
+<script>
+// ===== DATA =====
+const KURS = 16853.7;
+const M_BASE = {MU:975.56, ANET:159.99, NVDA:194.83, LRCX:351.41, WDC:539, STX:820.16, CAT:963.53};
+const M_PCTS = {MU:0.25, ANET:0.20, NVDA:0.20, LRCX:0.11, WDC:0.08, STX:0.08, CAT:0.08};
+const M_SYMS = ['MU','ANET','NVDA','LRCX','WDC','STX','CAT'];
+const GT = [
+  {sym:'PANW', shares:0.24325, avg:311.4,   price:337},
+  {sym:'FTNT', shares:0.50182, avg:149.76,  price:164},
+  {sym:'CRWD', shares:0.28463, avg:174.62,  price:187},
+  {sym:'CELH', shares:1.5018,  avg:33.16,   price:30.52},
+  {sym:'ZS',   shares:0.33802, avg:147.33,  price:139},
+  {sym:'OKTA', shares:0.32442, avg:141.42,  price:138},
+  {sym:'AMD',  shares:0.08856, avg:526.31,  price:557.89},
+  {sym:'CB',   shares:0.11527, avg:353.42,  price:348},
+  {sym:'KO',   shares:0.36755, avg:80.915,  price:82.63},
+  {sym:'CNC',  shares:0.36386, avg:68.35,   price:67.86},
+];
+let gtPieChart = null, gtProjChart = null;
+
+// ===== TABS =====
+function switchTab(which) {
+  document.getElementById('tab-monster').classList.toggle('active', which === 'monster');
+  document.getElementById('tab-gotrade').classList.toggle('active', which === 'gotrade');
+  document.getElementById('panel-monster').classList.toggle('active', which === 'monster');
+  document.getElementById('panel-gotrade').classList.toggle('active', which === 'gotrade');
+}
+
+// ===== FORMAT =====
+function fmtRp(n) { return 'Rp' + (n / 1e6).toFixed(1) + 'jt'; }
+
+// ===== MONSTER =====
+function mCalc() {
+  const dep = +document.getElementById('m-dep').value || 10000000;
+  const r   = +document.getElementById('m-r').value / 100;
+  const m   = +document.getElementById('m-m').value;
+  const inc = document.getElementById('m-inc').checked ? 0.1 : 0;
+  document.getElementById('m-rv').innerText = (r * 100).toFixed(1);
+  document.getElementById('m-mv').innerText = m;
+  let inv = dep, fin = dep;
+  for (let i = 0; i < m; i++) {
+    const yr = Math.floor(i / 12);
+    const p  = dep * Math.pow(1 + inc, yr);
+    inv += p;
+    fin += p * Math.pow(1 + r, (m - i) / 12);
+  }
+  document.getElementById('m-inv').innerText = fmtRp(inv);
+  document.getElementById('m-fin').innerText = fmtRp(fin);
+  mUpdateShares(dep);
+  mUpdateTotalUnrealized();
+  mRefreshUnrealized();
+}
+
+function mUpdateShares(dep) {
+  const rows = document.querySelectorAll('#m-tbody tr');
+  rows.forEach((tr, i) => {
+    const sym   = M_SYMS[i];
+    const price = parseFloat(tr.cells[3].innerText.replace('$', '')) || M_BASE[sym];
+    tr.cells[4].innerText = (dep * M_PCTS[sym] / KURS / price).toFixed(3);
+  });
+}
+
+function mRefreshUnrealized() {
+  const rows = document.querySelectorAll('#m-tbody tr');
+  rows.forEach((tr, i) => {
+    const sym   = M_SYMS[i];
+    const price = parseFloat(tr.cells[3].innerText.replace('$', '')) || M_BASE[sym];
+    const pct   = ((price - M_BASE[sym]) / M_BASE[sym] * 100).toFixed(1);
+    const cell  = tr.cells[5];
+    cell.innerText  = (pct >= 0 ? '+' : '') + pct + '%';
+    cell.style.color = pct >= 0 ? 'var(--green)' : 'var(--red)';
+  });
+}
+
+function mUpdateTotalUnrealized() {
+  const dep = +document.getElementById('m-dep').value || 10000000;
+  const m   = +document.getElementById('m-m').value;
+  const inc = document.getElementById('m-inc').checked ? 0.1 : 0;
+  const rows = document.querySelectorAll('#m-tbody tr');
+  const cur = {};
+  rows.forEach((tr, i) => {
+    const sym = M_SYMS[i];
+    cur[sym] = parseFloat(tr.cells[3].innerText.replace('$', '')) || M_BASE[sym];
+  });
+  const totalShares = {};
+  M_SYMS.forEach(s => totalShares[s] = 0);
+  let totalCost = dep;
+  M_SYMS.forEach(s => { totalShares[s] += (dep * M_PCTS[s] / KURS) / M_BASE[s]; });
+  for (let i = 0; i < m; i++) {
+    const yr  = Math.floor(i / 12);
+    const pmt = dep * Math.pow(1 + inc, yr);
+    totalCost += pmt;
+    M_SYMS.forEach(s => { totalShares[s] += (pmt * M_PCTS[s] / KURS) / M_BASE[s]; });
+  }
+  let curVal = 0;
+  M_SYMS.forEach(s => { curVal += totalShares[s] * cur[s] * KURS; });
+  const unr = curVal - totalCost;
+  const el  = document.getElementById('m-unrTot');
+  if (el) {
+    el.innerText   = (unr >= 0 ? '+' : '') + 'Rp' + (Math.abs(unr) / 1e6).toFixed(1) + 'jt (' + (unr / totalCost * 100).toFixed(1) + '%)';
+    el.style.color = unr >= 0 ? 'var(--green)' : 'var(--red)';
+  }
+  const chip = document.getElementById('s-m-unr');
+  chip.innerText   = (unr >= 0 ? '+' : '') + fmtRp(unr);
+  chip.style.color = unr >= 0 ? 'var(--green)' : 'var(--red)';
+}
+
+// ===== GOTRADE =====
+function gtCalc() {
+  let tv = 0, tc = 0;
+  GT.forEach(h => { h.value = h.shares * h.price; h.cost = h.shares * h.avg; tv += h.value; tc += h.cost; });
+  const rows = document.querySelectorAll('#gt-tbody tr');
+  GT.forEach((h, i) => {
+    const tr = rows[i];
+    tr.children[3].textContent = h.price.toFixed(2);
+    tr.children[4].textContent = h.value.toFixed(2);
+    tr.children[5].textContent = (h.value / tv * 100).toFixed(1) + '%';
+    const ur = h.value - h.cost;
+    tr.children[6].textContent  = (ur >= 0 ? '+' : '') + ur.toFixed(2);
+    tr.children[6].style.color  = ur >= 0 ? 'var(--green)' : 'var(--red)';
+  });
+  document.getElementById('gt-tv').textContent = '$' + tv.toFixed(2);
+  document.getElementById('gt-tc').textContent = '$' + tc.toFixed(2);
+  const unr = tv - tc;
+  const tuEl = document.getElementById('gt-tu');
+  tuEl.textContent = (unr >= 0 ? '+' : '') + '$' + unr.toFixed(2);
+  tuEl.style.color = unr >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('s-gt-val').textContent = '$' + tv.toFixed(2);
+  const chip = document.getElementById('s-gt-unr');
+  chip.textContent = (unr >= 0 ? '+' : '') + '$' + unr.toFixed(2);
+  chip.style.color = unr >= 0 ? 'var(--green)' : 'var(--red)';
+  gtDrawPie();
+  gtDrawProj();
+}
+
+function gtDrawPie() {
+  const ctx    = document.getElementById('gt-pie').getContext('2d');
+  const labels = GT.map(d => d.sym);
+  const values = GT.map(d => d.value);
+  const colors = ['#10b981','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#84cc16','#ec4899','#a78bfa'];
+  if (gtPieChart) {
+    gtPieChart.data.labels = labels;
+    gtPieChart.data.datasets[0].data = values;
+    gtPieChart.update('none');
+  } else {
+    gtPieChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#161b22', borderWidth: 2 }] },
+      options: { plugins: { legend: { position: 'bottom', labels: { color: '#8b949e', font: { size: 11 } } } } }
+    });
+  }
+}
+
+function gtDrawProj() {
+  const dep   = +document.getElementById('gt-dep').value || 297;
+  const c     = (+document.getElementById('gt-cagr').value || 40) / 100;
+  const start = GT.reduce((s, d) => s + d.value, 0);
+  const tcost = GT.reduce((s, d) => s + (d.cost || 0), 0);
+  const t1    = 500000000 / KURS;
+  const t2    = 100000000 / KURS;
+  const l = [], f = [], g = [], a = [], b = [], cv = [], cc = [];
+  let bf = start, bg = start;
+  for (let i = 0; i <= 36; i++) {
+    l.push(i);
+    f.push(+bf.toFixed(2)); g.push(+bg.toFixed(2));
+    a.push(+t1.toFixed(2)); b.push(+t2.toFixed(2));
+    cv.push(+start.toFixed(2)); cc.push(+tcost.toFixed(2));
+    bf += dep;
+    bg = (bg + dep) * Math.pow(1 + c, 1 / 12);
+  }
+  const ctx = document.getElementById('gt-proj').getContext('2d');
+  if (gtProjChart) {
+    gtProjChart.data.labels = l;
+    gtProjChart.data.datasets[0].data = f;
+    gtProjChart.data.datasets[1].label = 'CAGR ' + (c * 100) + '%';
+    gtProjChart.data.datasets[1].data  = g;
+    gtProjChart.data.datasets[2].data  = a;
+    gtProjChart.data.datasets[3].data  = b;
+    gtProjChart.data.datasets[4].label = 'Value $' + start.toFixed(0);
+    gtProjChart.data.datasets[4].data  = cv;
+    gtProjChart.data.datasets[5].label = 'Cost $' + tcost.toFixed(0);
+    gtProjChart.data.datasets[5].data  = cc;
+    gtProjChart.update('none');
+  } else {
+    gtProjChart = new Chart(ctx, {
+      type: 'line',
+      data: { labels: l, datasets: [
+        { label: 'Flat',                     data: f,  borderColor: '#3b82f6', pointRadius: 0, fill: false },
+        { label: 'CAGR ' + (c * 100) + '%', data: g,  borderColor: '#10b981', pointRadius: 0, fill: false },
+        { label: 'Rp500jt',                  data: a,  borderColor: '#f59e0b', borderDash: [5,5], pointRadius: 0, fill: false },
+        { label: 'Rp100jt',                  data: b,  borderColor: '#8b5cf6', borderDash: [3,3], pointRadius: 0, fill: false },
+        { label: 'Value $' + start.toFixed(0), data: cv, borderColor: '#06b6d4', borderDash: [6,3], borderWidth: 1.5, pointRadius: 0, fill: false },
+        { label: 'Cost $' + tcost.toFixed(0),  data: cc, borderColor: '#ef4444', borderDash: [6,3], borderWidth: 1.5, pointRadius: 0, fill: false },
+      ]},
+      options: {
+        plugins: { legend: { labels: { color: '#8b949e', font: { size: 10 } } } },
+        scales: {
+          x: { ticks: { color: '#8b949e' }, grid: { color: '#21262d' } },
+          y: { ticks: { color: '#8b949e' }, grid: { color: '#21262d' } }
+        }
+      }
+    });
+  }
+}
+
+// ===== LIVE FETCH =====
+const tFetch = (url, opts) => {
+  const ctrl = new AbortController();
+  const id   = setTimeout(() => ctrl.abort(), 10000);
+  return fetch(url, { ...(opts || {}), signal: ctrl.signal }).finally(() => clearTimeout(id));
+};
+const PROXIES = ['https://api.allorigins.win/raw?url=', 'https://corsproxy.io/?url='];
+
+async function viaProxy(targetUrl, parse) {
+  for (const proxy of PROXIES) {
+    try {
+      const r   = await tFetch(proxy + encodeURIComponent(targetUrl));
+      if (!r.ok) continue;
+      const val = await parse(r);
+      if (val != null) return val;
+    } catch (e) {}
+  }
+  return null;
+}
+
+async function fetchPrice(sym) {
+  let p = await viaProxy(
+    'https://stooq.com/q/l/?s=' + sym.toLowerCase() + '.us&f=l',
+    async r => { const t = await r.text(); const lines = t.trim().split('\n'); const v = parseFloat(lines[lines.length - 1]); return isNaN(v) ? null : v; }
+  );
+  if (p) return p;
+  p = await viaProxy(
+    'https://query1.finance.yahoo.com/v8/finance/chart/' + sym,
+    async r => { const j = await r.json(); return j.chart?.result?.[0]?.meta?.regularMarketPrice || null; }
+  );
+  if (p) return p;
+  p = await viaProxy(
+    'https://finnhub.io/api/v1/quote?symbol=' + sym + '&token=demo',
+    async r => { const d = await r.json(); return d.c || null; }
+  );
+  return p;
+}
+
+async function updAll() {
+  const btn    = document.getElementById('updAll');
+  const status = document.getElementById('upd-status');
+  btn.textContent = '⏳';
+  btn.disabled    = true;
+  status.textContent = 'Mengambil harga live…';
+  const allSyms = [...M_SYMS, ...GT.map(d => d.sym)];
+  const prices  = {};
+  for (const sym of allSyms) {
+    const p = await fetchPrice(sym);
+    if (p) prices[sym] = p;
+    await new Promise(r => setTimeout(r, 220));
+  }
+  // Update Monster table
+  const mRows = document.querySelectorAll('#m-tbody tr');
+  let mOk = 0;
+  mRows.forEach((tr, i) => {
+    const sym = M_SYMS[i];
+    if (prices[sym]) { mOk++; tr.cells[3].innerText = '$' + prices[sym].toFixed(2); }
+  });
+  // Update Gotrade data + table
+  let gtOk = 0;
+  const gtRows = document.querySelectorAll('#gt-tbody tr');
+  GT.forEach((h, i) => {
+    if (prices[h.sym]) { gtOk++; h.price = prices[h.sym]; gtRows[i].children[3].textContent = prices[h.sym].toFixed(2); }
+  });
+  const total = mOk + gtOk;
+  status.textContent = 'Update ' + total + '/' + allSyms.length + ' · ' + new Date().toLocaleTimeString('id-ID');
+  btn.textContent = '🔄 Update';
+  btn.disabled    = false;
+  mCalc();
+  gtCalc();
+}
+
+document.getElementById('updAll').onclick = updAll;
+
+// ===== INIT =====
+window.addEventListener('load', () => { mCalc(); gtCalc(); });
+</script>
+</body>
+</html>
