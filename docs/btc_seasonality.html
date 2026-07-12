@@ -490,8 +490,8 @@ body {
   <!-- ── NOTES ─────────────────────────────────────────────────── -->
   <div class="section-gap notes">
     <strong>Catatan data &amp; metodologi</strong><br>
-    Jan–Mei 2026 dari data historis yang telah dikonfirmasi. <strong>Juni 2026 final: -15.63%</strong> (May close $73,579.69 → Jun close ~$62,082).
-    <strong>Juli 2026 MTD</strong>: dihitung live dari harga BTC saat ini via CoinGecko API, berbasis Jun close $62,082. Auto-refresh tiap 5 menit.<br><br>
+    Jan–Jun 2026 dari data historis yang telah dikonfirmasi. <strong>Juni 2026 final: -15.63%</strong> (May close $73,579.69 → Jun close ~$62,082).
+    <strong>Juli 2026 MTD</strong>: dihitung live dari harga BTC saat ini via Binance API, berbasis Jun close $62,082. Auto-refresh tiap 5 menit.<br><br>
     <span style="color:var(--subtle)">
       Data 2020–2026 dari screenshot pengguna yang dikonfirmasi. Data 2011–2019 (~) merupakan perkiraan historis berdasarkan harga BTC publik yang dikenal — verifikasi ke CoinGecko/CoinMarketCap untuk akurasi penuh (deviasi ±5–15% untuk data pre-2016). YTD -29.2% dihitung compound dari Jan–Jun final. Bukan nasihat keuangan — DYOR.
     </span>
@@ -499,7 +499,7 @@ body {
 
   <!-- ── FOOTER ─────────────────────────────────────────────────── -->
   <footer class="footer-bar">
-    <span>Bitcoin Seasonality 2011–2026 · Update 5 Juli 2026 · Jun Final + Jul Live</span>
+    <span>Bitcoin Seasonality 2011–2026 · Update 12 Juli 2026 · Jun Final + Jul Live</span>
     <span id="footer-price" class="live-text mono" style="font-weight:700">BTC: …</span>
   </footer>
 
@@ -540,7 +540,7 @@ const BEAR_MARKETS = [
   {label:'2013–2015', high:1163,   highDate:'Nov 2013', low:152,    lowDate:'Jan 2015', dd:-87, dur:'~14 bln'},
   {label:'2017–2018', high:19800,  highDate:'Des 2017', low:3200,   lowDate:'Des 2018', dd:-84, dur:'~12 bln'},
   {label:'2021–2022', high:69044,  highDate:'Nov 2021', low:15500,  lowDate:'Nov 2022', dd:-77, dur:'~12 bln'},
-  {label:'2025–2026', high:126073, highDate:'Okt 2025', low:58000,  lowDate:'Jun 2026', dd:-53, dur:'~9 bln', live:true},
+  {label:'2025–2026', high:126073, highDate:'Okt 2025', low:58000,  lowDate:'Jun 2026', dd:-54, dur:'~10 bln', live:true},
 ];
 
 // ── HEAT COLOR ───────────────────────────────────────────────────────
@@ -930,13 +930,13 @@ function updateAllLive(julMTD, price) {
 async function fetchLive() {
   let price = null;
   try {
-    const r = await tFetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
-    if (r.ok) { const d = await r.json(); price = d?.bitcoin?.usd ?? null; }
+    const r = await tFetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
+    if (r.ok) { const d = await r.json(); price = parseFloat(d?.price) || null; }
   } catch(e) {}
   if (!price) {
     try {
-      const r = await tFetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
-      if (r.ok) { const d = await r.json(); price = parseFloat(d?.price) || null; }
+      const r = await tFetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+      if (r.ok) { const d = await r.json(); price = d?.bitcoin?.usd ?? null; }
     } catch(e) {}
   }
   if (!price) {
