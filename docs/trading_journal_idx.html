@@ -148,7 +148,8 @@ select.fi option{background:var(--card)}
     <div class="fg-grid">
       <div class="fg"><label class="fl">Tanggal</label><input class="fi" id="j-date" type="date"></div>
       <div class="fg"><label class="fl">Saham</label>
-        <select class="fi" id="j-code" onchange="onCodeOrActionChange()"><option value="">-- Pilih --</option></select></div>
+        <input class="fi" id="j-code" type="text" list="wl-dl" placeholder="BBCA / ketik bebas" oninput="onCodeOrActionChange()" autocomplete="off">
+        <datalist id="wl-dl"></datalist></div>
       <div class="fg"><label class="fl">Aksi</label>
         <select class="fi" id="j-action" onchange="onCodeOrActionChange()">
           <option value="Buy">Buy</option><option value="Sell">Sell</option>
@@ -415,10 +416,10 @@ async function fetchAll() {
 
 // ── JURNAL ─────────────────────────────────────────────
 function initWatchlist() {
-  const sel = document.getElementById('j-code');
+  const dl = document.getElementById('wl-dl');
   WATCHLIST.forEach(s => {
     const o = document.createElement('option');
-    o.value = s; o.textContent = s; sel.appendChild(o);
+    o.value = s; dl.appendChild(o);
   });
 }
 
