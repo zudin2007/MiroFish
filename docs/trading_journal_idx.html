@@ -135,6 +135,7 @@ select.fi option{background:var(--card)}
 
 <div class="tabbar">
   <button class="tab on" onclick="showTab('porto',this)">Porto</button>
+  <button class="tab" onclick="showTab('gotrade',this)">Gotrade</button>
   <button class="tab" onclick="showTab('jurnal',this)">Jurnal</button>
   <button class="tab" onclick="showTab('analitik',this)">Analitik</button>
   <button class="tab" onclick="showTab('mm',this)">Money Mgmt</button>
@@ -199,6 +200,33 @@ select.fi option{background:var(--card)}
           <th>Harga (Rp)</th><th>Nilai (Rp)</th><th>P&amp;L (Rp)</th><th>%</th>
         </tr></thead>
         <tbody id="porto-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ GOTRADE ══════════════ -->
+<div id="tab-gotrade" class="panel">
+  <div class="chips" id="gt-chips">
+    <div class="chip"><div class="chip-l">Total Nilai (IDR)</div><div class="chip-v" id="gt-nilai">—</div></div>
+    <div class="chip"><div class="chip-l">Unrealized P&amp;L</div><div class="chip-v" id="gt-upnl">—</div></div>
+    <div class="chip"><div class="chip-l">Realized All-Time</div><div class="chip-v r" id="gt-realized">−Rp2.359.352</div></div>
+    <div class="chip"><div class="chip-l">Realized YTD</div><div class="chip-v r" id="gt-ryzd">−Rp1.515.403</div></div>
+    <div class="chip-spacer">
+      <span style="font-size:11px;color:var(--muted)" id="gt-ts"></span>
+      <button class="btn btn-o" id="gt-btn" onclick="fetchGotrade()">↻ Update Harga</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table id="gt-table">
+        <thead><tr>
+          <th style="text-align:left;min-width:110px">Saham</th>
+          <th style="text-align:right;min-width:110px">Nilai / Modal (Rp)</th>
+          <th style="text-align:right;min-width:80px">Harian</th>
+          <th style="text-align:right;min-width:80px">Total</th>
+        </tr></thead>
+        <tbody id="gt-body"><tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">Klik ↻ Update Harga untuk memuat data</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -575,6 +603,7 @@ function showTab(name, btn) {
   if (name === 'jurnal')   try { renderJournal(); } catch(e){}
   if (name === 'akun')     try { renderAccount(); } catch(e){}
   if (name === 'preturn')  setTimeout(() => { try { renderPReturn(); } catch(e){} }, 60);
+  if (name === 'gotrade')   setTimeout(() => { try { fetchGotrade();   } catch(e){} }, 60);
   if (name === 'gainloss')  setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
   if (name === 'aktivitas') setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
 }
@@ -5130,6 +5159,156 @@ function glToggleYear(year) {
   else glCollapsedYears.add(year);
   filterGL();
 }
+
+// ══ GOTRADE ══════════════════════════════════════════════
+const GT_HOLDINGS = [
+  // t=ticker, s=shares, a=avgUSD, c=costIDR, at=allTime, rz=realized, ry=rlzdYTD
+  {t:'FTNT', s:0.50182,  a:149.76, c:1362191.51, at: 62994.94,   rz:-45767.68,   ry:null},
+  {t:'CRWD', s:0.28463,  a:174.62, c:900870.66,  at:null,        rz:null,        ry:null},
+  {t:'NVDA', s:0.055074, a:194.83, c:194491.98,  at:595901.70,   rz:584894.83,   ry:114056.88},
+  {t:'PANW', s:0.24325,  a:311.40, c:1373031.95, at:null,        rz:null,        ry:null},
+  {t:'KO',   s:0.36755,  a:80.915, c:539076.16,  at:4289.62,     rz:-15987.68,   ry:-15987.68},
+  {t:'AMD',  s:0.08856,  a:526.31, c:844855.54,  at:181876.96,   rz:156104.61,   ry:5825.62},
+  {t:'ANET', s:0.30335,  a:181.18, c:996196.39,  at:null,        rz:null,        ry:null},
+  {t:'STX',  s:0.016498, a:853.22, c:255151.86,  at:null,        rz:null,        ry:null},
+  {t:'CB',   s:0.11527,  a:353.42, c:738455.15,  at:null,        rz:null,        ry:null},
+  {t:'OKTA', s:0.32442,  a:141.42, c:831620.88,  at:null,        rz:null,        ry:null},
+  {t:'WDC',  s:0.015402, a:559.68, c:156245.56,  at:null,        rz:null,        ry:null},
+  {t:'ZS',   s:0.33802,  a:147.33, c:902674.80,  at:null,        rz:null,        ry:null},
+  {t:'CAT',  s:0.014436, a:975.32, c:255213.71,  at:null,        rz:null,        ry:null},
+  {t:'MU',   s:0.013777, a:975.56, c:243613.44,  at:94069.19,    rz:104654.67,   ry:104654.67},
+  {t:'LRCX', s:0.016619, a:351.41, c:105855.84,  at:null,        rz:null,        ry:null},
+];
+const GT_CASH_IDR  = 12227.33;
+const GT_COST_IDR  = 9711772.77;
+const GT_REALIZED  = -2359352.62;
+const GT_RLZD_YTD  = -1515403.12;
+
+async function fetchGtQuote(sym) {
+  const base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + sym;
+  const proxies = [
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(base),
+    'https://corsproxy.io/?url=' + encodeURIComponent(base),
+  ];
+  for (const url of proxies) {
+    try {
+      const r = await tFetch(url);
+      const j = await r.json();
+      const meta = j?.chart?.result?.[0]?.meta;
+      if (!meta) continue;
+      return { price: meta.regularMarketPrice, prev: meta.previousClose || meta.chartPreviousClose || meta.regularMarketPrice };
+    } catch(e) {}
+  }
+  return null;
+}
+
+async function fetchGotrade() {
+  const btn = document.getElementById('gt-btn');
+  if (btn) { btn.textContent = '⟳ Mengambil…'; btn.disabled = true; }
+
+  const [usdRes, ...stockRes] = await Promise.all([
+    fetchGtQuote('USDIDR%3DX'),
+    ...GT_HOLDINGS.map(h => fetchGtQuote(h.t)),
+  ]);
+
+  const usdIDR = usdRes?.price || 16000;
+  const prices = {};
+  GT_HOLDINGS.forEach((h, i) => { if (stockRes[i]) prices[h.t] = stockRes[i]; });
+
+  renderGotrade(prices, usdIDR);
+
+  if (btn) { btn.textContent = '↻ Update Harga'; btn.disabled = false; }
+  const tsEl = document.getElementById('gt-ts');
+  if (tsEl) tsEl.textContent = 'Update: ' + new Date().toLocaleTimeString('id-ID');
+}
+
+function renderGotrade(prices, usdIDR) {
+  const fP  = v => v >= 0 ? '+' : '';
+  const fPct = v => `${fP(v)}${v.toFixed(2)}%`;
+  const fIDR = v => `${fP(v)}${idrRaw(Math.round(Math.abs(v)))}`;
+  const sgn  = v => v >= 0 ? 'g' : 'r';
+
+  let totalValue = GT_CASH_IDR;
+  let totalPnL   = 0;
+
+  const rows = GT_HOLDINGS.map(h => {
+    const q = prices[h.t];
+    const priceUSD  = q?.price ?? null;
+    const prevUSD   = q?.prev  ?? null;
+    const valueIDR  = priceUSD !== null ? priceUSD * h.s * usdIDR : null;
+    const pnlIDR    = valueIDR !== null ? valueIDR - h.c : null;
+    const pnlPct    = pnlIDR   !== null ? pnlIDR / h.c * 100 : null;
+    const dailyPct  = priceUSD !== null && prevUSD ? (priceUSD - prevUSD) / prevUSD * 100 : null;
+    const dailyIDR  = dailyPct !== null && valueIDR !== null ? valueIDR * dailyPct / 100 : null;
+
+    if (valueIDR !== null) { totalValue += valueIDR; totalPnL += pnlIDR; }
+
+    const v1 = valueIDR !== null ? idrRaw(Math.round(valueIDR)) : '—';
+    const v2 = idrRaw(Math.round(h.c));
+    const d1 = dailyPct !== null ? fPct(dailyPct) : '—';
+    const d2 = dailyIDR !== null ? fIDR(dailyIDR) : '—';
+    const t1 = pnlPct   !== null ? fPct(pnlPct)   : '—';
+    const t2 = pnlIDR   !== null ? fIDR(pnlIDR)   : '—';
+    const dc = dailyPct !== null ? sgn(dailyPct)   : '';
+    const tc = pnlPct   !== null ? sgn(pnlPct)     : '';
+
+    let extra = '';
+    if (h.at !== null || h.rz !== null) {
+      const parts = [];
+      if (h.at !== null) parts.push(`All-Time: <span class="${sgn(h.at)}">${h.at>=0?'+':''}${idrRaw(Math.round(Math.abs(h.at)))}</span>`);
+      if (h.rz !== null) parts.push(`Realized: <span class="${sgn(h.rz)}">${h.rz>=0?'+':''}${idrRaw(Math.round(Math.abs(h.rz)))}</span>`);
+      if (h.ry !== null) parts.push(`Rlzd YTD: <span class="${sgn(h.ry)}">${h.ry>=0?'+':''}${idrRaw(Math.round(Math.abs(h.ry)))}</span>`);
+      extra = `<tr><td colspan="4" style="font-size:11px;color:var(--muted);padding:2px 8px 8px;border-bottom:1px solid var(--border)">${parts.join(' &nbsp;·&nbsp; ')}</td></tr>`;
+    }
+
+    return `<tr style="border-bottom:${extra?'none':'1px solid var(--border)'}">
+      <td style="text-align:left;vertical-align:top;padding:8px 6px 4px">
+        <div style="font-weight:700;font-size:14px;letter-spacing:.02em">${h.t}</div>
+        <div style="font-size:11px;color:var(--muted)">${priceUSD !== null ? '$'+priceUSD.toFixed(2) : '—'}</div>
+        <div style="font-size:10px;color:var(--muted)">${h.s} sh @ $${h.a}</div>
+      </td>
+      <td style="text-align:right;vertical-align:top;padding:8px 6px 4px;font-variant-numeric:tabular-nums">
+        <div style="font-weight:600">${v1}</div>
+        <div style="font-size:11px;color:var(--muted)">${v2}</div>
+      </td>
+      <td class="${dc}" style="text-align:right;vertical-align:top;padding:8px 6px 4px;font-variant-numeric:tabular-nums">
+        <div style="font-weight:600">${d1}</div>
+        <div style="font-size:11px">${d2}</div>
+      </td>
+      <td class="${tc}" style="text-align:right;vertical-align:top;padding:8px 6px 4px;font-variant-numeric:tabular-nums">
+        <div style="font-weight:600">${t1}</div>
+        <div style="font-size:11px">${t2}</div>
+      </td>
+    </tr>${extra}`;
+  }).join('');
+
+  // Cash row
+  const cashRow = `<tr style="border-top:2px solid var(--border)">
+    <td style="text-align:left;padding:8px 6px;font-weight:700;color:var(--muted)">USD Cash</td>
+    <td style="text-align:right;padding:8px 6px;font-variant-numeric:tabular-nums">${idrRaw(Math.round(GT_CASH_IDR))}</td>
+    <td colspan="2"></td>
+  </tr>`;
+
+  // Total row
+  const totalPct = totalPnL / GT_COST_IDR * 100;
+  const totRow = `<tr style="background:var(--card2);font-weight:700;border-top:2px solid var(--accent)">
+    <td style="text-align:left;padding:10px 6px">Unrealized Total</td>
+    <td style="text-align:right;padding:10px 6px;font-variant-numeric:tabular-nums">${idrRaw(Math.round(totalValue))}</td>
+    <td colspan="2" class="${sgn(totalPnL)}" style="text-align:right;padding:10px 6px;font-variant-numeric:tabular-nums">${fPct(totalPct)}<br><span style="font-size:12px">${fIDR(totalPnL)}</span></td>
+  </tr>`;
+
+  document.getElementById('gt-body').innerHTML = rows + cashRow + totRow;
+
+  // Update chips
+  const uPnlEl = document.getElementById('gt-upnl');
+  const nilaiEl = document.getElementById('gt-nilai');
+  if (nilaiEl) nilaiEl.textContent = idrRaw(Math.round(totalValue));
+  if (uPnlEl) {
+    uPnlEl.className = 'chip-v ' + sgn(totalPnL);
+    uPnlEl.textContent = (totalPnL>=0?'+':'') + idrRaw(Math.round(totalPnL));
+  }
+}
+// ══ END GOTRADE ═══════════════════════════════════════════
 
 // ── INIT ───────────────────────────────────────────────
 try { initWatchlist(); } catch(e) {}
