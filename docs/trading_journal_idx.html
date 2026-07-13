@@ -86,6 +86,35 @@ select.fi option{background:var(--card)}
   .chart-grid{grid-template-columns:1fr}
   .tab{padding:10px 13px;font-size:12px}
 }
+/* Market / IHSG panel */
+.mkt-panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:12px}
+.mkt-panel-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px}
+.mkt-main{display:flex;align-items:baseline;gap:10px}
+.mkt-val{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums}
+.mkt-chg{font-size:13px;font-weight:700;padding:3px 9px;border-radius:5px}
+.mkt-chg.g{background:rgba(0,200,83,.12);color:var(--green)}
+.mkt-chg.r{background:rgba(255,77,77,.12);color:var(--red)}
+.mkt-globe{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.mkt-idx{background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:7px 11px;min-width:95px}
+.mkt-idx-l{font-size:10px;color:var(--muted);margin-bottom:3px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.mkt-idx-v{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+/* Stock chart modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:200;align-items:center;justify-content:center;padding:12px}
+.modal-overlay.on{display:flex}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:14px;width:100%;max-width:720px;max-height:92vh;overflow-y:auto;padding:20px;position:relative}
+.modal-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.modal-title{font-size:20px;font-weight:800;letter-spacing:-.01em}
+.modal-close{background:none;border:1px solid var(--border);color:var(--sub);border-radius:6px;padding:4px 12px;cursor:pointer;font-size:16px;line-height:1.4}
+.modal-close:hover{border-color:var(--accent);color:var(--text)}
+.tf-wrap{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.tf-btn{background:var(--card2);border:1px solid var(--border);color:var(--sub);border-radius:5px;padding:5px 13px;font-size:12px;cursor:pointer;font-weight:600;transition:all .15s}
+.tf-btn:hover{border-color:var(--accent);color:var(--accent)}
+.tf-btn.on{background:var(--accent);border-color:var(--accent);color:#000}
+/* Clickable symbol */
+.sym-click{cursor:pointer;border-bottom:1px dashed var(--muted);transition:color .15s;font-weight:700}
+.sym-click:hover{color:var(--accent);border-bottom-color:var(--accent)}
+/* Cash history */
+.hist-tbl td:first-child,.hist-tbl th:first-child{text-align:left}
 </style>
 </head>
 <body>
@@ -111,6 +140,28 @@ select.fi option{background:var(--card)}
 
 <!-- ══════════════ PORTO ══════════════ -->
 <div id="tab-porto" class="panel on">
+
+  <!-- IHSG Live Panel -->
+  <div class="mkt-panel">
+    <div class="mkt-panel-title">IHSG &amp; Pasar Global</div>
+    <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
+      <div style="flex:1;min-width:180px">
+        <div class="mkt-main">
+          <div class="mkt-val" id="ihsg-val">—</div>
+          <div class="mkt-chg" id="ihsg-chg">—</div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px" id="ihsg-ts">Belum diupdate</div>
+      </div>
+      <div style="flex:1;min-width:140px;max-width:260px;align-self:center"><canvas id="ihsg-mini" height="50"></canvas></div>
+    </div>
+    <div class="mkt-globe" id="global-mkts">
+      <div class="mkt-idx"><div class="mkt-idx-l">USD/IDR</div><div class="mkt-idx-v" id="g-usdidr">—</div></div>
+      <div class="mkt-idx"><div class="mkt-idx-l">Dow Jones</div><div class="mkt-idx-v" id="g-dji">—</div></div>
+      <div class="mkt-idx"><div class="mkt-idx-l">NASDAQ</div><div class="mkt-idx-v" id="g-nasdaq">—</div></div>
+      <div class="mkt-idx"><div class="mkt-idx-l">S&amp;P 500</div><div class="mkt-idx-v" id="g-sp500">—</div></div>
+    </div>
+  </div>
+
   <div class="warn" id="cash-warn">
     <span>⚠</span>
     <span>Cash T+2: <b id="cash-display" style="color:var(--red)">−Rp 1.484.222</b> — Top-up minimal <b id="topup-needed">Rp 1.584.222</b> sebelum settlement.</span>
@@ -282,9 +333,49 @@ select.fi option{background:var(--card)}
     </div>
     <div style="margin-top:12px;font-size:12px" id="akun-tip"></div>
   </div>
+  <div class="card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span>Riwayat Deposit &amp; Penarikan</span>
+      <button class="btn btn-sm btn-del" onclick="clearCashHistory()">Hapus Semua</button>
+    </div>
+    <div class="tbl-wrap">
+      <table class="hist-tbl">
+        <thead><tr>
+          <th>Waktu</th><th>Tipe</th>
+          <th style="text-align:right">Jumlah</th>
+          <th style="text-align:right">Saldo Setelah</th>
+        </tr></thead>
+        <tbody id="cash-hist-body"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 </div><!-- /content -->
+
+<!-- ══ STOCK CHART MODAL ══ -->
+<div class="modal-overlay" id="stock-modal" onclick="if(event.target===this)closeStockModal()">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-title" id="modal-sym">—</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px" id="modal-posinfo">—</div>
+      </div>
+      <button class="modal-close" onclick="closeStockModal()">✕</button>
+    </div>
+    <div class="tf-wrap">
+      <button class="tf-btn on" id="tf-1d"  onclick="setTF('1d','5m',this)">1 Hari</button>
+      <button class="tf-btn"    id="tf-1mo" onclick="setTF('1mo','1d',this)">1 Bln</button>
+      <button class="tf-btn"    id="tf-3mo" onclick="setTF('3mo','1d',this)">3 Bln</button>
+      <button class="tf-btn"    id="tf-6mo" onclick="setTF('6mo','1d',this)">6 Bln</button>
+      <button class="tf-btn"    id="tf-1y"  onclick="setTF('1y','1wk',this)">1 Tahun</button>
+      <button class="tf-btn"    id="tf-2y"  onclick="setTF('2y','1wk',this)">2 Tahun</button>
+    </div>
+    <div id="modal-status" style="font-size:12px;color:var(--muted);min-height:16px;margin-bottom:6px"></div>
+    <canvas id="modal-chart" height="220"></canvas>
+    <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px" id="modal-stats"></div>
+  </div>
+</div>
 
 <script>
 // ── CONSTANTS ──────────────────────────────────────────
@@ -338,6 +429,7 @@ function showTab(name, btn) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
   document.getElementById('tab-' + name).classList.add('on');
   btn.classList.add('on');
+  try { localStorage.setItem('idx_active_tab', name); } catch(e) {}
   if (name === 'analitik') setTimeout(renderAnalytics, 60);
   if (name === 'mm')       { try { calcMM(); updateDailyGauge(); } catch(e){} }
   if (name === 'jurnal')   try { renderJournal(); } catch(e){}
@@ -358,7 +450,7 @@ function renderPorto() {
       ? `${(h.shares/100 % 1 === 0 ? h.shares/100 : (h.shares/100).toFixed(2))} lot`
       : `${h.shares} lbr`;
     return `<tr>
-      <td>${h.sym}</td><td>${kep}</td><td>${idrRaw(h.avg)}</td>
+      <td><span class="sym-click" onclick="openStockChart('${h.sym}')">${h.sym}</span></td><td>${kep}</td><td>${idrRaw(h.avg)}</td>
       <td id="px-${h.sym}">${idrRaw(h.price)}</td>
       <td>${idrRaw(nilai)}</td>
       <td class="${pnl>=0?'g':'r'}">${pnl>=0?'+':''}${idrRaw(pnl)}</td>
@@ -709,18 +801,248 @@ function renderAccount() {
   } else {
     tip.innerHTML = `<b class="g">✓ Cash positif</b> — siap untuk transaksi selanjutnya.`;
   }
+  try { renderCashHistory(); } catch(e) {}
 }
 
 function applyTopup(sign) {
   const amount = +document.getElementById('topup-input').value || 0;
   if (!amount) return;
-  saveCash(loadCash() + sign * amount);
+  const newCash = loadCash() + sign * amount;
+  saveCash(newCash);
+  addCashLog(sign > 0 ? 'Deposit' : 'Penarikan', amount, newCash);
   document.getElementById('topup-input').value = '';
   renderAccount(); renderPorto();
 }
 function quickTopup(amount) {
-  saveCash(loadCash() + amount);
+  const newCash = loadCash() + amount;
+  saveCash(newCash);
+  addCashLog('Deposit', amount, newCash);
   renderAccount(); renderPorto();
+}
+
+// ── CASH HISTORY ───────────────────────────────────────
+function loadCashHistory() {
+  try { return JSON.parse(localStorage.getItem('idx_cash_hist_v1') || '[]'); } catch(e) { return []; }
+}
+function saveCashHistory(a) { localStorage.setItem('idx_cash_hist_v1', JSON.stringify(a)); }
+function addCashLog(type, amount, balanceAfter) {
+  const hist = loadCashHistory();
+  hist.unshift({ id: Date.now(), ts: new Date().toLocaleString('id-ID'), type, amount, balanceAfter });
+  if (hist.length > 200) hist.length = 200;
+  saveCashHistory(hist);
+}
+function renderCashHistory() {
+  const hist = loadCashHistory();
+  const body = document.getElementById('cash-hist-body');
+  if (!hist.length) {
+    body.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:22px;font-style:italic">Belum ada riwayat deposit/penarikan.</td></tr>`;
+    return;
+  }
+  body.innerHTML = hist.map(h => `<tr>
+    <td style="font-size:12px;white-space:nowrap">${h.ts}</td>
+    <td><span class="badge ${h.type==='Deposit'?'bw':'bl'}">${h.type}</span></td>
+    <td class="${h.type==='Deposit'?'g':'r'}" style="text-align:right">${h.type==='Deposit'?'+':'−'}${idr(h.amount)}</td>
+    <td style="text-align:right">${idr(h.balanceAfter)}</td>
+  </tr>`).join('');
+}
+function clearCashHistory() {
+  if (!confirm('Hapus semua riwayat deposit/penarikan?')) return;
+  saveCashHistory([]);
+  renderCashHistory();
+}
+
+// ── IHSG & GLOBAL MARKETS ──────────────────────────────
+let ihsgChart = null;
+async function fetchIHSG() {
+  const jkseUrl = 'https://query1.finance.yahoo.com/v8/finance/chart/%5EJKSE?range=1d&interval=5m';
+  const proxies = [
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(jkseUrl),
+    'https://corsproxy.io/?url=' + encodeURIComponent(jkseUrl),
+  ];
+  for (const url of proxies) {
+    try {
+      const r = await tFetch(url);
+      const j = await r.json();
+      const res = j?.chart?.result?.[0];
+      if (!res) continue;
+      const meta   = res.meta;
+      const price  = meta.regularMarketPrice;
+      const prev   = meta.previousClose || meta.chartPreviousClose || price;
+      const chg    = price - prev;
+      const chgPct = prev > 0 ? chg / prev * 100 : 0;
+      document.getElementById('ihsg-val').textContent =
+        price.toLocaleString('id-ID', { maximumFractionDigits: 2 });
+      const cel = document.getElementById('ihsg-chg');
+      cel.textContent = `${chg>=0?'+':''}${chg.toFixed(2)} (${chgPct>=0?'+':''}${chgPct.toFixed(2)}%)`;
+      cel.className = 'mkt-chg ' + (chg >= 0 ? 'g' : 'r');
+      document.getElementById('ihsg-ts').textContent =
+        'Update: ' + new Date().toLocaleTimeString('id-ID');
+      const closes = (res.indicators?.quote?.[0]?.close || []).filter(v => v != null);
+      if (closes.length > 1) drawIHSGMini(closes, chg >= 0);
+      break;
+    } catch(e) {}
+  }
+  // Fetch global indices in parallel
+  fetchGlobalIdx('g-usdidr', 'USDIDR%3DX', v => v.toLocaleString('id-ID',{maximumFractionDigits:0}));
+  fetchGlobalIdx('g-dji',    '%5EDJI',     v => v.toLocaleString('en-US',{maximumFractionDigits:0}));
+  fetchGlobalIdx('g-nasdaq', '%5EIXIC',    v => v.toLocaleString('en-US',{maximumFractionDigits:0}));
+  fetchGlobalIdx('g-sp500',  '%5EGSPC',    v => v.toLocaleString('en-US',{maximumFractionDigits:0}));
+}
+
+async function fetchGlobalIdx(elId, encodedSym, fmtFn) {
+  const base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodedSym;
+  const proxies = [
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(base),
+    'https://corsproxy.io/?url=' + encodeURIComponent(base),
+  ];
+  for (const url of proxies) {
+    try {
+      const r = await tFetch(url);
+      const j = await r.json();
+      const meta = j?.chart?.result?.[0]?.meta;
+      if (!meta) continue;
+      const price  = meta.regularMarketPrice;
+      const prev   = meta.previousClose || meta.chartPreviousClose || price;
+      const chgPct = prev > 0 ? (price - prev) / prev * 100 : 0;
+      const el = document.getElementById(elId);
+      if (el) el.innerHTML = `${fmtFn(price)} <span class="${chgPct>=0?'g':'r'}" style="font-size:10px">${chgPct>=0?'+':''}${chgPct.toFixed(2)}%</span>`;
+      break;
+    } catch(e) {}
+  }
+}
+
+function drawIHSGMini(closes, isUp) {
+  const ctx = document.getElementById('ihsg-mini').getContext('2d');
+  const color = isUp ? '#00c853' : '#ff4d4d';
+  if (ihsgChart) { ihsgChart.destroy(); ihsgChart = null; }
+  ihsgChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: closes.map((_,i) => i),
+      datasets:[{ data: closes, borderColor: color, backgroundColor: color+'22',
+        fill: true, tension: 0.3, pointRadius: 0, borderWidth: 1.5 }]
+    },
+    options:{
+      plugins:{ legend:{display:false}, tooltip:{enabled:false} },
+      scales:{ x:{display:false}, y:{display:false} },
+      animation:false
+    }
+  });
+}
+
+// ── STOCK CHART MODAL ──────────────────────────────────
+let modalChart = null;
+let modalSym   = '';
+
+function openStockChart(sym) {
+  modalSym = sym;
+  document.getElementById('modal-sym').textContent = sym + '.JK';
+  const h = holdings.find(x => x.sym === sym);
+  if (h) {
+    const pnl = (h.price - h.avg) * h.shares;
+    const pct = h.avg > 0 ? (h.price - h.avg) / h.avg * 100 : 0;
+    const kep = h.shares >= 100
+      ? `${(h.shares/100 % 1 === 0 ? h.shares/100 : (h.shares/100).toFixed(2))} lot`
+      : `${h.shares} lbr`;
+    document.getElementById('modal-posinfo').innerHTML =
+      `${kep} &nbsp;·&nbsp; Avg: ${idrRaw(h.avg)} &nbsp;·&nbsp; Harga: ${idrRaw(h.price)} &nbsp;·&nbsp; P&L: <span class="${pnl>=0?'g':'r'}">${pnl>=0?'+':''}${idrRaw(pnl)} (${pct>=0?'+':''}${pct.toFixed(2)}%)</span>`;
+  } else {
+    document.getElementById('modal-posinfo').textContent = 'Tidak ada posisi aktif';
+  }
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('tf-1d').classList.add('on');
+  document.getElementById('stock-modal').classList.add('on');
+  fetchStockChart(sym, '1d', '5m');
+}
+
+function closeStockModal() {
+  document.getElementById('stock-modal').classList.remove('on');
+}
+
+function setTF(range, interval, btn) {
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  fetchStockChart(modalSym, range, interval);
+}
+
+async function fetchStockChart(sym, range, interval) {
+  const status = document.getElementById('modal-status');
+  status.textContent = '⟳ Mengambil data…';
+  document.getElementById('modal-stats').innerHTML = '';
+  const yfUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}.JK?range=${range}&interval=${interval}`;
+  const proxies = [
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(yfUrl),
+    'https://corsproxy.io/?url=' + encodeURIComponent(yfUrl),
+  ];
+  for (const url of proxies) {
+    try {
+      const r = await tFetch(url);
+      const j = await r.json();
+      const res = j?.chart?.result?.[0];
+      if (!res) continue;
+      const meta   = res.meta;
+      const times  = res.timestamp || [];
+      const q      = res.indicators?.quote?.[0] || {};
+      const closes = q.close  || [];
+      const vols   = q.volume || [];
+      const valid  = times.map((t,i) => ({ t, c: closes[i], v: vols[i] })).filter(d => d.c != null);
+      if (!valid.length) continue;
+      const isIntra = range === '1d';
+      const fmtT = isIntra
+        ? t => new Date(t*1000).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})
+        : t => new Date(t*1000).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:range==='1y'||range==='2y'?'numeric':undefined});
+      const labels = valid.map(d => fmtT(d.t));
+      const cData  = valid.map(d => d.c);
+      const vData  = valid.map(d => d.v || 0);
+      const first  = cData[0], last = cData[cData.length-1];
+      const isUp   = last >= first;
+      const color  = isUp ? '#00c853' : '#ff4d4d';
+      const h = holdings.find(x => x.sym === sym);
+      const avgSet = h ? [{
+        label:'Avg Beli', data: cData.map(() => h.avg),
+        borderColor:'#f59e0b', borderDash:[5,4], borderWidth:1.5,
+        pointRadius:0, fill:false, yAxisID:'y'
+      }] : [];
+      const ctx = document.getElementById('modal-chart').getContext('2d');
+      if (modalChart) { modalChart.destroy(); modalChart = null; }
+      modalChart = new Chart(ctx, {
+        type:'line',
+        data:{ labels, datasets:[
+          { label:sym, data:cData, borderColor:color, backgroundColor:color+'18',
+            fill:true, tension:0.2, pointRadius:0, borderWidth:2, yAxisID:'y' },
+          ...avgSet,
+          { label:'Volume', data:vData, type:'bar',
+            backgroundColor:color+'33', borderRadius:1, yAxisID:'vol', order:10 }
+        ]},
+        options:{
+          plugins:{
+            legend:{ display:true, position:'top', labels:{ color:'#a8a8c8', boxWidth:12, font:{size:11} } },
+            tooltip:{ mode:'index', intersect:false }
+          },
+          scales:{
+            x:{ ticks:{ color:'#6868a8', maxTicksLimit:7, maxRotation:0 } },
+            y:{ position:'right', ticks:{ color:'#6868a8', callback:v=>idrRaw(v) } },
+            vol:{ position:'left', ticks:{display:false}, grid:{display:false} }
+          },
+          interaction:{ mode:'index', intersect:false }
+        }
+      });
+      const priceChg = last - first;
+      const pct = first > 0 ? priceChg / first * 100 : 0;
+      const hi = Math.max(...cData), lo = Math.min(...cData);
+      document.getElementById('modal-stats').innerHTML = `
+        <div class="sb"><div class="sb-l">Harga</div><div class="sb-v">${idrRaw(last)}</div></div>
+        <div class="sb"><div class="sb-l">Perubahan</div><div class="sb-v ${priceChg>=0?'g':'r'}">${priceChg>=0?'+':''}${idrRaw(priceChg)}</div></div>
+        <div class="sb"><div class="sb-l">% Rentang</div><div class="sb-v ${pct>=0?'g':'r'}">${pct>=0?'+':''}${pct.toFixed(2)}%</div></div>
+        <div class="sb"><div class="sb-l">Tertinggi</div><div class="sb-v">${idrRaw(hi)}</div></div>
+        <div class="sb"><div class="sb-l">Terendah</div><div class="sb-v">${idrRaw(lo)}</div></div>
+        ${meta.regularMarketVolume?`<div class="sb"><div class="sb-l">Volume</div><div class="sb-v">${(meta.regularMarketVolume/1e6).toFixed(1)}M</div></div>`:''}
+      `;
+      status.textContent = '';
+      return;
+    } catch(e) {}
+  }
+  status.textContent = 'Gagal mengambil data. Cek koneksi atau coba lagi.';
 }
 
 // ── INIT ───────────────────────────────────────────────
@@ -731,7 +1053,16 @@ try {
   renderJournal();
 } catch(e) { console.error('renderJournal', e); }
 
-window.addEventListener('load', () => setTimeout(fetchAll, 1500));
+// Restore last active tab
+try {
+  const saved = localStorage.getItem('idx_active_tab');
+  if (saved && saved !== 'porto') {
+    const btn = document.querySelector(`.tab[onclick*="'${saved}'"]`);
+    if (btn) showTab(saved, btn);
+  }
+} catch(e) {}
+
+window.addEventListener('load', () => setTimeout(() => { fetchAll(); fetchIHSG(); }, 1500));
 </script>
 </body>
 </html>
