@@ -299,11 +299,13 @@ const SEED_CASH = -1484222;
 const WATCHLIST = ['BBCA','BBHI','BBNI','BBRI','BNBA','BMRI','TLKM','ASII','GOTO','BRIS','BBTN','NISP','MEGA','BDMN'];
 const PALETTE   = ['#FF7A00','#00C853','#29B6F6','#AB47BC','#FF4D4D','#FFD54F','#4DD0E1','#AED581'];
 const SAMPLE_TRADES = [
-  { id:'s1', date:'2024-12-02', code:'BBCA', action:'Buy', lot:1,    price:6150, fee:2500, strat:'Value',    emotion:'Discipline', notes:'Akumulasi BBCA bluechip',          pnl:null },
-  { id:'s2', date:'2024-12-10', code:'BBHI', action:'Buy', lot:0.02, price:1563, fee:100,  strat:'Swing',    emotion:'FOMO',       notes:'Coba bank digital',                 pnl:null },
-  { id:'s3', date:'2025-01-05', code:'BBNI', action:'Buy', lot:2,    price:3430, fee:3400, strat:'Dividend', emotion:'Discipline', notes:'Dividen BUMN',                      pnl:null },
-  { id:'s4', date:'2025-01-12', code:'BBRI', action:'Buy', lot:3,    price:2800, fee:4200, strat:'Value',    emotion:'Fear',       notes:'Average down',                      pnl:null },
-  { id:'s5', date:'2025-02-20', code:'BNBA', action:'Buy', lot:0.2,  price:3708, fee:500,  strat:'Swing',    emotion:'FOMO',       notes:'Saham gorengan — cut loss review',  pnl:null },
+  { id:'s7', date:'2026-07-13', code:'BNBA', action:'Sell', lot:0.2,  price:735,  fee:43,   strat:'Swing',    emotion:'FOMO',       notes:'BNBA -80.2% — FOMO gorengan. Rule: max 5% portfolio untuk spekulatif', pnl:-59460 },
+  { id:'s6', date:'2026-07-13', code:'BBCA', action:'Sell', lot:1,    price:6600, fee:1914, strat:'Swing',    emotion:'Discipline', notes:'Swing Value thesis worked',         pnl:45000  },
+  { id:'s1', date:'2024-12-02', code:'BBCA', action:'Buy',  lot:1,    price:6150, fee:2500, strat:'Value',    emotion:'Discipline', notes:'Akumulasi BBCA bluechip',           pnl:null   },
+  { id:'s2', date:'2024-12-10', code:'BBHI', action:'Buy',  lot:0.02, price:1563, fee:100,  strat:'Swing',    emotion:'FOMO',       notes:'Coba bank digital',                 pnl:null   },
+  { id:'s3', date:'2025-01-05', code:'BBNI', action:'Buy',  lot:2,    price:3430, fee:3400, strat:'Dividend', emotion:'Discipline', notes:'Dividen BUMN',                      pnl:null   },
+  { id:'s4', date:'2025-01-12', code:'BBRI', action:'Buy',  lot:3,    price:2800, fee:4200, strat:'Value',    emotion:'Fear',       notes:'Average down',                      pnl:null   },
+  { id:'s5', date:'2025-02-20', code:'BNBA', action:'Buy',  lot:0.2,  price:3708, fee:500,  strat:'Swing',    emotion:'FOMO',       notes:'Saham gorengan — cut loss review',  pnl:null   },
 ];
 
 // ── STATE ──────────────────────────────────────────────
@@ -312,12 +314,12 @@ let holdings = JSON.parse(JSON.stringify(SEED));
 // ── STORAGE ────────────────────────────────────────────
 function loadTrades() {
   try {
-    const raw = localStorage.getItem('idx_trades_v2');
+    const raw = localStorage.getItem('idx_trades_v3');
     if (!raw) { saveTrades(SAMPLE_TRADES); return JSON.parse(JSON.stringify(SAMPLE_TRADES)); }
     return JSON.parse(raw);
   } catch(e) { return JSON.parse(JSON.stringify(SAMPLE_TRADES)); }
 }
-function saveTrades(a) { localStorage.setItem('idx_trades_v2', JSON.stringify(a)); }
+function saveTrades(a) { localStorage.setItem('idx_trades_v3', JSON.stringify(a)); }
 function loadCash()    { return parseFloat(localStorage.getItem('idx_cash_v2') || SEED_CASH); }
 function saveCash(v)   { localStorage.setItem('idx_cash_v2', String(v)); }
 
