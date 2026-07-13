@@ -4762,14 +4762,25 @@ function renderGainLoss() {
   const noteEl = document.getElementById('gl-period-note');
   if (noteEl) noteEl.textContent = note;
 
-  const gc = totalGross >= 0 ? 'g' : 'r';
-  const nc = totalNet   >= 0 ? 'g' : 'r';
-  const gs = (totalGross >= 0 ? '+' : '') + idrRaw(totalGross);
-  const ns = (totalNet   >= 0 ? '+' : '') + idrRaw(totalNet);
+  // ── Computed from actual GL_DATA ──
+  const dataGross = d.reduce((s,r) => s + r.gross, 0);
+  const dataNet   = d.reduce((s,r) => s + r.net,   0);
+  const dataFee   = dataGross - dataNet;   // always ≥ 0: fee = gross − net per trade
+
+  const dgc = dataGross >= 0 ? 'g' : 'r';
+  const dnc = dataNet   >= 0 ? 'g' : 'r';
+  const dgs = (dataGross >= 0 ? '+' : '') + idrRaw(dataGross);
+  const dns = (dataNet   >= 0 ? '+' : '') + idrRaw(dataNet);
+
+  // Official Neo HOTS reference row (only meaningful for P1 / P2 sub-periods)
+  const officialRow = (glPeriod === 1 || glPeriod === 2) ? `
+    <div class="sb" style="opacity:.65"><div class="sb-l" style="font-size:11px">Resmi Neo HOTS</div><div class="sb-v" style="font-size:11px">G: ${(totalGross>=0?'+':'')+idrRaw(totalGross)} &nbsp;/&nbsp; N: ${(totalNet>=0?'+':'')+idrRaw(totalNet)}</div></div>` : '';
 
   document.getElementById('gl-stats').innerHTML = `
-    <div class="sb"><div class="sb-l">Total Gross</div><div class="sb-v ${gc}">${gs}</div></div>
-    <div class="sb"><div class="sb-l">Total Net</div><div class="sb-v ${nc}">${ns}</div></div>
+    <div class="sb"><div class="sb-l">Total Gross</div><div class="sb-v ${dgc}">${dgs}</div></div>
+    <div class="sb"><div class="sb-l">Total Net</div><div class="sb-v ${dnc}" style="font-weight:700">${dns}</div></div>
+    <div class="sb"><div class="sb-l">Total Fee</div><div class="sb-v" style="color:#ff9500">${idrRaw(dataFee)}</div></div>
+    ${officialRow}
     <div class="sb"><div class="sb-l">Transaksi (data)</div><div class="sb-v">${d.length}</div></div>
     <div class="sb"><div class="sb-l">Win / Loss / BE</div><div class="sb-v"><span class="g">${wins}</span> / <span class="r">${losses}</span> / <span class="m">${even}</span></div></div>
     <div class="sb"><div class="sb-l">Win Rate</div><div class="sb-v ${parseFloat(winRate)>=50?'g':'r'}">${winRate}%</div></div>
