@@ -365,7 +365,7 @@ select.fi option{background:var(--card)}
 <div id="tab-preturn" class="panel">
   <div class="sg" id="pr-stats"></div>
   <div class="card">
-    <div class="card-title">Yield Bulanan (%) · 2025/01 – 2026/07</div>
+    <div class="card-title">Yield Bulanan (%) · 2024/01 – 2026/07</div>
     <canvas id="pr-chart" height="160"></canvas>
   </div>
   <div class="card">
@@ -1196,6 +1196,18 @@ function drawModalChart({ valid, fmtT, meta, sym }) {
 
 // ── P.RETURN ───────────────────────────────────────────
 const PRETURN_DATA = [
+  { month:'2024/01', endVal:67848283, deposit:21000250,  withdraw:30000000, change:-12450065, gainLoss:-3450315, yield:-3.41 },
+  { month:'2024/02', endVal:3829921,  deposit:12000250,  withdraw:77000000, change:-64018362, gainLoss:981388,   yield:1.23  },
+  { month:'2024/03', endVal:3189189,  deposit:13800176,  withdraw:12700000, change:-640732,   gainLoss:-1740908, yield:-9.87 },
+  { month:'2024/04', endVal:19419424, deposit:15200000,  withdraw:0,        change:16230235,  gainLoss:1030235,  yield:5.60  },
+  { month:'2024/05', endVal:38667292, deposit:26000000,  withdraw:0,        change:19247868,  gainLoss:-6752132, yield:-14.87},
+  { month:'2024/06', endVal:812548,   deposit:0,         withdraw:36500000, change:-37854744, gainLoss:-1354744, yield:-3.50 },
+  { month:'2024/07', endVal:754158,   deposit:0,         withdraw:0,        change:-58390,    gainLoss:-58390,   yield:-7.19 },
+  { month:'2024/08', endVal:21724683, deposit:20000000,  withdraw:0,        change:20970525,  gainLoss:970525,   yield:4.68  },
+  { month:'2024/09', endVal:22435134, deposit:5000000,   withdraw:4300000,  change:710451,    gainLoss:10451,    yield:0.04  },
+  { month:'2024/10', endVal:23287831, deposit:500000,    withdraw:1900000,  change:852697,    gainLoss:2252697,  yield:9.82  },
+  { month:'2024/11', endVal:282662,   deposit:0,         withdraw:22000000, change:-23005169, gainLoss:-1005169, yield:-4.32 },
+  { month:'2024/12', endVal:5888642,  deposit:6120000,   withdraw:0,        change:5605980,   gainLoss:-514020,  yield:-8.03 },
   { month:'2025/01', endVal:856598,   deposit:945000,    withdraw:6300000,  change:-5032044,  gainLoss:322956,   yield:4.73  },
   { month:'2025/02', endVal:8054827,  deposit:8800000,   withdraw:790209,   change:7198229,   gainLoss:-811562,  yield:-8.40 },
   { month:'2025/03', endVal:11436679, deposit:9351300,   withdraw:4500000,  change:3381852,   gainLoss:-1469448, yield:-8.44 },
