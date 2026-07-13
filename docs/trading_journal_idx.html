@@ -4751,6 +4751,9 @@ const GL_DATA = [
   {date:'2020/08/04',code:'BBCA',sell:31000,buy:30144.4,lot:1,pct:2.8,gross:85555,net:73440},
 ];
 
+// fee beli 0.15% + fee jual 0.25%
+const calcFee = r => Math.round(r.lot * 100 * (r.buy * 0.0015 + r.sell * 0.0025));
+
 let glChart = null;
 let actChart = null;
 let actTF = 'max';
@@ -4814,7 +4817,7 @@ function renderGainLoss() {
   // ── Computed from actual GL_DATA ──
   const dataGross = d.reduce((s,r) => s + r.gross, 0);
   const dataNet   = d.reduce((s,r) => s + r.net,   0);
-  const dataFee   = dataGross - dataNet;   // always ≥ 0: fee = gross − net per trade
+  const dataFee   = d.reduce((s,r) => s + calcFee(r), 0);
 
   const dgc = dataGross >= 0 ? 'g' : 'r';
   const dnc = dataNet   >= 0 ? 'g' : 'r';
@@ -4879,11 +4882,11 @@ function renderGainLoss() {
     const ytdData = d.filter(r => r.date.startsWith('2026'));
     const ytdNet  = ytdData.reduce((s,r)=>s+r.net,0);
     const ytdGross= ytdData.reduce((s,r)=>s+r.gross,0);
-    const ytdFee  = ytdData.reduce((s,r)=>s+(r.gross-r.net),0);
+    const ytdFee  = ytdData.reduce((s,r)=>s+calcFee(r),0);
 
     const totalNet   = d.reduce((s,r)=>s+r.net,0);
     const totalGross = d.reduce((s,r)=>s+r.gross,0);
-    const totalFee   = totalGross - totalNet;
+    const totalFee   = d.reduce((s,r)=>s+calcFee(r),0);
 
     const sgn = v => v >= 0 ? '+' : '';
     const cls = v => v >= 0 ? 'g' : 'r';
@@ -4955,7 +4958,7 @@ function filterGL() {
     if (q && rows.length > 0) {
       const filtGross = rows.reduce((s,r) => s + r.gross, 0);
       const filtNet   = rows.reduce((s,r) => s + r.net,   0);
-      const filtFee   = rows.reduce((s,r) => s + (r.gross - r.net), 0);
+      const filtFee   = rows.reduce((s,r) => s + calcFee(r), 0);
       const wins      = rows.filter(r => r.net > 0).length;
       const losses    = rows.filter(r => r.net < 0).length;
       const gc = filtGross >= 0 ? 'g' : 'r';
