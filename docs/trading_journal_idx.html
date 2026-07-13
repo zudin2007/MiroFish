@@ -140,6 +140,7 @@ select.fi option{background:var(--card)}
   <button class="tab" onclick="showTab('mm',this)">Money Mgmt</button>
   <button class="tab" onclick="showTab('akun',this)">Akun</button>
   <button class="tab" onclick="showTab('preturn',this)">P.Return</button>
+  <button class="tab" onclick="showTab('gainloss',this)">Gain/Loss</button>
 </div>
 
 <div class="content">
@@ -392,6 +393,45 @@ select.fi option{background:var(--card)}
   </div>
 </div>
 
+<!-- ══════════════ GAIN/LOSS ══════════════ -->
+<div id="tab-gainloss" class="panel">
+  <div class="sg" id="gl-stats"></div>
+  <div class="card">
+    <div class="card-title">Net P&amp;L per Saham (Rp) · 2026/02/01 – 2026/07/13</div>
+    <canvas id="gl-chart" height="180"></canvas>
+  </div>
+  <div class="card">
+    <div class="card-title">Riwayat Transaksi</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
+      <input type="text" class="fi" id="gl-filter" placeholder="Filter kode saham…" style="max-width:200px" oninput="filterGL()">
+      <select class="fi" id="gl-sort" onchange="filterGL()" style="max-width:180px">
+        <option value="date-desc">Terbaru dulu</option>
+        <option value="date-asc">Terlama dulu</option>
+        <option value="net-asc">Net: Terbesar rugi</option>
+        <option value="net-desc">Net: Terbesar untung</option>
+        <option value="pct-asc">%: Terbesar rugi</option>
+        <option value="pct-desc">%: Terbesar untung</option>
+      </select>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th style="text-align:left">Tanggal</th>
+          <th style="text-align:left">Kode</th>
+          <th>Avg Sell</th>
+          <th>Avg Buy</th>
+          <th>Lot</th>
+          <th>%</th>
+          <th>Gross</th>
+          <th>Net</th>
+        </tr></thead>
+        <tbody id="gl-body"></tbody>
+      </table>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:8px" id="gl-count"></div>
+  </div>
+</div>
+
 </div><!-- /content -->
 
 <div class="toast" id="toast"></div>
@@ -494,6 +534,7 @@ function showTab(name, btn) {
   if (name === 'jurnal')   try { renderJournal(); } catch(e){}
   if (name === 'akun')     try { renderAccount(); } catch(e){}
   if (name === 'preturn')  setTimeout(() => { try { renderPReturn(); } catch(e){} }, 60);
+  if (name === 'gainloss') setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
 }
 
 // ── PORTO ──────────────────────────────────────────────
@@ -1382,6 +1423,167 @@ function renderPReturn() {
       <td class="${r.gainLoss>=0?'g':'r'}" style="font-weight:700">${r.gainLoss>=0?'+':''}${idrRaw(r.gainLoss)}</td>
       <td class="${r.yield>=0?'g':'r'}">${r.yield>=0?'+':''}${r.yield.toFixed(2)}%</td>
     </tr>`).join('');
+}
+
+// ── GAIN/LOSS ──────────────────────────────────────────
+const GL_DATA = [
+  {date:'2026/02/02',code:'ITMG',sell:21775,  buy:22150,   lot:1,  pct:-1.7,  gross:-37500,   net:-46265 },
+  {date:'2026/02/02',code:'LPPF',sell:1825,   buy:1870,    lot:13, pct:-2.4,  gross:-58500,   net:-68076 },
+  {date:'2026/02/03',code:'FILM',sell:10500,  buy:12825,   lot:2,  pct:-18.1, gross:-465000,  net:-474097},
+  {date:'2026/02/11',code:'ASII',sell:6750,   buy:6950,    lot:2,  pct:-2.9,  gross:-40000,   net:-45460 },
+  {date:'2026/02/12',code:'WIIM',sell:1995,   buy:2100,    lot:18, pct:-5.0,  gross:-189000,  net:-203647},
+  {date:'2026/02/12',code:'ASGR',sell:1676.3, buy:1780,    lot:11, pct:-5.8,  gross:-114000,  net:-121547},
+  {date:'2026/02/18',code:'ANTM',sell:3990,   buy:4150,    lot:10, pct:-3.9,  gross:-160000,  net:-176200},
+  {date:'2026/02/20',code:'LPPF',sell:1935,   buy:1925,    lot:11, pct:0.5,   gross:11000,    net:2504   },
+  {date:'2026/02/20',code:'BLUE',sell:6425,   buy:6475,    lot:3,  pct:-0.8,  gross:-15000,   net:-22731 },
+  {date:'2026/02/23',code:'ELPI',sell:2300,   buy:1665,    lot:12, pct:38.1,  gross:762000,   net:752103 },
+  {date:'2026/02/23',code:'ELSA',sell:790,    buy:705,     lot:28, pct:12.1,  gross:238000,   net:229509 },
+  {date:'2026/02/23',code:'GGRM',sell:15950,  buy:16850,   lot:3,  pct:-5.3,  gross:-270000,  net:-289544},
+  {date:'2026/02/24',code:'MDKA',sell:3840,   buy:3150,    lot:3,  pct:21.9,  gross:207000,   net:202703 },
+  {date:'2026/02/24',code:'NCKL',sell:1570,   buy:1395,    lot:4,  pct:12.5,  gross:70000,    net:67593  },
+  {date:'2026/02/24',code:'TUGU',sell:1445,   buy:1475,    lot:17, pct:-2.0,  gross:-51000,   net:-60901 },
+  {date:'2026/02/24',code:'VKTR',sell:960,    buy:1055,    lot:32, pct:-9.0,  gross:-304000,  net:-316744},
+  {date:'2026/02/25',code:'UNIC',sell:11025,  buy:12800,   lot:2,  pct:-13.9, gross:-355000,  net:-364352},
+  {date:'2026/02/26',code:'DKFT',sell:860,    buy:900,     lot:34, pct:-4.4,  gross:-136000,  net:-147900},
+  {date:'2026/02/26',code:'INDY',sell:3400,   buy:3620,    lot:9,  pct:-6.1,  gross:-198000,  net:-210537},
+  {date:'2026/02/26',code:'NCKL',sell:1440,   buy:1395,    lot:18, pct:3.2,   gross:81000,    net:70754  },
+  {date:'2026/02/26',code:'SMDR',sell:392,    buy:400.4,   lot:104,pct:-2.1,  gross:-87999,   net:-104437},
+  {date:'2026/02/27',code:'HRTA',sell:3190,   buy:2680,    lot:4,  pct:19.0,  gross:204000,   net:199202 },
+  {date:'2026/02/27',code:'PPRE',sell:230,    buy:230,     lot:95, pct:0.0,   gross:0,        net:-8739  },
+  {date:'2026/03/03',code:'ENRG',sell:2110,   buy:1975,    lot:17, pct:6.8,   gross:229500,   net:215497 },
+  {date:'2026/03/03',code:'INCO',sell:6600,   buy:6825,    lot:4,  pct:-3.3,  gross:-90000,   net:-100695},
+  {date:'2026/03/04',code:'ADMR',sell:1980,   buy:2000,    lot:19, pct:-1.0,  gross:-38000,   net:-53105 },
+  {date:'2026/03/04',code:'ADRO',sell:2420,   buy:2430,    lot:12, pct:-0.4,  gross:-12000,   net:-23634 },
+  {date:'2026/03/04',code:'ANTM',sell:4220,   buy:4290,    lot:8,  pct:-1.6,  gross:-56000,   net:-69588 },
+  {date:'2026/03/04',code:'ARCI',sell:1795,   buy:1800,    lot:19, pct:-0.3,  gross:-9500,    net:-23155 },
+  {date:'2026/03/04',code:'MDKA',sell:3510,   buy:3438.7,  lot:8,  pct:2.1,   gross:57000,    net:45854  },
+  {date:'2026/03/04',code:'MEDC',sell:1955,   buy:1895,    lot:15, pct:3.2,   gross:90000,    net:78407  },
+  {date:'2026/03/04',code:'TINS',sell:3960,   buy:4390,    lot:6,  pct:-9.8,  gross:-258000,  net:-267891},
+  {date:'2026/03/05',code:'MEDC',sell:1820,   buy:1870,    lot:26, pct:-2.7,  gross:-130000,  net:-149123},
+  {date:'2026/03/06',code:'HRTA',sell:2760,   buy:2680,    lot:11, pct:3.0,   gross:88000,    net:75988  },
+  {date:'2026/03/09',code:'AADI',sell:10025,  buy:10225,   lot:1,  pct:-2.0,  gross:-20000,   net:-24038 },
+  {date:'2026/03/09',code:'ADRO',sell:2290,   buy:2410,    lot:4,  pct:-5.0,  gross:-48000,   net:-51736 },
+  {date:'2026/03/09',code:'BEST',sell:101,    buy:110,     lot:90, pct:-8.2,  gross:-81000,   net:-84757 },
+  {date:'2026/03/09',code:'CFIN',sell:310,    buy:331.3,   lot:30, pct:-6.4,  gross:-64000,   net:-67816 },
+  {date:'2026/03/09',code:'DILD',sell:125,    buy:132,     lot:75, pct:-5.3,  gross:-52500,   net:-56328 },
+  {date:'2026/03/09',code:'ELSA',sell:860,    buy:875,     lot:11, pct:-1.7,  gross:-16500,   net:-20308 },
+  {date:'2026/03/09',code:'ITMG',sell:27800,  buy:27075,   lot:4,  pct:2.7,   gross:290000,   net:245955 },
+  {date:'2026/03/09',code:'LSIP',sell:1265,   buy:1255,    lot:7,  pct:0.8,   gross:7000,     net:3470   },
+  {date:'2026/03/09',code:'MAIN',sell:805,    buy:850,     lot:11, pct:-5.3,  gross:-49500,   net:-53115 },
+  {date:'2026/03/09',code:'PNIN',sell:760,    buy:795,     lot:12, pct:-4.4,  gross:-42000,   net:-45711 },
+  {date:'2026/03/09',code:'SIMP',sell:575,    buy:595,     lot:16, pct:-3.4,  gross:-32000,   net:-35728 },
+  {date:'2026/03/09',code:'UNTR',sell:28725,  buy:29175,   lot:1,  pct:-1.5,  gross:-45000,   net:-56556 },
+  {date:'2026/03/10',code:'ABMM',sell:2940,   buy:3020,    lot:6,  pct:-2.6,  gross:-48000,   net:-55128 },
+  {date:'2026/03/10',code:'BMTR',sell:125,    buy:132,     lot:75, pct:-5.3,  gross:-52500,   net:-56328 },
+  {date:'2026/03/10',code:'PGAS',sell:1905,   buy:2390,    lot:4,  pct:-20.3, gross:-194000,  net:-197339},
+  {date:'2026/03/12',code:'AGII',sell:3200,   buy:3270,    lot:9,  pct:-2.1,  gross:-63000,   net:-74614 },
+  {date:'2026/03/16',code:'AUTO',sell:2540,   buy:2780,    lot:3,  pct:-8.6,  gross:-72000,   net:-75156 },
+  {date:'2026/03/16',code:'GJTL',sell:1020,   buy:1075,    lot:18, pct:-5.1,  gross:-99000,   net:-106492},
+  {date:'2026/03/16',code:'ITMG',sell:27425,  buy:27700,   lot:2,  pct:-1.0,  gross:-55000,   net:-77022 },
+  {date:'2026/03/16',code:'RALS',sell:462,    buy:515,     lot:19, pct:-10.3, gross:-100700,  net:-104360},
+  {date:'2026/03/31',code:'ABMM',sell:3130,   buy:3040,    lot:9,  pct:3.0,   gross:81000,    net:69854  },
+  {date:'2026/03/31',code:'ITMG',sell:30075,  buy:28533.3, lot:1,  pct:5.4,   gross:154166,   net:142369 },
+  {date:'2026/04/02',code:'ADRO',sell:2540,   buy:2610,    lot:11, pct:-2.7,  gross:-77000,   net:-88291 },
+  {date:'2026/04/06',code:'MSJA',sell:472,    buy:480,     lot:62, pct:-1.7,  gross:-49600,   net:-61379 },
+  {date:'2026/04/08',code:'ELSA',sell:685,    buy:735,     lot:41, pct:-6.8,  gross:-205000,  net:-216540},
+  {date:'2026/04/09',code:'TKIM',sell:9275,   buy:9482.1,  lot:3,  pct:-2.2,  gross:-62142,   net:-73363 },
+  {date:'2026/04/10',code:'MSIN',sell:1415,   buy:1121.9,  lot:15, pct:26.1,  gross:439534,   net:431705 },
+  {date:'2026/04/10',code:'OMED',sell:266,    buy:274,     lot:72, pct:-2.9,  gross:-57600,   net:-65346 },
+  {date:'2026/04/13',code:'BSML',sell:372,    buy:362,     lot:138,pct:2.8,   gross:138000,   net:117674 },
+  {date:'2026/04/13',code:'FORE',sell:935,    buy:830,     lot:36, pct:12.7,  gross:378000,   net:365103 },
+  {date:'2026/04/13',code:'MSJA',sell:525,    buy:510,     lot:58, pct:2.9,   gross:87000,    net:74951  },
+  {date:'2026/04/14',code:'MSIN',sell:1245,   buy:1121.9,  lot:28, pct:11.0,  gross:344465,   net:331038 },
+  {date:'2026/04/15',code:'APLN',sell:175,    buy:177,     lot:312,pct:-1.1,  gross:-62400,   net:-84333 },
+  {date:'2026/04/15',code:'TKIM',sell:9400,   buy:9482.1,  lot:4,  pct:-0.9,  gross:-32857,   net:-47946 },
+  {date:'2026/04/20',code:'APLN',sell:165,    buy:177,     lot:241,pct:-6.8,  gross:-289200,  net:-305538},
+  {date:'2026/04/22',code:'EMAS',sell:9400,   buy:8425,    lot:2,  pct:11.6,  gross:195000,   net:187773 },
+  {date:'2026/04/22',code:'GJTL',sell:1210,   buy:1235,    lot:24, pct:-2.0,  gross:-60000,   net:-71706 },
+  {date:'2026/04/22',code:'LSIP',sell:1735,   buy:1705,    lot:29, pct:1.8,   gross:87000,    net:67006  },
+  {date:'2026/04/24',code:'FORE',sell:910,    buy:940,     lot:34, pct:-3.2,  gross:-102000,  net:-114529},
+  {date:'2026/04/28',code:'EMAS',sell:9825,   buy:9598.8,  lot:11, pct:2.4,   gross:248750,   net:205894 },
+  {date:'2026/04/29',code:'EMAS',sell:9625,   buy:9598.8,  lot:11, pct:0.3,   gross:28750,    net:-13555 },
+  {date:'2026/04/29',code:'EURO',sell:3100,   buy:2750,    lot:8,  pct:12.7,  gross:280000,   net:270500 },
+  {date:'2026/04/29',code:'SIMP',sell:835,    buy:860,     lot:10, pct:-2.9,  gross:-25000,   net:-28377 },
+];
+
+let glChart = null;
+
+function renderGainLoss() {
+  const d = GL_DATA;
+  const totalGross = -5653999;
+  const totalNet   = -6656995;
+  const wins  = d.filter(r => r.gross > 0).length;
+  const losses= d.filter(r => r.gross < 0).length;
+  const even  = d.filter(r => r.gross === 0).length;
+  const winRate = (wins / d.length * 100).toFixed(1);
+  const bestNet  = d.reduce((b,r) => r.net > b.net ? r : b, d[0]);
+  const worstNet = d.reduce((b,r) => r.net < b.net ? r : b, d[0]);
+  const avgPct = d.reduce((s,r) => s + r.pct, 0) / d.length;
+
+  document.getElementById('gl-stats').innerHTML = `
+    <div class="sb"><div class="sb-l">Total Gross</div><div class="sb-v r">${idrRaw(totalGross)}</div></div>
+    <div class="sb"><div class="sb-l">Total Net</div><div class="sb-v r">${idrRaw(totalNet)}</div></div>
+    <div class="sb"><div class="sb-l">Jumlah Transaksi</div><div class="sb-v">${d.length}</div></div>
+    <div class="sb"><div class="sb-l">Win / Loss / BE</div><div class="sb-v"><span class="g">${wins}</span> / <span class="r">${losses}</span> / <span class="m">${even}</span></div></div>
+    <div class="sb"><div class="sb-l">Win Rate</div><div class="sb-v ${parseFloat(winRate)>=50?'g':'r'}">${winRate}%</div></div>
+    <div class="sb"><div class="sb-l">Avg %</div><div class="sb-v ${avgPct>=0?'g':'r'}">${avgPct>=0?'+':''}${avgPct.toFixed(2)}%</div></div>
+    <div class="sb"><div class="sb-l">Best Trade</div><div class="sb-v g" style="font-size:13px">${bestNet.code} <span style="font-size:11px">+${idrRaw(bestNet.net)}</span></div></div>
+    <div class="sb"><div class="sb-l">Worst Trade</div><div class="sb-v r" style="font-size:13px">${worstNet.code} <span style="font-size:11px">${idrRaw(worstNet.net)}</span></div></div>
+  `;
+
+  // Aggregate net per code, sort by net
+  const byCode = {};
+  d.forEach(r => { byCode[r.code] = (byCode[r.code]||0) + r.net; });
+  const codes = Object.keys(byCode).sort((a,b) => byCode[b] - byCode[a]);
+  const netVals = codes.map(c => byCode[c]);
+
+  if (glChart) glChart.destroy();
+  glChart = new Chart(document.getElementById('gl-chart'), {
+    type: 'bar',
+    data: {
+      labels: codes,
+      datasets: [{
+        label: 'Net P&L',
+        data: netVals,
+        backgroundColor: netVals.map(v => v >= 0 ? 'rgba(0,200,83,.75)' : 'rgba(255,77,77,.75)'),
+        borderRadius: 3,
+      }]
+    },
+    options: {
+      plugins: { legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>' '+(ctx.parsed.y>=0?'+':'')+idrRaw(ctx.parsed.y)}} },
+      scales: {
+        x:{ticks:{color:'#6868a8',maxRotation:45,font:{size:10}}},
+        y:{ticks:{color:'#6868a8',callback:v=>idrRaw(v)},grid:{color:'#2d2d50'}}
+      }
+    }
+  });
+
+  filterGL();
+}
+
+function filterGL() {
+  const q = (document.getElementById('gl-filter')?.value||'').toUpperCase();
+  const sort = document.getElementById('gl-sort')?.value || 'date-desc';
+  let rows = GL_DATA.filter(r => !q || r.code.includes(q));
+  if (sort==='date-asc')  rows.sort((a,b)=>a.date.localeCompare(b.date));
+  if (sort==='date-desc') rows.sort((a,b)=>b.date.localeCompare(a.date));
+  if (sort==='net-asc')   rows.sort((a,b)=>a.net-b.net);
+  if (sort==='net-desc')  rows.sort((a,b)=>b.net-a.net);
+  if (sort==='pct-asc')   rows.sort((a,b)=>a.pct-b.pct);
+  if (sort==='pct-desc')  rows.sort((a,b)=>b.pct-a.pct);
+  document.getElementById('gl-body').innerHTML = rows.map(r => `
+    <tr>
+      <td style="text-align:left;color:var(--muted)">${r.date}</td>
+      <td style="text-align:left"><span class="sym-click" onclick="openStockChart('${r.code}')">${r.code}</span></td>
+      <td>${r.sell.toLocaleString('id-ID')}</td>
+      <td>${r.buy.toLocaleString('id-ID')}</td>
+      <td>${r.lot}</td>
+      <td class="${r.pct>0?'g':r.pct<0?'r':'m'}">${r.pct>0?'+':''}${r.pct.toFixed(1)}%</td>
+      <td class="${r.gross>0?'g':r.gross<0?'r':'m'}">${r.gross>=0?(r.gross>0?'+'+idrRaw(r.gross):'0'):idrRaw(r.gross)}</td>
+      <td class="${r.net>0?'g':r.net<0?'r':'m'}" style="font-weight:700">${r.net>=0?(r.net>0?'+'+idrRaw(r.net):'0'):idrRaw(r.net)}</td>
+    </tr>`).join('');
+  document.getElementById('gl-count').textContent = `Menampilkan ${rows.length} dari ${GL_DATA.length} transaksi`;
 }
 
 // ── INIT ───────────────────────────────────────────────
