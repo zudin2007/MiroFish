@@ -167,6 +167,9 @@ select.fi option{background:var(--card)}
       <div class="mkt-idx"><div class="mkt-idx-l">Dow Jones</div><div class="mkt-idx-v" id="g-dji">—</div></div>
       <div class="mkt-idx"><div class="mkt-idx-l">NASDAQ</div><div class="mkt-idx-v" id="g-nasdaq">—</div></div>
       <div class="mkt-idx"><div class="mkt-idx-l">S&amp;P 500</div><div class="mkt-idx-v" id="g-sp500">—</div></div>
+      <div class="mkt-idx"><div class="mkt-idx-l">BTC/USD</div><div class="mkt-idx-v" id="g-btc">—</div></div>
+      <div class="mkt-idx"><div class="mkt-idx-l">ETH/USD</div><div class="mkt-idx-v" id="g-eth">—</div></div>
+      <div class="mkt-idx"><div class="mkt-idx-l">XAU/USD</div><div class="mkt-idx-v" id="g-xau">—</div></div>
     </div>
   </div>
 
@@ -1037,6 +1040,9 @@ async function fetchIHSG() {
   fetchGlobalIdx('g-dji',    '%5EDJI',     v => v.toLocaleString('en-US',{maximumFractionDigits:0}));
   fetchGlobalIdx('g-nasdaq', '%5EIXIC',    v => v.toLocaleString('en-US',{maximumFractionDigits:0}));
   fetchGlobalIdx('g-sp500',  '%5EGSPC',    v => v.toLocaleString('en-US',{maximumFractionDigits:0}));
+  fetchGlobalIdx('g-btc',    'BTC-USD',    v => '$' + v.toLocaleString('en-US',{maximumFractionDigits:0}));
+  fetchGlobalIdx('g-eth',    'ETH-USD',    v => '$' + v.toLocaleString('en-US',{maximumFractionDigits:0}));
+  fetchGlobalIdx('g-xau',    'GC%3DF',     v => '$' + v.toLocaleString('en-US',{maximumFractionDigits:0}));
 }
 
 async function fetchGlobalIdx(elId, encodedSym, fmtFn) {
