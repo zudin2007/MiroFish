@@ -136,6 +136,7 @@ select.fi option{background:var(--card)}
 <div class="tabbar">
   <button class="tab on" onclick="showTab('porto',this)">Porto</button>
   <button class="tab" onclick="showTab('gotrade',this)">Gotrade</button>
+  <button class="tab" onclick="showTab('crypto',this)">Crypto</button>
   <button class="tab" onclick="showTab('jurnal',this)">Jurnal</button>
   <button class="tab" onclick="showTab('analitik',this)">Analitik</button>
   <button class="tab" onclick="showTab('mm',this)">Money Mgmt</button>
@@ -259,6 +260,49 @@ select.fi option{background:var(--card)}
           <th style="text-align:right;min-width:80px">Total</th>
         </tr></thead>
         <tbody id="gt-body"><tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">Klik ↻ Update Harga untuk memuat data</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ CRYPTO ══════════════ -->
+<div id="tab-crypto" class="panel">
+  <div class="chips" id="cr-chips">
+    <div class="chip"><div class="chip-l">Total Nilai (IDR)</div><div class="chip-v" id="cr-nilai">—</div></div>
+    <div class="chip"><div class="chip-l">Unrealized P&amp;L</div><div class="chip-v" id="cr-upnl">—</div></div>
+    <div class="chip"><div class="chip-l">Realized All-Time</div><div class="chip-v g" id="cr-realized">+Rp62.627.602</div></div>
+    <div class="chip"><div class="chip-l">Realized YTD</div><div class="chip-v r" id="cr-ryzd">−Rp18.661.788</div></div>
+    <div class="chip-spacer">
+      <span style="font-size:11px;color:var(--muted)" id="cr-ts"></span>
+      <button class="btn btn-o" id="cr-btn" onclick="fetchCrypto()">↻ Update Harga</button>
+    </div>
+  </div>
+  <!-- shortlist -->
+  <div class="card" style="margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:6px">
+      <div class="card-title" style="margin:0">Shortlist</div>
+      <div id="cr-sort-row" style="display:flex;gap:4px">
+        <button class="tf-btn on" onclick="setCryptoSort('value',this)">Nilai</button>
+        <button class="tf-btn" onclick="setCryptoSort('return',this)">Return</button>
+        <button class="tf-btn" onclick="setCryptoSort('pct',this)">%Return</button>
+      </div>
+    </div>
+    <div id="cr-shortlist" style="font-size:13px">
+      <div style="text-align:center;color:var(--muted);padding:12px">Klik ↻ Update Harga untuk memuat data</div>
+    </div>
+  </div>
+
+  <!-- detail table -->
+  <div class="card">
+    <div class="tbl-wrap">
+      <table id="cr-table">
+        <thead><tr>
+          <th style="text-align:left;min-width:110px">Aset</th>
+          <th style="text-align:right;min-width:110px">Nilai / Modal (Rp)</th>
+          <th style="text-align:right;min-width:80px">Harian</th>
+          <th style="text-align:right;min-width:80px">Total</th>
+        </tr></thead>
+        <tbody id="cr-body"><tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">Klik ↻ Update Harga untuk memuat data</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -636,6 +680,7 @@ function showTab(name, btn) {
   if (name === 'akun')     try { renderAccount(); } catch(e){}
   if (name === 'preturn')  setTimeout(() => { try { renderPReturn(); } catch(e){} }, 60);
   if (name === 'gotrade')   setTimeout(() => { try { fetchGotrade();   } catch(e){} }, 60);
+  if (name === 'crypto')    setTimeout(() => { try { fetchCrypto();    } catch(e){} }, 60);
   if (name === 'gainloss')  setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
   if (name === 'aktivitas') setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
 }
@@ -4880,6 +4925,9 @@ let actTF = 'max';
 let gtPrices = {};
 let gtUSDIDR = 16000;
 let gtSort = 'value';
+let cryptoPrices = {};
+let cryptoUSDIDR = 16000;
+let cryptoSort = 'value';
 let portoSort = 'nilai';
 let glPeriod = 0; // 0=semua, 1=P1 (2026/02+), 2=P2 (sebelum 2026/02)
 const glCollapsedYears = new Set();
@@ -5456,6 +5504,177 @@ function renderGotrade() {
   }
 }
 // ══ END GOTRADE ═══════════════════════════════════════════
+
+// ══ CRYPTO (TANGEM WALLET) ════════════════════════════════
+// t=ticker(yahoo), n=display name, s=units, a=avgUSD, c=costIDR, at=allTimeIDR, rz=realizedIDR, ry=rlzdYTDIDR
+const CRYPTO_HOLDINGS = [
+  {t:'BTC-USD', n:'Bitcoin',    s:0.11915,   a:75618.26,  c:163320292.01, at: 42066483,  rz: 70931861,  ry:-16480115},
+  {t:'GC%3DF',  n:'XAU/USD',   s:1.0365,    a:4910.99,   c:92265769.63,  at:-16147400,  rz:  616644,   ry:  616644},
+  {t:'GOOGL',   n:'GOOGL (ON)', s:0.029547,  a:336.67,    c:180309.99,    at:null,       rz:null,       ry:null},
+  {t:'AMZN',    n:'AMZN (ON)',  s:0.039406,  a:254.99,    c:182132.51,    at:null,       rz:null,       ry:null},
+  {t:'MSFT',    n:'MSFT (ON)',  s:0.023449,  a:425.62,    c:180902.99,    at:null,       rz:null,       ry:null},
+  {t:'ARM',     n:'ARM (ON)',   s:0.078655,  a:397.00,    c:566002.75,    at:null,       rz:null,       ry:null},
+  {t:'ORCL',    n:'ORCL (ON)',  s:0.066165,  a:179.66,    c:215467.72,    at:null,       rz:null,       ry:null},
+];
+const CRYPTO_COST_IDR  = 256910877.59;
+const CRYPTO_REALIZED  =  62627602.75;
+const CRYPTO_RLZD_YTD  = -18661788.85;
+
+async function fetchCrypto() {
+  const btn = document.getElementById('cr-btn');
+  if (btn) { btn.textContent = '⟳ Mengambil…'; btn.disabled = true; }
+
+  const [usdRes, ...assetRes] = await Promise.all([
+    fetchGtQuote('USDIDR%3DX'),
+    ...CRYPTO_HOLDINGS.map(h => fetchGtQuote(h.t)),
+  ]);
+
+  cryptoUSDIDR = usdRes?.price || 16000;
+  CRYPTO_HOLDINGS.forEach((h, i) => { if (assetRes[i]) cryptoPrices[h.t] = assetRes[i]; });
+
+  renderCrypto();
+
+  if (btn) { btn.textContent = '↻ Update Harga'; btn.disabled = false; }
+  const tsEl = document.getElementById('cr-ts');
+  if (tsEl) tsEl.textContent = 'Update: ' + new Date().toLocaleTimeString('id-ID');
+}
+
+function setCryptoSort(s, btn) {
+  cryptoSort = s;
+  document.querySelectorAll('#cr-sort-row .tf-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  if (Object.keys(cryptoPrices).length > 0) renderCrypto();
+}
+
+function renderCrypto() {
+  const fP   = v => v >= 0 ? '+' : '';
+  const fPct = v => `${fP(v)}${v.toFixed(2)}%`;
+  const fIDR = v => `${fP(v)}${idrRaw(Math.round(Math.abs(v)))}`;
+  const sgn  = v => v >= 0 ? 'g' : 'r';
+
+  const enriched = CRYPTO_HOLDINGS.map(h => {
+    const q        = cryptoPrices[h.t];
+    const priceUSD = q?.price ?? null;
+    const prevUSD  = q?.prev  ?? null;
+    const valueIDR = priceUSD !== null ? priceUSD * h.s * cryptoUSDIDR : null;
+    const pnlIDR   = valueIDR !== null ? valueIDR - h.c : null;
+    const pnlPct   = pnlIDR   !== null ? pnlIDR / h.c * 100 : null;
+    const dailyPct = priceUSD && prevUSD ? (priceUSD - prevUSD) / prevUSD * 100 : null;
+    const dailyIDR = dailyPct !== null && valueIDR !== null ? valueIDR * dailyPct / 100 : null;
+    return { ...h, priceUSD, prevUSD, valueIDR, pnlIDR, pnlPct, dailyPct, dailyIDR };
+  });
+
+  const sortKey = { value:'valueIDR', return:'pnlIDR', pct:'pnlPct' }[cryptoSort] || 'valueIDR';
+  const sorted = [...enriched].sort((a, b) => {
+    if (b[sortKey] === null && a[sortKey] === null) return 0;
+    if (b[sortKey] === null) return -1;
+    if (a[sortKey] === null) return 1;
+    return b[sortKey] - a[sortKey];
+  });
+
+  // ── Shortlist ──
+  const slEl = document.getElementById('cr-shortlist');
+  if (slEl) {
+    const barMax = Math.max(...sorted.map(h => Math.abs(h[sortKey] ?? 0)));
+    slEl.innerHTML = `
+      <div style="display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:0;column-gap:8px">
+        ${sorted.map((h, i) => {
+          const val = h[sortKey];
+          const cls = val !== null ? sgn(val) : '';
+          const barPct = barMax > 0 && val !== null ? Math.abs(val) / barMax * 100 : 0;
+          const barColor = val === null ? 'var(--border)' : val >= 0 ? 'rgba(76,175,80,.35)' : 'rgba(244,67,54,.35)';
+          const fmt = val === null ? '—'
+            : cryptoSort === 'pct' ? fPct(val)
+            : fIDR(val);
+          return `
+            <span style="font-size:11px;color:var(--muted);text-align:right;padding:5px 0;${i<sorted.length-1?'border-bottom:1px solid rgba(128,128,128,.08)':''}">${i+1}</span>
+            <div style="position:relative;padding:5px 0;${i<sorted.length-1?'border-bottom:1px solid rgba(128,128,128,.08)':''}">
+              <div style="position:absolute;inset:0;background:${barColor};width:${barPct.toFixed(1)}%;border-radius:2px;opacity:.7"></div>
+              <span style="position:relative;font-weight:700;font-size:13px">${h.n}</span>
+              <span style="position:relative;font-size:10px;color:var(--muted);margin-left:5px">${h.priceUSD ? '$'+h.priceUSD.toLocaleString('en-US',{maximumFractionDigits:2}) : ''}</span>
+            </div>
+            <span class="${cls}" style="font-weight:600;font-variant-numeric:tabular-nums;font-size:13px;padding:5px 0;text-align:right;${i<sorted.length-1?'border-bottom:1px solid rgba(128,128,128,.08)':''}">${fmt}</span>
+            <span style="font-size:11px;color:var(--muted);padding:5px 0;${i<sorted.length-1?'border-bottom:1px solid rgba(128,128,128,.08)':''}">
+              ${h.pnlPct !== null && cryptoSort !== 'pct' ? `<span class="${sgn(h.pnlPct)}">${fPct(h.pnlPct)}</span>` : ''}
+            </span>`;
+        }).join('')}
+      </div>`;
+  }
+
+  // ── Main table ──
+  let totalValue = 0;
+  let totalPnL   = 0;
+
+  const rows = sorted.map(h => {
+    const { priceUSD, valueIDR, pnlIDR, pnlPct, dailyPct, dailyIDR } = h;
+    if (valueIDR !== null) { totalValue += valueIDR; totalPnL += pnlIDR; }
+
+    const v1 = valueIDR !== null ? idrRaw(Math.round(valueIDR)) : '—';
+    const d1 = dailyPct !== null ? fPct(dailyPct) : '—';
+    const d2 = dailyIDR !== null ? fIDR(dailyIDR) : '—';
+    const t1 = pnlPct   !== null ? fPct(pnlPct)   : '—';
+    const t2 = pnlIDR   !== null ? fIDR(pnlIDR)   : '—';
+    const dc = dailyPct !== null ? sgn(dailyPct)   : '';
+    const tc = pnlPct   !== null ? sgn(pnlPct)     : '';
+
+    const vStyle = `text-align:right;vertical-align:top;padding:8px 6px 4px;font-variant-numeric:tabular-nums${cryptoSort==='value'?';background:rgba(128,128,255,.04)':''}`;
+    const dStyle = `text-align:right;vertical-align:top;padding:8px 6px 4px;font-variant-numeric:tabular-nums`;
+    const tStyle = `text-align:right;vertical-align:top;padding:8px 6px 4px;font-variant-numeric:tabular-nums${cryptoSort!=='value'?';background:rgba(128,128,255,.04)':''}`;
+
+    let extra = '';
+    if (h.at !== null || h.rz !== null) {
+      const parts = [];
+      if (h.at !== null) parts.push(`All-Time: <span class="${sgn(h.at)}">${h.at>=0?'+':''}${idrRaw(Math.round(Math.abs(h.at)))}</span>`);
+      if (h.rz !== null) parts.push(`Realized: <span class="${sgn(h.rz)}">${h.rz>=0?'+':''}${idrRaw(Math.round(Math.abs(h.rz)))}</span>`);
+      if (h.ry !== null) parts.push(`Rlzd YTD: <span class="${sgn(h.ry)}">${h.ry>=0?'+':''}${idrRaw(Math.round(Math.abs(h.ry)))}</span>`);
+      extra = `<tr><td colspan="4" style="font-size:11px;color:var(--muted);padding:2px 8px 8px;border-bottom:1px solid var(--border)">${parts.join(' &nbsp;·&nbsp; ')}</td></tr>`;
+    }
+
+    const priceStr = priceUSD !== null
+      ? (h.t === 'BTC-USD' || h.t === 'GC%3DF')
+        ? '$' + priceUSD.toLocaleString('en-US', {maximumFractionDigits:2})
+        : '$' + priceUSD.toFixed(2)
+      : '—';
+
+    return `<tr style="border-bottom:${extra?'none':'1px solid var(--border)'}">
+      <td style="text-align:left;vertical-align:top;padding:8px 6px 4px">
+        <div style="font-weight:700;font-size:14px">${h.n}</div>
+        <div style="font-size:11px;color:var(--muted)">${priceStr}</div>
+        <div style="font-size:10px;color:var(--muted)">${h.s} @ $${h.a.toLocaleString('en-US',{maximumFractionDigits:2})}</div>
+      </td>
+      <td style="${vStyle}">
+        <div style="font-weight:600">${v1}</div>
+        <div style="font-size:11px;color:var(--muted)">${idrRaw(Math.round(h.c))}</div>
+      </td>
+      <td class="${dc}" style="${dStyle}">
+        <div style="font-weight:600">${d1}</div>
+        <div style="font-size:11px">${d2}</div>
+      </td>
+      <td class="${tc}" style="${tStyle}">
+        <div style="font-weight:600">${t1}</div>
+        <div style="font-size:11px">${t2}</div>
+      </td>
+    </tr>${extra}`;
+  }).join('');
+
+  const totalPct = totalValue > 0 ? totalPnL / CRYPTO_COST_IDR * 100 : 0;
+  const totRow = `<tr style="background:var(--card2);font-weight:700;border-top:2px solid var(--accent)">
+    <td style="text-align:left;padding:10px 6px">Unrealized Total</td>
+    <td style="text-align:right;padding:10px 6px;font-variant-numeric:tabular-nums">${idrRaw(Math.round(totalValue))}</td>
+    <td colspan="2" class="${sgn(totalPnL)}" style="text-align:right;padding:10px 6px;font-variant-numeric:tabular-nums">${fPct(totalPct)}<br><span style="font-size:12px">${fIDR(totalPnL)}</span></td>
+  </tr>`;
+
+  document.getElementById('cr-body').innerHTML = rows + totRow;
+
+  const uPnlEl  = document.getElementById('cr-upnl');
+  const nilaiEl = document.getElementById('cr-nilai');
+  if (nilaiEl) nilaiEl.textContent = idrRaw(Math.round(totalValue));
+  if (uPnlEl) {
+    uPnlEl.className = 'chip-v ' + sgn(totalPnL);
+    uPnlEl.textContent = (totalPnL>=0?'+':'') + idrRaw(Math.round(totalPnL));
+  }
+}
+// ══ END CRYPTO ════════════════════════════════════════════
 
 // ── INIT ───────────────────────────────────────────────
 try { initWatchlist(); } catch(e) {}
