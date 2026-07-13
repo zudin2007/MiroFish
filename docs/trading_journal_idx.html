@@ -405,7 +405,12 @@ select.fi option{background:var(--card)}
       </div>
       <button class="modal-close" onclick="closeStockModal()">✕</button>
     </div>
-    <div class="tf-wrap">
+    <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center" id="modal-ct-row">
+      <span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0">Tipe:</span>
+      <button class="tf-btn on" onclick="setChartType('line',this)">Line</button>
+      <button class="tf-btn"    onclick="setChartType('candle',this)">Candle</button>
+    </div>
+    <div class="tf-wrap" id="modal-tf-row">
       <button class="tf-btn on" id="tf-1d"  onclick="setTF('1d','5m',this)">1 Hari</button>
       <button class="tf-btn"    id="tf-1mo" onclick="setTF('1mo','1d',this)">1 Bln</button>
       <button class="tf-btn"    id="tf-3mo" onclick="setTF('3mo','1d',this)">3 Bln</button>
@@ -991,9 +996,48 @@ function drawIHSGMini(closes, isUp) {
   });
 }
 
+// ── CANDLESTICK PLUGIN ─────────────────────────────────
+const CandlestickPlugin = {
+  id: 'candlestick',
+  afterDatasetsDraw(chart, args, options) {
+    if (!options?.ohlcv?.length) return;
+    const ctx    = chart.ctx;
+    const yScale = chart.scales.y;
+    const meta   = chart.getDatasetMeta(0);
+    if (!meta?.data?.length) return;
+    const step = meta.data.length > 1 ? Math.abs(meta.data[1].x - meta.data[0].x) : 8;
+    const w    = Math.max(2, step * 0.5);
+    options.ohlcv.forEach((d, i) => {
+      if (d.o == null || d.h == null || d.l == null || d.c == null) return;
+      const pt = meta.data[i];
+      if (!pt) return;
+      const x   = pt.x;
+      const up  = d.c >= d.o;
+      const clr = up ? '#00c853' : '#ff4d4d';
+      const yO  = yScale.getPixelForValue(d.o);
+      const yC  = yScale.getPixelForValue(d.c);
+      const yH  = yScale.getPixelForValue(d.h);
+      const yL  = yScale.getPixelForValue(d.l);
+      ctx.save();
+      ctx.strokeStyle = clr;
+      ctx.lineWidth   = 1;
+      ctx.beginPath(); ctx.moveTo(x, yH); ctx.lineTo(x, yL); ctx.stroke();
+      const bTop = Math.min(yO, yC);
+      const bH   = Math.max(1, Math.abs(yO - yC));
+      ctx.fillStyle = up ? clr : 'transparent';
+      ctx.fillRect(x - w/2, bTop, w, bH);
+      ctx.strokeRect(x - w/2, bTop, w, bH);
+      ctx.restore();
+    });
+  }
+};
+try { Chart.register(CandlestickPlugin); } catch(e) {}
+
 // ── STOCK CHART MODAL ──────────────────────────────────
-let modalChart = null;
-let modalSym   = '';
+let modalChart      = null;
+let modalSym        = '';
+let modalChartType  = 'line';
+let modalCachedData = null;
 
 function openStockChart(sym) {
   modalSym = sym;
@@ -1010,7 +1054,7 @@ function openStockChart(sym) {
   } else {
     document.getElementById('modal-posinfo').textContent = 'Tidak ada posisi aktif';
   }
-  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('#modal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
   document.getElementById('tf-1d').classList.add('on');
   document.getElementById('stock-modal').classList.add('on');
   fetchStockChart(sym, '1d', '5m');
@@ -1021,15 +1065,23 @@ function closeStockModal() {
 }
 
 function setTF(range, interval, btn) {
-  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('#modal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
   fetchStockChart(modalSym, range, interval);
+}
+
+function setChartType(type, btn) {
+  document.querySelectorAll('#modal-ct-row .tf-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  modalChartType = type;
+  if (modalCachedData) drawModalChart(modalCachedData);
 }
 
 async function fetchStockChart(sym, range, interval) {
   const status = document.getElementById('modal-status');
   status.textContent = '⟳ Mengambil data…';
   document.getElementById('modal-stats').innerHTML = '';
+  modalCachedData = null;
   const yfUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}.JK?range=${range}&interval=${interval}`;
   const proxies = [
     'https://api.allorigins.win/raw?url=' + encodeURIComponent(yfUrl),
@@ -1037,90 +1089,109 @@ async function fetchStockChart(sym, range, interval) {
   ];
   for (const url of proxies) {
     try {
-      const r = await tFetch(url);
-      const j = await r.json();
+      const r   = await tFetch(url);
+      const j   = await r.json();
       const res = j?.chart?.result?.[0];
       if (!res) continue;
       const meta   = res.meta;
       const times  = res.timestamp || [];
       const q      = res.indicators?.quote?.[0] || {};
       const closes = q.close  || [];
+      const opens  = q.open   || [];
+      const highs  = q.high   || [];
+      const lows   = q.low    || [];
       const vols   = q.volume || [];
-      const valid  = times.map((t,i) => ({ t, c: closes[i], v: vols[i] })).filter(d => d.c != null);
+      const valid  = times.map((t,i) => ({
+        t, o:opens[i], h:highs[i], l:lows[i], c:closes[i], v:vols[i]
+      })).filter(d => d.c != null);
       if (!valid.length) continue;
-      const isIntra = range === '1d';
+      const isIntra   = range === '1d';
       const longRange = range === '1y' || range === '2y' || range === '5y' || range === 'max';
       const fmtT = isIntra
         ? t => new Date(t*1000).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})
         : t => new Date(t*1000).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:longRange?'numeric':undefined});
-      const labels = valid.map(d => fmtT(d.t));
-      const cData  = valid.map(d => d.c);
-      const vData  = valid.map(d => d.v || 0);
-      const first  = cData[0], last = cData[cData.length-1];
-      const isUp   = last >= first;
-      const color  = isUp ? '#00c853' : '#ff4d4d';
-      const maxVol = Math.max(...vData.filter(v => v > 0)) || 1;
-      const h = holdings.find(x => x.sym === sym);
-      const avgSet = h ? [{
-        label:'Avg Beli', data: cData.map(() => h.avg),
-        borderColor:'#f59e0b', borderDash:[5,4], borderWidth:1.5,
-        pointRadius:0, fill:false, yAxisID:'y'
-      }] : [];
-      const ctx = document.getElementById('modal-chart').getContext('2d');
-      if (modalChart) { modalChart.destroy(); modalChart = null; }
-      modalChart = new Chart(ctx, {
-        type:'line',
-        data:{ labels, datasets:[
-          { label:sym, data:cData, borderColor:color, backgroundColor:color+'18',
-            fill:true, tension:0.2, pointRadius:0, borderWidth:2, yAxisID:'y', order:1 },
-          ...avgSet,
-          { label:'Volume', data:vData, type:'bar',
-            backgroundColor:color+'50', borderRadius:1, yAxisID:'vol', order:2 }
-        ]},
-        options:{
-          plugins:{
-            legend:{ display:true, position:'top', labels:{ color:'#a8a8c8', boxWidth:12, font:{size:11} } },
-            tooltip:{
-              mode:'index', intersect:false,
-              callbacks:{
-                label: ctx => {
-                  if (ctx.dataset.label === 'Volume') return ' Vol: ' + (ctx.parsed.y/1e6).toFixed(2) + 'M';
-                  return ' ' + ctx.dataset.label + ': ' + idrRaw(ctx.parsed.y);
-                }
-              }
-            }
-          },
-          scales:{
-            x:{ ticks:{ color:'#6868a8', maxTicksLimit:7, maxRotation:0 } },
-            y:{ position:'right', ticks:{ color:'#6868a8', callback:v=>idrRaw(v) } },
-            vol:{
-              position:'left',
-              min: 0,
-              max: maxVol * 4,
-              ticks:{ display:false },
-              grid:{ display:false },
-              border:{ display:false }
-            }
-          },
-          interaction:{ mode:'index', intersect:false }
-        }
-      });
-      const priceChg = last - first;
-      const pct = first > 0 ? priceChg / first * 100 : 0;
-      const hi = Math.max(...cData), lo = Math.min(...cData);
-      document.getElementById('modal-stats').innerHTML = `
-        <div class="sb"><div class="sb-l">Harga</div><div class="sb-v">${idrRaw(last)}</div></div>
-        <div class="sb"><div class="sb-l">Perubahan</div><div class="sb-v ${priceChg>=0?'g':'r'}">${priceChg>=0?'+':''}${idrRaw(priceChg)}</div></div>
-        <div class="sb"><div class="sb-l">% Rentang</div><div class="sb-v ${pct>=0?'g':'r'}">${pct>=0?'+':''}${pct.toFixed(2)}%</div></div>
-        <div class="sb"><div class="sb-l">Tertinggi</div><div class="sb-v">${idrRaw(hi)}</div></div>
-        <div class="sb"><div class="sb-l">Terendah</div><div class="sb-v">${idrRaw(lo)}</div></div>
-        ${meta.regularMarketVolume?`<div class="sb"><div class="sb-l">Volume</div><div class="sb-v">${(meta.regularMarketVolume/1e6).toFixed(1)}M</div></div>`:''}
-      `;
+      modalCachedData = { valid, fmtT, meta, sym };
+      drawModalChart(modalCachedData);
       status.textContent = '';
       return;
     } catch(e) {}
   }
   status.textContent = 'Gagal mengambil data. Cek koneksi atau coba lagi.';
+}
+
+function drawModalChart({ valid, fmtT, meta, sym }) {
+  const labels  = valid.map(d => fmtT(d.t));
+  const cData   = valid.map(d => d.c);
+  const vData   = valid.map(d => d.v || 0);
+  const first   = cData[0], last = cData[cData.length-1];
+  const isUp    = last >= first;
+  const color   = isUp ? '#00c853' : '#ff4d4d';
+  const maxVol  = Math.max(...vData.filter(v => v > 0)) || 1;
+  const h       = holdings.find(x => x.sym === sym);
+  const isCandle = modalChartType === 'candle';
+  const avgSet  = h ? [{
+    label:'Avg Beli', data:cData.map(() => h.avg),
+    borderColor:'#f59e0b', borderDash:[5,4], borderWidth:1.5,
+    pointRadius:0, fill:false, yAxisID:'y'
+  }] : [];
+  const priceDs = isCandle
+    ? { label:sym, data:cData, borderColor:'transparent', backgroundColor:'transparent',
+        fill:false, tension:0, pointRadius:0, borderWidth:0, yAxisID:'y', order:1 }
+    : { label:sym, data:cData, borderColor:color, backgroundColor:color+'18',
+        fill:true, tension:0.2, pointRadius:0, borderWidth:2, yAxisID:'y', order:1 };
+  const ctx = document.getElementById('modal-chart').getContext('2d');
+  if (modalChart) { modalChart.destroy(); modalChart = null; }
+  modalChart = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets:[ priceDs, ...avgSet,
+      { label:'Volume', data:vData, type:'bar',
+        backgroundColor:color+'50', borderRadius:1, yAxisID:'vol', order:2 }
+    ]},
+    options:{
+      plugins:{
+        candlestick: isCandle ? { ohlcv:valid } : { ohlcv:null },
+        legend:{ display:true, position:'top', labels:{
+          color:'#a8a8c8', boxWidth:12, font:{size:11},
+          filter: item => !(isCandle && item.datasetIndex === 0)
+        }},
+        tooltip:{
+          mode:'index', intersect:false,
+          callbacks:{
+            label: ctx => {
+              if (ctx.dataset.label === 'Volume')
+                return ' Vol: ' + (ctx.parsed.y/1e6).toFixed(2) + 'M';
+              if (isCandle && ctx.datasetIndex === 0) {
+                const d = valid[ctx.dataIndex];
+                if (!d) return '';
+                return [` O: ${idrRaw(d.o)}`, ` H: ${idrRaw(d.h)}`, ` L: ${idrRaw(d.l)}`, ` C: ${idrRaw(d.c)}`];
+              }
+              return ' ' + ctx.dataset.label + ': ' + idrRaw(ctx.parsed.y);
+            }
+          }
+        }
+      },
+      scales:{
+        x:{ ticks:{ color:'#6868a8', maxTicksLimit:7, maxRotation:0 } },
+        y:{ position:'right', ticks:{ color:'#6868a8', callback:v=>idrRaw(v) } },
+        vol:{
+          position:'left', min:0, max:maxVol*4,
+          ticks:{ display:false }, grid:{ display:false }, border:{ display:false }
+        }
+      },
+      interaction:{ mode:'index', intersect:false }
+    }
+  });
+  const priceChg = last - first;
+  const pct = first > 0 ? priceChg / first * 100 : 0;
+  const hi = Math.max(...cData), lo = Math.min(...cData);
+  document.getElementById('modal-stats').innerHTML = `
+    <div class="sb"><div class="sb-l">Harga</div><div class="sb-v">${idrRaw(last)}</div></div>
+    <div class="sb"><div class="sb-l">Perubahan</div><div class="sb-v ${priceChg>=0?'g':'r'}">${priceChg>=0?'+':''}${idrRaw(priceChg)}</div></div>
+    <div class="sb"><div class="sb-l">% Rentang</div><div class="sb-v ${pct>=0?'g':'r'}">${pct>=0?'+':''}${pct.toFixed(2)}%</div></div>
+    <div class="sb"><div class="sb-l">Tertinggi</div><div class="sb-v">${idrRaw(hi)}</div></div>
+    <div class="sb"><div class="sb-l">Terendah</div><div class="sb-v">${idrRaw(lo)}</div></div>
+    ${meta.regularMarketVolume?`<div class="sb"><div class="sb-l">Volume</div><div class="sb-v">${(meta.regularMarketVolume/1e6).toFixed(1)}M</div></div>`:''}
+  `;
 }
 
 // ── P.RETURN ───────────────────────────────────────────
