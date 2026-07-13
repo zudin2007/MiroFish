@@ -48,6 +48,8 @@ tbody tr:hover td{background:rgba(255,255,255,.025)}
 .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--sub)}
 .btn-sm{padding:4px 9px;font-size:12px;border-radius:5px}
 .btn-del{background:rgba(255,77,77,.12);color:var(--red);border:1px solid rgba(255,77,77,.25)}
+.btn-danger{background:rgba(255,77,77,.15);color:var(--red);border:1px solid rgba(255,77,77,.45)}
+.btn-danger:hover{background:rgba(255,77,77,.28)}
 .btn-csv{background:rgba(0,200,83,.1);color:var(--green);border:1px solid rgba(0,200,83,.25)}
 .fg{display:flex;flex-direction:column;gap:4px}
 .fl{font-size:11px;color:var(--muted);font-weight:500}
@@ -115,6 +117,9 @@ select.fi option{background:var(--card)}
 .sym-click:hover{color:var(--accent);border-bottom-color:var(--accent)}
 /* Cash history */
 .hist-tbl td:first-child,.hist-tbl th:first-child{text-align:left}
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 20px;font-size:13px;font-weight:600;color:var(--text);z-index:999;transition:transform .25s,opacity .25s;opacity:0;pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 </style>
 </head>
 <body>
@@ -162,9 +167,12 @@ select.fi option{background:var(--card)}
     </div>
   </div>
 
-  <div class="warn" id="cash-warn">
-    <span>⚠</span>
-    <span>Cash T+2: <b id="cash-display" style="color:var(--red)">−Rp 1.484.222</b> — Top-up minimal <b id="topup-needed">Rp 1.584.222</b> sebelum settlement.</span>
+  <div class="warn" id="cash-warn" style="justify-content:space-between">
+    <span style="display:flex;align-items:center;gap:8px">
+      <span>⚠</span>
+      <span>Cash T+2: <b id="cash-display" style="color:var(--red)">−Rp 1.484.222</b> — Top-up minimal <b id="topup-needed">Rp 1.584.222</b> sebelum settlement.</span>
+    </span>
+    <button type="button" onclick="document.getElementById('cash-warn').style.display='none'" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px;flex-shrink:0" title="Tutup">×</button>
   </div>
   <div class="chips">
     <div class="chip"><div class="chip-l">Total Nilai</div><div class="chip-v" id="c-nilai">—</div></div>
@@ -321,8 +329,8 @@ select.fi option{background:var(--card)}
       </div>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:16px">
-      <button class="btn btn-o" onclick="applyTopup(1)">+ Top-Up</button>
-      <button class="btn btn-ghost" onclick="applyTopup(-1)">− Tarik</button>
+      <button type="button" class="btn btn-o" onclick="applyTopup(1)">+ Top-Up</button>
+      <button type="button" class="btn btn-danger" onclick="applyTopup(-1)">− Tarik</button>
     </div>
     <div class="card-title">Quick Top-Up</div>
     <div class="quick-grid">
@@ -352,6 +360,8 @@ select.fi option{background:var(--card)}
 </div>
 
 </div><!-- /content -->
+
+<div class="toast" id="toast"></div>
 
 <!-- ══ STOCK CHART MODAL ══ -->
 <div class="modal-overlay" id="stock-modal" onclick="if(event.target===this)closeStockModal()">
@@ -417,6 +427,14 @@ function saveCash(v)   { localStorage.setItem('idx_cash_v2', String(v)); }
 // ── HELPERS ────────────────────────────────────────────
 const idrRaw = n => Math.round(n).toLocaleString('id-ID');
 const idr    = n => 'Rp ' + idrRaw(n);
+let _toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
 function tFetch(url) {
   const ctrl = new AbortController();
   const id = setTimeout(() => ctrl.abort(), 11000);
@@ -430,6 +448,7 @@ function showTab(name, btn) {
   document.getElementById('tab-' + name).classList.add('on');
   btn.classList.add('on');
   try { localStorage.setItem('idx_active_tab', name); } catch(e) {}
+  if (name === 'porto')    try { renderPorto(); } catch(e){}
   if (name === 'analitik') setTimeout(renderAnalytics, 60);
   if (name === 'mm')       { try { calcMM(); updateDailyGauge(); } catch(e){} }
   if (name === 'jurnal')   try { renderJournal(); } catch(e){}
@@ -806,17 +825,20 @@ function renderAccount() {
 
 function applyTopup(sign) {
   const amount = +document.getElementById('topup-input').value || 0;
-  if (!amount) return;
+  if (!amount) { showToast('⚠ Masukkan jumlah terlebih dahulu'); return; }
   const newCash = loadCash() + sign * amount;
   saveCash(newCash);
   addCashLog(sign > 0 ? 'Deposit' : 'Penarikan', amount, newCash);
   document.getElementById('topup-input').value = '';
+  const label = sign > 0 ? 'Deposit' : 'Penarikan';
+  showToast(`✓ ${label} ${idr(amount)} berhasil — Saldo: ${newCash<0?'−':'+'}${idr(Math.abs(newCash))}`);
   renderAccount(); renderPorto();
 }
 function quickTopup(amount) {
   const newCash = loadCash() + amount;
   saveCash(newCash);
   addCashLog('Deposit', amount, newCash);
+  showToast(`✓ Deposit ${idr(amount)} berhasil — Saldo: ${newCash<0?'−':'+'}${idr(Math.abs(newCash))}`);
   renderAccount(); renderPorto();
 }
 
