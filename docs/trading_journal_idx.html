@@ -141,6 +141,7 @@ select.fi option{background:var(--card)}
   <button class="tab" onclick="showTab('akun',this)">Akun</button>
   <button class="tab" onclick="showTab('preturn',this)">P.Return</button>
   <button class="tab" onclick="showTab('gainloss',this)">Gain/Loss</button>
+  <button class="tab" onclick="showTab('aktivitas',this)">Aktivitas</button>
 </div>
 
 <div class="content">
@@ -400,15 +401,9 @@ select.fi option{background:var(--card)}
     <div class="card-title" id="gl-chart-title">Net P&amp;L per Saham (Rp) · 2018/08 – 2026/07</div>
     <canvas id="gl-chart" height="180"></canvas>
   </div>
-  <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
-    <!-- ── Aktivitas sidebar ── -->
-    <div class="card" style="flex:0 0 auto;min-width:160px">
-      <div class="card-title" style="font-size:13px">Aktivitas</div>
-      <div id="gl-activity" style="display:flex;flex-direction:column;gap:12px;font-size:13px"></div>
-    </div>
-    <!-- ── Riwayat Transaksi ── -->
-    <div class="card" style="flex:1;min-width:0">
-      <div class="card-title">Riwayat Transaksi</div>
+  <!-- ── Riwayat Transaksi ── -->
+  <div class="card">
+    <div class="card-title">Riwayat Transaksi</div>
       <div id="gl-period-bar" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
         <button onclick="setGLPeriod(0,this)" style="padding:4px 10px;border-radius:5px;border:1px solid var(--accent);background:var(--accent);color:#000;font-size:12px;font-weight:600;cursor:pointer">Semua</button>
         <button onclick="setGLPeriod(1,this)" style="padding:4px 10px;border-radius:5px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer">P1 · 2026/02~07</button>
@@ -443,7 +438,19 @@ select.fi option{background:var(--card)}
       </div>
       <div style="font-size:11px;color:var(--muted);margin-top:8px" id="gl-count"></div>
       <div style="font-size:11px;color:#ff9500;margin-top:4px" id="gl-period-note"></div>
+  </div>
+</div>
+
+<!-- ══════════════ AKTIVITAS ══════════════ -->
+<div id="tab-aktivitas" class="panel">
+  <div class="card">
+    <div class="card-title">Aktivitas Trading</div>
+    <div id="gl-period-bar2" style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">
+      <button onclick="setGLPeriod(0,this)" style="padding:4px 10px;border-radius:5px;border:1px solid var(--accent);background:var(--accent);color:#000;font-size:12px;font-weight:600;cursor:pointer">Semua</button>
+      <button onclick="setGLPeriod(1,this)" style="padding:4px 10px;border-radius:5px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer">P1 · 2026/02~07</button>
+      <button onclick="setGLPeriod(2,this)" style="padding:4px 10px;border-radius:5px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer">P2 · 2018/08~2026/02</button>
     </div>
+    <div id="gl-activity"></div>
   </div>
 </div>
 
@@ -549,7 +556,8 @@ function showTab(name, btn) {
   if (name === 'jurnal')   try { renderJournal(); } catch(e){}
   if (name === 'akun')     try { renderAccount(); } catch(e){}
   if (name === 'preturn')  setTimeout(() => { try { renderPReturn(); } catch(e){} }, 60);
-  if (name === 'gainloss') setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
+  if (name === 'gainloss')  setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
+  if (name === 'aktivitas') setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
 }
 
 // ── PORTO ──────────────────────────────────────────────
@@ -4727,12 +4735,12 @@ const glCollapsedYears = new Set();
 
 function setGLPeriod(p, btn) {
   glPeriod = p;
-  document.querySelectorAll('#gl-period-bar button').forEach(b => {
-    b.style.background = 'transparent';
-    b.style.color = 'var(--accent)';
+  ['#gl-period-bar', '#gl-period-bar2'].forEach(sel => {
+    document.querySelectorAll(sel + ' button').forEach((b, i) => {
+      b.style.background = i === p ? 'var(--accent)' : 'transparent';
+      b.style.color      = i === p ? '#000' : 'var(--accent)';
+    });
   });
-  btn.style.background = 'var(--accent)';
-  btn.style.color = '#000';
   renderGainLoss();
 }
 
@@ -4833,18 +4841,27 @@ function renderGainLoss() {
     }
   });
 
-  // ── Aktivitas sidebar ──
+  // ── Aktivitas panel ──
   const actEl = document.getElementById('gl-activity');
   if (actEl) {
-    const fmtN = n => `<strong style="font-size:15px">${n}</strong>`;
-    const lbl  = s => `<div style="color:var(--muted);font-size:11px;margin-top:2px">${s}</div>`;
+    const tile = (val, lbl, sub) => `
+      <div style="background:var(--bg2,var(--card));border:1px solid var(--border);border-radius:10px;padding:14px 18px;min-width:100px">
+        <div style="font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1">${val}</div>
+        <div style="font-size:12px;font-weight:600;margin-top:5px">${lbl}</div>
+        ${sub ? `<div style="font-size:11px;color:var(--muted);margin-top:2px">${sub}</div>` : ''}
+      </div>`;
     actEl.innerHTML = `
-      <div>${fmtN(uniqueDays)}${lbl('hari aktif')}</div>
-      <div>${fmtN(uniqueMonths)}${lbl('bulan')}</div>
-      <div>${fmtN(uniqueYears)}${lbl('tahun')}</div>
-      <div style="border-top:1px solid var(--border);padding-top:10px">${fmtN(avgPerDay)}${lbl('transaksi/hari')}</div>
-      <div>${fmtN(avgPerMonth)}${lbl('transaksi/bulan')}</div>
-      <div>${fmtN(avgPerYear)}${lbl('transaksi/tahun')}</div>`;
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:14px">
+        ${tile(uniqueDays,  'Hari Aktif', 'hari ada transaksi')}
+        ${tile(uniqueMonths,'Bulan', 'bulan aktif')}
+        ${tile(uniqueYears, 'Tahun', 'tahun aktif')}
+      </div>
+      <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Rata-rata frekuensi</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px">
+        ${tile(avgPerDay,   'tx / hari', 'rata-rata per hari aktif')}
+        ${tile(avgPerMonth, 'tx / bulan', 'rata-rata per bulan')}
+        ${tile(avgPerYear,  'tx / tahun', 'rata-rata per tahun')}
+      </div>`;
   }
 
   filterGL();
