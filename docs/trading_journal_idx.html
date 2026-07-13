@@ -192,6 +192,22 @@ select.fi option{background:var(--card)}
       <button class="btn btn-o" id="btn-upd" onclick="fetchAll()">↻ Update Harga</button>
     </div>
   </div>
+  <!-- shortlist -->
+  <div class="card" style="margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:6px">
+      <div class="card-title" style="margin:0">Shortlist</div>
+      <div id="porto-sort-row" style="display:flex;gap:4px">
+        <button class="tf-btn on" onclick="setPortoSort('nilai',this)">Nilai</button>
+        <button class="tf-btn" onclick="setPortoSort('return',this)">Return</button>
+        <button class="tf-btn" onclick="setPortoSort('pct',this)">%Return</button>
+      </div>
+    </div>
+    <div id="porto-shortlist" style="font-size:13px">
+      <div style="text-align:center;color:var(--muted);padding:12px">Klik ↻ Update Harga untuk memuat data</div>
+    </div>
+  </div>
+
+  <!-- detail table -->
   <div class="card">
     <div class="tbl-wrap">
       <table>
@@ -625,6 +641,64 @@ function showTab(name, btn) {
 }
 
 // ── PORTO ──────────────────────────────────────────────
+function setPortoSort(s, btn) {
+  portoSort = s;
+  document.querySelectorAll('#porto-sort-row .tf-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  renderPortoShortlist();
+}
+
+function renderPortoShortlist() {
+  const el = document.getElementById('porto-shortlist');
+  if (!el || !holdings.length) return;
+
+  const enriched = holdings.map(h => {
+    const nilai  = h.shares * h.price;
+    const modal  = h.shares * h.avg;
+    const pnl    = nilai - modal;
+    const pct    = modal > 0 ? pnl / modal * 100 : 0;
+    return { ...h, nilai, pnl, pct };
+  });
+
+  const sortKey = { nilai:'nilai', return:'pnl', pct:'pct' }[portoSort] || 'nilai';
+  const sorted = [...enriched].sort((a, b) => b[sortKey] - a[sortKey]);
+
+  const barMax = Math.max(...sorted.map(h => Math.abs(h[sortKey])));
+  const sgn = v => v >= 0 ? 'g' : 'r';
+  const fmtVal = (h) => {
+    if (portoSort === 'nilai')  return idrRaw(Math.round(h.nilai));
+    if (portoSort === 'return') return (h.pnl >= 0 ? '+' : '') + idrRaw(Math.round(h.pnl));
+    return (h.pct >= 0 ? '+' : '') + h.pct.toFixed(2) + '%';
+  };
+  const valCls = h => portoSort === 'nilai' ? '' : sgn(portoSort === 'pct' ? h.pct : h.pnl);
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;column-gap:8px">
+      ${sorted.map((h, i) => {
+        const metricVal = h[sortKey];
+        const barPct = barMax > 0 ? Math.abs(metricVal) / barMax * 100 : 0;
+        const barColor = portoSort === 'nilai'
+          ? 'rgba(33,150,243,.3)'
+          : metricVal >= 0 ? 'rgba(76,175,80,.35)' : 'rgba(244,67,54,.35)';
+        const sep = i < sorted.length - 1 ? 'border-bottom:1px solid rgba(128,128,128,.08)' : '';
+        const kep = h.shares >= 100
+          ? `${(h.shares/100 % 1 === 0 ? h.shares/100 : (h.shares/100).toFixed(1))}L`
+          : `${h.shares}lbr`;
+        return `
+          <span style="font-size:11px;color:var(--muted);text-align:right;padding:5px 0;${sep}">${i+1}</span>
+          <div style="position:relative;padding:5px 0;${sep}">
+            <div style="position:absolute;inset:0;background:${barColor};width:${barPct.toFixed(1)}%;border-radius:2px;opacity:.8"></div>
+            <span style="position:relative;font-weight:700;font-size:13px">${h.sym}</span>
+            <span style="position:relative;font-size:10px;color:var(--muted);margin-left:5px">${kep} · ${idrRaw(h.price)}</span>
+          </div>
+          <span class="${valCls(h)}" style="font-weight:600;font-variant-numeric:tabular-nums;font-size:13px;padding:5px 0;text-align:right;${sep}">${fmtVal(h)}</span>
+          <span style="font-size:11px;padding:5px 0;${sep}">
+            ${portoSort !== 'pct' ? `<span class="${sgn(h.pct)}">${h.pct>=0?'+':''}${h.pct.toFixed(2)}%</span>` : `<span class="${sgn(h.pnl)}">${h.pnl>=0?'+':''}${idrRaw(Math.round(h.pnl))}</span>`}
+          </span>`;
+      }).join('')}
+    </div>`;
+}
+
 function renderPorto() {
   const cash = loadCash();
   let totalNilai = 0, totalModal = 0;
@@ -671,6 +745,7 @@ function renderPorto() {
   } else {
     document.getElementById('cash-warn').style.display = 'none';
   }
+  renderPortoShortlist();
 }
 
 async function fetchPrice(sym) {
@@ -4805,6 +4880,7 @@ let actTF = 'max';
 let gtPrices = {};
 let gtUSDIDR = 16000;
 let gtSort = 'value';
+let portoSort = 'nilai';
 let glPeriod = 0; // 0=semua, 1=P1 (2026/02+), 2=P2 (sebelum 2026/02)
 const glCollapsedYears = new Set();
 
