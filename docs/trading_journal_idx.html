@@ -175,6 +175,28 @@ select.fi option{background:var(--card)}
     </div>
   </div>
 
+  <!-- Grand Total chip -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;flex-wrap:wrap;gap:12px">
+    <div style="flex:1;min-width:160px">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px">Grand Total Semua Portofolio</div>
+      <div style="font-size:22px;font-weight:800;font-variant-numeric:tabular-nums" id="grand-total">—</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:7px 12px;min-width:90px">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:2px">IDX Porto</div>
+        <div style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums" id="grand-porto">—</div>
+      </div>
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:7px 12px;min-width:90px">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Gotrade</div>
+        <div style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums" id="grand-gotrade">—</div>
+      </div>
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:7px 12px;min-width:90px">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Crypto</div>
+        <div style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums" id="grand-crypto">—</div>
+      </div>
+    </div>
+  </div>
+
   <div class="warn" id="cash-warn" style="justify-content:space-between">
     <span style="display:flex;align-items:center;gap:8px">
       <span>⚠</span>
@@ -767,6 +789,7 @@ function renderPorto() {
   const pnl    = totalNilai - totalModal;
   const equity = totalNilai + cash;
   const rpnl   = loadTrades().filter(t=>t.pnl!=null).reduce((s,t)=>s+t.pnl,0);
+  grandPortoNilai = totalNilai; updateGrandTotal();
   document.getElementById('c-nilai').textContent  = idr(totalNilai);
   document.getElementById('c-modal').textContent  = idr(totalModal);
   const cp = document.getElementById('c-pnl');
@@ -4928,6 +4951,9 @@ let gtSort = 'value';
 let cryptoPrices = {};
 let cryptoUSDIDR = 16000;
 let cryptoSort = 'value';
+let grandPortoNilai = 0;
+let grandGotNilai = 0;
+let grandCryptoNilai = 0;
 let portoSort = 'nilai';
 let glPeriod = 0; // 0=semua, 1=P1 (2026/02+), 2=P2 (sebelum 2026/02)
 const glCollapsedYears = new Set();
@@ -5502,6 +5528,7 @@ function renderGotrade() {
     uPnlEl.className = 'chip-v ' + sgn(totalPnL);
     uPnlEl.textContent = (totalPnL>=0?'+':'') + idrRaw(Math.round(totalPnL));
   }
+  grandGotNilai = totalValue; updateGrandTotal();
 }
 // ══ END GOTRADE ═══════════════════════════════════════════
 
@@ -5673,8 +5700,21 @@ function renderCrypto() {
     uPnlEl.className = 'chip-v ' + sgn(totalPnL);
     uPnlEl.textContent = (totalPnL>=0?'+':'') + idrRaw(Math.round(totalPnL));
   }
+  grandCryptoNilai = totalValue; updateGrandTotal();
 }
 // ══ END CRYPTO ════════════════════════════════════════════
+
+function updateGrandTotal() {
+  const total = grandPortoNilai + grandGotNilai + grandCryptoNilai;
+  const el = document.getElementById('grand-total');
+  const ep = document.getElementById('grand-porto');
+  const eg = document.getElementById('grand-gotrade');
+  const ec = document.getElementById('grand-crypto');
+  if (el) el.textContent = total > 0 ? idrRaw(Math.round(total)) : '—';
+  if (ep) ep.textContent = grandPortoNilai > 0 ? idrRaw(Math.round(grandPortoNilai)) : '—';
+  if (eg) eg.textContent = grandGotNilai > 0 ? idrRaw(Math.round(grandGotNilai)) : '—';
+  if (ec) ec.textContent = grandCryptoNilai > 0 ? idrRaw(Math.round(grandCryptoNilai)) : '—';
+}
 
 // ── INIT ───────────────────────────────────────────────
 try { initWatchlist(); } catch(e) {}
