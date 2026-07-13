@@ -418,6 +418,7 @@ select.fi option{background:var(--card)}
         <option value="pct-desc">%: Terbesar untung</option>
       </select>
     </div>
+    <div id="gl-code-summary" style="display:none;background:var(--card);border:1px solid var(--accent);border-radius:8px;padding:10px 14px;margin-bottom:10px;display:none"></div>
     <div class="tbl-wrap">
       <table>
         <thead><tr>
@@ -4808,7 +4809,7 @@ function renderGainLoss() {
 }
 
 function filterGL() {
-  const q = (document.getElementById('gl-filter')?.value||'').toUpperCase();
+  const q = (document.getElementById('gl-filter')?.value||'').toUpperCase().trim();
   const sort = document.getElementById('gl-sort')?.value || 'date-desc';
   let rows = GL_DATA.filter(r => _glFilter(r) && (!q || r.code.includes(q)));
   if (sort==='date-asc')  rows.sort((a,b)=>a.date.localeCompare(b.date));
@@ -4817,6 +4818,32 @@ function filterGL() {
   if (sort==='net-desc')  rows.sort((a,b)=>b.net-a.net);
   if (sort==='pct-asc')   rows.sort((a,b)=>a.pct-b.pct);
   if (sort==='pct-desc')  rows.sort((a,b)=>b.pct-a.pct);
+
+  // ── Code-filter summary ──
+  const summaryEl = document.getElementById('gl-code-summary');
+  if (summaryEl) {
+    if (q && rows.length > 0) {
+      const filtGross = rows.reduce((s,r) => s + r.gross, 0);
+      const filtNet   = rows.reduce((s,r) => s + r.net,   0);
+      const filtFee   = rows.reduce((s,r) => s + (r.gross - r.net), 0);
+      const wins      = rows.filter(r => r.net > 0).length;
+      const losses    = rows.filter(r => r.net < 0).length;
+      const gc = filtGross >= 0 ? 'g' : 'r';
+      const nc = filtNet   >= 0 ? 'g' : 'r';
+      summaryEl.style.display = '';
+      summaryEl.innerHTML = `
+        <div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px">
+          <span style="color:var(--muted);font-weight:700">📌 ${q}</span>
+          <span style="color:var(--muted)">${rows.length} transaksi &nbsp;(<span style="color:#0f0">${wins}W</span> / <span style="color:#f44">${losses}L</span>)</span>
+          <span>Gross: <strong class="${gc}">${filtGross>=0?'+':''}${idrRaw(filtGross)}</strong></span>
+          <span>Net: <strong class="${nc}" style="font-size:14px">${filtNet>=0?'+':''}${idrRaw(filtNet)}</strong></span>
+          <span style="color:#ff9500">Fee: <strong>${idrRaw(Math.abs(filtFee))}</strong></span>
+        </div>`;
+    } else {
+      summaryEl.style.display = 'none';
+    }
+  }
+
   document.getElementById('gl-body').innerHTML = rows.map(r => `
     <tr>
       <td style="text-align:left;color:var(--muted)">${r.date}</td>
