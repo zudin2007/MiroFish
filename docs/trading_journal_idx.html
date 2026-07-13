@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IDX Trading Journal</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--card:#161b22;--card2:#1c2128;--border:#21262d;
+  --accent:#f97316;--green:#10b981;--red:#ef4444;--yellow:#f59e0b;
+  --text:#e6edf3;--sub:#b1bac4;--muted:#7d8590;
+}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:14px;min-height:100vh}
+
+/* HEADER */
+.hdr{background:var(--card);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.hdr-logo{width:30px;height:30px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#000;flex-shrink:0}
+.hdr-title{font-size:15px;font-weight:700;color:var(--text)}
+.hdr-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.hdr-ts{margin-left:auto;font-size:11px;color:var(--muted);text-align:right;flex-shrink:0}
+
+/* TABS */
+.tabbar{display:flex;border-bottom:1px solid var(--border);background:var(--card);position:sticky;top:57px;z-index:9}
+.tab{padding:10px 20px;font-size:13px;font-weight:600;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:color .15s}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.on){color:var(--sub)}
+
+/* LAYOUT */
+.content{padding:16px;max-width:980px;margin:0 auto}
+.panel{display:none}.panel.on{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px}
+.card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:12px}
+
+/* CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:stretch}
+.chip{background:var(--card);border:1px solid var(--border);border-radius:7px;padding:10px 14px;min-width:130px}
+.chip-label{font-size:11px;color:var(--muted);margin-bottom:3px}
+.chip-val{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+.chip-spacer{flex:1;display:flex;align-items:center;justify-content:flex-end}
+
+/* CASH WARNING */
+.warn{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.25);border-radius:7px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub)}
+.warn b{color:var(--red)}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:right;padding:8px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+th:first-child{text-align:left}
+td{padding:8px 8px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td:first-child{text-align:left;font-weight:700}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,.02)}
+
+/* COLORS */
+.g{color:var(--green)}.r{color:var(--red)}.y{color:var(--yellow)}.m{color:var(--muted)}
+
+/* BUTTON */
+.btn{padding:9px 18px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:opacity .15s}
+.btn:hover{opacity:.85}.btn:disabled{opacity:.5;cursor:wait}
+.btn-o{background:var(--accent);color:#000}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--sub)}
+.btn-sm{padding:4px 9px;font-size:12px;border-radius:4px}
+.btn-del{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25)}
+
+/* FORM */
+.fg{display:flex;flex-direction:column;gap:4px}
+.fl{font-size:11px;color:var(--muted);font-weight:500}
+.fi{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-size:13px;width:100%}
+.fi:focus{outline:none;border-color:var(--accent)}
+.fi::placeholder{color:var(--muted)}
+select.fi option{background:var(--card)}
+.fg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;margin-bottom:12px}
+
+/* MM OUTPUT */
+.mm-out{background:rgba(249,115,22,.04);border:1px solid rgba(249,115,22,.18);border-radius:8px;padding:14px;margin-top:12px}
+.mm-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)}
+.mm-row:last-child{border-bottom:none}
+.mm-k{font-size:12px;color:var(--muted)}
+.mm-v{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.mm-big{font-size:20px}
+
+/* DAILY GAUGE */
+.gauge-bar{background:var(--border);border-radius:4px;height:8px;overflow:hidden;margin:8px 0}
+.gauge-fill{height:100%;border-radius:4px;transition:width .4s}
+
+/* STATS GRID */
+.sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:12px}
+.sb{background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:10px 12px}
+.sb-l{font-size:11px;color:var(--muted);margin-bottom:4px}
+.sb-v{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* BADGE */
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700}
+.bw{background:rgba(16,185,129,.14);color:var(--green)}
+.bl{background:rgba(239,68,68,.14);color:var(--red)}
+.bo{background:rgba(249,115,22,.14);color:var(--accent)}
+.bbe{background:rgba(125,133,144,.14);color:var(--muted)}
+
+/* DIVIDER */
+.div{border-top:1px solid var(--border);margin:12px 0}
+
+@media(max-width:560px){
+  .fg-grid{grid-template-columns:1fr 1fr}
+  .chips{flex-direction:column}
+  .chip-spacer{justify-content:flex-start}
+  .tab{padding:10px 14px;font-size:12px}
+  .mm-big{font-size:16px}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-logo">TJ</div>
+  <div>
+    <div class="hdr-title">IDX Trading Journal</div>
+    <div class="hdr-sub">108220 · IZZUDDIN EDI SISWANTO · Mirae Asset / Neo HOTS</div>
+  </div>
+  <div class="hdr-ts" id="last-ts">—</div>
+</div>
+
+<div class="tabbar">
+  <button class="tab on" onclick="showTab('porto',this)">Porto</button>
+  <button class="tab" onclick="showTab('mm',this)">Money Mgmt</button>
+  <button class="tab" onclick="showTab('jurnal',this)">Jurnal</button>
+</div>
+
+<div class="content">
+
+  <!-- ═══════════════════════════════════════
+       PORTO TAB
+  ═══════════════════════════════════════ -->
+  <div id="tab-porto" class="panel on">
+
+    <div class="warn">
+      <span>⚠</span>
+      <span>Cash T+2: <b id="cash-t2">−Rp 1.484.222</b> — Pastikan dana settlement masuk sebelum jatuh tempo.</span>
+    </div>
+
+    <div class="chips">
+      <div class="chip"><div class="chip-label">Total Nilai</div><div class="chip-val" id="c-nilai">—</div></div>
+      <div class="chip"><div class="chip-label">Total Modal</div><div class="chip-val" id="c-modal">—</div></div>
+      <div class="chip"><div class="chip-label">Unrealized P&amp;L</div><div class="chip-val" id="c-pnl">—</div></div>
+      <div class="chip-spacer">
+        <button class="btn btn-o" id="btn-upd" onclick="fetchAll()">↻ Update Harga</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Saham</th><th>Kepemilikan</th><th>Avg (Rp)</th>
+              <th>Harga (Rp)</th><th>Nilai (Rp)</th><th>P&amp;L (Rp)</th><th>%</th>
+            </tr>
+          </thead>
+          <tbody id="porto-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       MONEY MGMT TAB
+  ═══════════════════════════════════════ -->
+  <div id="tab-mm" class="panel">
+
+    <div class="card">
+      <div class="card-title">Pengaturan Akun</div>
+      <div class="fg-grid">
+        <div class="fg"><label class="fl">Modal Aktif (Rp)</label>
+          <input class="fi" id="m-modal" type="number" value="5000000" oninput="calcMM()"></div>
+        <div class="fg"><label class="fl">Max Risk / Trade (%)</label>
+          <input class="fi" id="m-riskpct" type="number" value="2" step="0.5" min="0.5" max="10" oninput="calcMM()"></div>
+        <div class="fg"><label class="fl">Daily Loss Limit (%)</label>
+          <input class="fi" id="m-dlimit" type="number" value="6" step="0.5" min="1" oninput="updateDailyGauge()"></div>
+        <div class="fg"><label class="fl">Fee Beli (%)</label>
+          <input class="fi" id="m-fbuy" type="number" value="0.19" step="0.01" oninput="calcMM()"></div>
+        <div class="fg"><label class="fl">Fee Jual (%)</label>
+          <input class="fi" id="m-fsell" type="number" value="0.29" step="0.01" oninput="calcMM()"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Kalkulator Posisi &amp; Risiko</div>
+      <div class="fg-grid">
+        <div class="fg"><label class="fl">Saham</label>
+          <input class="fi" id="m-sym" type="text" placeholder="BBCA" oninput="calcMM()"></div>
+        <div class="fg"><label class="fl">Entry (Rp)</label>
+          <input class="fi" id="m-entry" type="number" placeholder="6150" oninput="calcMM()"></div>
+        <div class="fg"><label class="fl">Stop Loss (Rp)</label>
+          <input class="fi" id="m-sl" type="number" placeholder="6050" oninput="calcMM()"></div>
+        <div class="fg"><label class="fl">Target (Rp)</label>
+          <input class="fi" id="m-target" type="number" placeholder="6400" oninput="calcMM()"></div>
+      </div>
+      <div class="mm-out" id="mm-result">
+        <div class="mm-row"><span class="mm-k">Masukkan Entry &gt; Stop Loss untuk menghitung posisi optimal.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Daily P&amp;L Tracker</div>
+      <div id="daily-gauge"></div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       JURNAL TAB
+  ═══════════════════════════════════════ -->
+  <div id="tab-jurnal" class="panel">
+
+    <div class="sg" id="j-stats"></div>
+
+    <div class="card">
+      <div class="card-title">Tambah Trade Baru</div>
+      <div class="fg-grid">
+        <div class="fg"><label class="fl">Tanggal</label>
+          <input class="fi" id="j-date" type="date"></div>
+        <div class="fg"><label class="fl">Saham</label>
+          <input class="fi" id="j-sym" type="text" placeholder="BBCA"></div>
+        <div class="fg"><label class="fl">Lot</label>
+          <input class="fi" id="j-lots" type="number" min="1" placeholder="1"></div>
+        <div class="fg"><label class="fl">Entry (Rp)</label>
+          <input class="fi" id="j-entry" type="number" placeholder="6150"></div>
+        <div class="fg"><label class="fl">Stop Loss (Rp)</label>
+          <input class="fi" id="j-sl" type="number" placeholder="6050"></div>
+        <div class="fg"><label class="fl">Target (Rp)</label>
+          <input class="fi" id="j-target" type="number" placeholder="6400"></div>
+        <div class="fg"><label class="fl">Exit (kosong = masih open)</label>
+          <input class="fi" id="j-exit" type="number" placeholder=""></div>
+        <div class="fg"><label class="fl">Status</label>
+          <select class="fi" id="j-status">
+            <option value="open">Open</option>
+            <option value="win">Win ✓</option>
+            <option value="loss">Loss ✗</option>
+            <option value="be">Break Even</option>
+          </select></div>
+        <div class="fg" style="grid-column:span 2"><label class="fl">Catatan (setup, alasan entry, dll)</label>
+          <input class="fi" id="j-notes" type="text" placeholder="e.g. Breakout support, RSI oversold"></div>
+      </div>
+      <button class="btn btn-o" onclick="addTrade()">+ Simpan Trade</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Riwayat Trade</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align:left">Tgl</th><th style="text-align:left">Saham</th>
+              <th>Lot</th><th>Entry</th><th>SL</th><th>Target</th>
+              <th>Exit</th><th>P&amp;L (Rp)</th><th>Status</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="j-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /content -->
+
+<script>
+// ─────────────────────────────────────────
+// HOLDINGS DATA (Neo HOTS screenshot Jul 12)
+// ─────────────────────────────────────────
+const HOLDINGS = [
+  { sym:'BBCA', lot:1,  shares:100, avg:6150, price:6125 },
+  { sym:'BBHI', lot:0,  shares:2,   avg:1563, price:915  },
+  { sym:'BBNI', lot:2,  shares:200, avg:3430, price:3420 },
+  { sym:'BBRI', lot:3,  shares:300, avg:2800, price:2790 },
+  { sym:'BNBA', lot:0,  shares:20,  avg:3708, price:735  },
+];
+
+// ─────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────
+const idr = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+const idrRaw = n => Math.round(n).toLocaleString('id-ID');
+
+function tFetch(url) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), 11000);
+  return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(id));
+}
+
+// ─────────────────────────────────────────
+// TABS
+// ─────────────────────────────────────────
+function showTab(name, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.getElementById('tab-' + name).classList.add('on');
+  btn.classList.add('on');
+  if (name === 'mm')     { try { calcMM(); updateDailyGauge(); } catch(e){} }
+  if (name === 'jurnal') { try { renderJournal(); } catch(e){} }
+}
+
+// ─────────────────────────────────────────
+// PORTO – RENDER
+// ─────────────────────────────────────────
+function renderPorto() {
+  let totalNilai = 0, totalModal = 0;
+  const rows = HOLDINGS.map(h => {
+    const nilai = h.shares * h.price;
+    const modal = h.shares * h.avg;
+    const pnl   = nilai - modal;
+    const pct   = modal > 0 ? (pnl / modal * 100) : 0;
+    totalNilai += nilai;
+    totalModal += modal;
+    const kepemilikan = h.lot > 0 ? `${h.lot} lot` : `${h.shares} lbr`;
+    const pnlClass = pnl >= 0 ? 'g' : 'r';
+    const sign = pnl >= 0 ? '+' : '';
+    return `<tr>
+      <td>${h.sym}</td>
+      <td>${kepemilikan}</td>
+      <td>${idrRaw(h.avg)}</td>
+      <td id="px-${h.sym}">${idrRaw(h.price)}</td>
+      <td>${idrRaw(nilai)}</td>
+      <td class="${pnlClass}">${sign}${idrRaw(pnl)}</td>
+      <td class="${pnlClass}">${sign}${pct.toFixed(2)}%</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('porto-body').innerHTML = rows;
+
+  const totalPnl = totalNilai - totalModal;
+  document.getElementById('c-nilai').textContent = idr(totalNilai);
+  document.getElementById('c-modal').textContent = idr(totalModal);
+  const cpnl = document.getElementById('c-pnl');
+  cpnl.textContent = (totalPnl >= 0 ? '+' : '') + idr(totalPnl);
+  cpnl.className = 'chip-val ' + (totalPnl >= 0 ? 'g' : 'r');
+}
+
+// ─────────────────────────────────────────
+// PORTO – LIVE FETCH
+// ─────────────────────────────────────────
+async function fetchPrice(sym) {
+  const ticker = sym + '.JK';
+  const proxies = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/' + ticker)}`,
+    `https://corsproxy.io/?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/' + ticker)}`,
+  ];
+  for (const url of proxies) {
+    try {
+      const r = await tFetch(url);
+      const j = await r.json();
+      const p = j?.chart?.result?.[0]?.meta?.regularMarketPrice;
+      if (p && p > 0) return Math.round(p);
+    } catch(e) {}
+  }
+  return null;
+}
+
+async function fetchAll() {
+  const btn = document.getElementById('btn-upd');
+  btn.textContent = '⟳ Mengambil…';
+  btn.disabled = true;
+  for (const h of HOLDINGS) {
+    const p = await fetchPrice(h.sym);
+    if (p !== null) h.price = p;
+  }
+  renderPorto();
+  const now = new Date();
+  document.getElementById('last-ts').textContent =
+    'Update: ' + now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  btn.textContent = '↻ Update Harga';
+  btn.disabled = false;
+}
+
+// ─────────────────────────────────────────
+// MONEY MANAGEMENT – CALCULATOR
+// ─────────────────────────────────────────
+function calcMM() {
+  const modal    = +document.getElementById('m-modal').value    || 0;
+  const riskPct  = (+document.getElementById('m-riskpct').value || 2) / 100;
+  const feeBuy   = (+document.getElementById('m-fbuy').value   || 0.19) / 100;
+  const feeSell  = (+document.getElementById('m-fsell').value  || 0.29) / 100;
+  const entry    = +document.getElementById('m-entry').value    || 0;
+  const sl       = +document.getElementById('m-sl').value       || 0;
+  const target   = +document.getElementById('m-target').value   || 0;
+  const out      = document.getElementById('mm-result');
+
+  if (!entry || !sl || entry <= sl) {
+    out.innerHTML = `<div class="mm-row"><span class="mm-k">Masukkan Entry &gt; Stop Loss untuk menghitung posisi optimal.</span></div>`;
+    return;
+  }
+
+  const maxRiskRp    = modal * riskPct;
+  const riskPerShare = entry - sl;
+  const sharesRaw    = maxRiskRp / riskPerShare;
+  const lots         = Math.max(1, Math.floor(sharesRaw / 100));
+  const shares       = lots * 100;
+  const capital      = shares * entry;
+  const feeBuyRp     = capital * feeBuy;
+  const riskActual   = shares * riskPerShare + feeBuyRp;
+
+  let rewardHtml = '';
+  let rrHtml     = '';
+  if (target > entry) {
+    const rewardGross  = shares * (target - entry);
+    const feeSellRp    = shares * target * feeSell;
+    const netReward    = rewardGross - feeSellRp - feeBuyRp;
+    const rrr          = riskActual > 0 ? netReward / riskActual : 0;
+    const rrcls        = rrr >= 2 ? 'g' : rrr >= 1 ? 'y' : 'r';
+    const rrLabel      = rrr >= 2 ? '✓ Good' : rrr >= 1 ? '~ Cukup' : '✗ Skip';
+    const totalFee     = feeBuyRp + feeSellRp;
+    rewardHtml = `
+      <div class="mm-row"><span class="mm-k">Reward Gross</span><span class="mm-v g">+${idrRaw(rewardGross)}</span></div>
+      <div class="mm-row"><span class="mm-k">Total Fee (beli + jual)</span><span class="mm-v m">−${idrRaw(totalFee)}</span></div>
+      <div class="mm-row"><span class="mm-k">Net Reward</span><span class="mm-v ${netReward >= 0 ? 'g' : 'r'}">${netReward >= 0 ? '+' : ''}${idrRaw(netReward)}</span></div>`;
+    rrHtml = `<div class="mm-row"><span class="mm-k">Risk : Reward</span><span class="mm-v mm-big ${rrcls}">1 : ${rrr.toFixed(2)} <span style="font-size:13px">${rrLabel}</span></span></div>`;
+  }
+
+  out.innerHTML = `
+    <div class="mm-row"><span class="mm-k">Lot Rekomendasi</span><span class="mm-v mm-big">${lots} lot <span class="m" style="font-size:13px">(${idrRaw(shares)} saham)</span></span></div>
+    <div class="div"></div>
+    <div class="mm-row"><span class="mm-k">Modal Dibutuhkan</span><span class="mm-v">${idrRaw(capital)}</span></div>
+    <div class="mm-row"><span class="mm-k">Fee Beli</span><span class="mm-v m">−${idrRaw(feeBuyRp)}</span></div>
+    <div class="mm-row"><span class="mm-k">Risk Aktual (termasuk fee)</span><span class="mm-v r">−${idrRaw(riskActual)} <span class="m" style="font-size:12px">(${(riskActual/modal*100).toFixed(2)}% modal)</span></span></div>
+    <div class="mm-row"><span class="mm-k">Max Risk Allowed</span><span class="mm-v m">${idrRaw(maxRiskRp)}</span></div>
+    ${rewardHtml}${rrHtml}
+  `;
+}
+
+// ─────────────────────────────────────────
+// DAILY GAUGE
+// ─────────────────────────────────────────
+function updateDailyGauge() {
+  const modal     = +document.getElementById('m-modal').value  || 5000000;
+  const limitPct  = +document.getElementById('m-dlimit').value || 6;
+  const limitRp   = modal * limitPct / 100;
+  const today     = new Date().toISOString().split('T')[0];
+  const trades    = loadTrades().filter(t => t.date === today && t.pnl !== null);
+  const todayPnl  = trades.reduce((s, t) => s + t.pnl, 0);
+  const lossUsed  = Math.max(0, -todayPnl);
+  const usedPct   = Math.min(100, lossUsed / limitRp * 100);
+  const color     = usedPct >= 100 ? 'var(--red)' : usedPct >= 70 ? 'var(--yellow)' : 'var(--green)';
+  const winTrades = trades.filter(t => t.pnl > 0).length;
+  const lossTrades = trades.filter(t => t.pnl < 0).length;
+
+  document.getElementById('daily-gauge').innerHTML = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+      <span>P&amp;L Hari Ini&nbsp;<b class="${todayPnl >= 0 ? 'g' : 'r'}">${todayPnl >= 0 ? '+' : ''}${idrRaw(todayPnl)}</b></span>
+      <span class="m">Daily Limit: ${idrRaw(limitRp)}</span>
+    </div>
+    <div class="gauge-bar"><div class="gauge-fill" style="width:${usedPct.toFixed(1)}%;background:${color}"></div></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">
+      Kerugian hari ini ${usedPct.toFixed(0)}% dari limit &nbsp;·&nbsp; ${idrRaw(lossUsed)} / ${idrRaw(limitRp)}
+      ${usedPct >= 100 ? ' &nbsp;<b class="r">⛔ STOP TRADING HARI INI</b>' : ''}
+    </div>
+    <div style="display:flex;gap:16px;font-size:13px">
+      <span class="g">✓ Win: ${winTrades}</span>
+      <span class="r">✗ Loss: ${lossTrades}</span>
+      <span class="m">Total: ${trades.length} trade hari ini</span>
+    </div>
+  `;
+}
+
+// ─────────────────────────────────────────
+// JOURNAL – STORAGE
+// ─────────────────────────────────────────
+function loadTrades() {
+  try { return JSON.parse(localStorage.getItem('idx_journal_v1') || '[]'); } catch(e) { return []; }
+}
+function saveTrades(arr) {
+  localStorage.setItem('idx_journal_v1', JSON.stringify(arr));
+}
+
+// ─────────────────────────────────────────
+// JOURNAL – ADD
+// ─────────────────────────────────────────
+function addTrade() {
+  const date   = document.getElementById('j-date').value;
+  const sym    = document.getElementById('j-sym').value.trim().toUpperCase();
+  const lots   = +document.getElementById('j-lots').value || 0;
+  const entry  = +document.getElementById('j-entry').value || 0;
+  const sl     = +document.getElementById('j-sl').value   || 0;
+  const target = +document.getElementById('j-target').value || 0;
+  const exit   = +document.getElementById('j-exit').value  || 0;
+  const status = document.getElementById('j-status').value;
+  const notes  = document.getElementById('j-notes').value.trim();
+
+  if (!date || !sym || !lots || !entry) {
+    alert('Tanggal, saham, lot, dan harga entry wajib diisi.'); return;
+  }
+  const shares  = lots * 100;
+  const feeBuy  = (+document.getElementById('m-fbuy').value  || 0.19) / 100;
+  const feeSell = (+document.getElementById('m-fsell').value || 0.29) / 100;
+
+  let pnl = null;
+  if (exit > 0) {
+    const gross = (exit - entry) * shares;
+    const fee   = entry * shares * feeBuy + exit * shares * feeSell;
+    pnl = gross - fee;
+  }
+
+  const trade = { id: Date.now(), date, sym, lots, shares, entry, sl: sl||null, target: target||null, exit: exit||null, status, notes, pnl };
+  const arr = loadTrades();
+  arr.unshift(trade);
+  saveTrades(arr);
+
+  // Reset form
+  ['j-sym','j-lots','j-entry','j-sl','j-target','j-exit','j-notes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('j-status').value = 'open';
+  document.getElementById('j-date').value = new Date().toISOString().split('T')[0];
+  renderJournal();
+}
+
+// ─────────────────────────────────────────
+// JOURNAL – DELETE
+// ─────────────────────────────────────────
+function deleteTrade(id) {
+  if (!confirm('Hapus trade ini?')) return;
+  saveTrades(loadTrades().filter(t => t.id !== id));
+  renderJournal();
+}
+
+// ─────────────────────────────────────────
+// JOURNAL – RENDER
+// ─────────────────────────────────────────
+function renderJournal() {
+  const trades  = loadTrades();
+  const closed  = trades.filter(t => t.pnl !== null);
+  const wins    = closed.filter(t => t.pnl > 0);
+  const losses  = closed.filter(t => t.pnl <= 0);
+  const winRate = closed.length ? (wins.length / closed.length * 100).toFixed(0) : 0;
+  const avgWin  = wins.length   ? wins.reduce((s,t)=>s+t.pnl,0)/wins.length     : 0;
+  const avgLoss = losses.length ? Math.abs(losses.reduce((s,t)=>s+t.pnl,0)/losses.length) : 0;
+  const totalPnl = closed.reduce((s,t)=>s+t.pnl,0);
+  const grossW   = wins.reduce((s,t)=>s+t.pnl,0);
+  const grossL   = Math.abs(losses.reduce((s,t)=>s+t.pnl,0));
+  const pf       = grossL > 0 ? (grossW / grossL).toFixed(2) : (grossW > 0 ? '∞' : '—');
+
+  document.getElementById('j-stats').innerHTML = `
+    <div class="sb"><div class="sb-l">Total Trade</div><div class="sb-v">${trades.length}</div></div>
+    <div class="sb"><div class="sb-l">Selesai</div><div class="sb-v">${closed.length}</div></div>
+    <div class="sb"><div class="sb-l">Win Rate</div><div class="sb-v ${winRate >= 50 ? 'g' : 'r'}">${winRate}%</div></div>
+    <div class="sb"><div class="sb-l">Avg Win</div><div class="sb-v g">+${idrRaw(avgWin)}</div></div>
+    <div class="sb"><div class="sb-l">Avg Loss</div><div class="sb-v r">−${idrRaw(avgLoss)}</div></div>
+    <div class="sb"><div class="sb-l">Profit Factor</div><div class="sb-v ${pf >= 1.5 || pf === '∞' ? 'g' : 'r'}">${pf}</div></div>
+    <div class="sb"><div class="sb-l">Total P&amp;L</div><div class="sb-v ${totalPnl >= 0 ? 'g' : 'r'}">${totalPnl >= 0 ? '+' : ''}${idrRaw(totalPnl)}</div></div>
+  `;
+
+  const badgeMap = { win:'bw', loss:'bl', open:'bo', be:'bbe' };
+  const labelMap = { win:'Win ✓', loss:'Loss ✗', open:'Open', be:'BE' };
+  const tbody = document.getElementById('j-body');
+
+  if (!trades.length) {
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px;font-style:italic">
+      Belum ada trade. Tambah trade di form atas.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = trades.map(t => {
+    const pnlStr  = t.pnl !== null ? (t.pnl >= 0 ? '+' : '') + idrRaw(t.pnl) : '—';
+    const pnlCls  = t.pnl !== null ? (t.pnl > 0 ? 'g' : t.pnl < 0 ? 'r' : 'm') : 'm';
+    const bc      = badgeMap[t.status] || 'bbe';
+    const bl      = labelMap[t.status] || t.status;
+    return `<tr>
+      <td style="text-align:left">${t.date}</td>
+      <td style="text-align:left">${t.sym}</td>
+      <td>${t.lots}</td>
+      <td>${idrRaw(t.entry)}</td>
+      <td class="m">${t.sl ? idrRaw(t.sl) : '—'}</td>
+      <td class="m">${t.target ? idrRaw(t.target) : '—'}</td>
+      <td>${t.exit ? idrRaw(t.exit) : '—'}</td>
+      <td class="${pnlCls}">${pnlStr}</td>
+      <td><span class="badge ${bc}">${bl}</span></td>
+      <td><button class="btn btn-sm btn-del" onclick="deleteTrade(${t.id})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────
+try { renderPorto(); } catch(e) { console.error('renderPorto', e); }
+try {
+  document.getElementById('j-date').value = new Date().toISOString().split('T')[0];
+  renderJournal();
+} catch(e) { console.error('renderJournal', e); }
+
+window.addEventListener('load', () => {
+  setTimeout(fetchAll, 1500);
+});
+</script>
+</body>
+</html>
