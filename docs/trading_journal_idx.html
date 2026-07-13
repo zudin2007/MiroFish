@@ -365,7 +365,7 @@ select.fi option{background:var(--card)}
 <div id="tab-preturn" class="panel">
   <div class="sg" id="pr-stats"></div>
   <div class="card">
-    <div class="card-title">Yield Bulanan (%) · 2022/01 – 2026/07</div>
+    <div class="card-title">Yield Bulanan (%) · 2020/01 – 2026/07</div>
     <canvas id="pr-chart" height="160"></canvas>
   </div>
   <div class="card">
@@ -1196,6 +1196,30 @@ function drawModalChart({ valid, fmtT, meta, sym }) {
 
 // ── P.RETURN ───────────────────────────────────────────
 const PRETURN_DATA = [
+  { month:'2020/01', endVal:58520409,  deposit:3006,       withdraw:0,         change:-26412418, gainLoss:-26415424,yield:-31.10},
+  { month:'2020/02', endVal:41216443,  deposit:5000000,    withdraw:19996897,  change:-17303966, gainLoss:-2307069, yield:-3.63 },
+  { month:'2020/03', endVal:39666492,  deposit:12800000,   withdraw:9996053,   change:-1549951,  gainLoss:-4353898, yield:-8.06 },
+  { month:'2020/04', endVal:43801548,  deposit:2501589,    withdraw:0,         change:4135056,   gainLoss:1633467,  yield:3.87  },
+  { month:'2020/05', endVal:42327829,  deposit:7600000,    withdraw:8795684,   change:-1473719,  gainLoss:-278035,  yield:-0.54 },
+  { month:'2020/06', endVal:53772441,  deposit:9300000,    withdraw:0,         change:11444612,  gainLoss:2144612,  yield:4.15  },
+  { month:'2020/07', endVal:76739001,  deposit:18000000,   withdraw:0,         change:22966560,  gainLoss:4966560,  yield:6.92  },
+  { month:'2020/08', endVal:83582887,  deposit:100000,     withdraw:0,         change:6843886,   gainLoss:6743886,  yield:8.78  },
+  { month:'2020/09', endVal:74791053,  deposit:5640000,    withdraw:0,         change:-8791834,  gainLoss:-14431834,yield:-16.18},
+  { month:'2020/10', endVal:127892616, deposit:63500000,   withdraw:0,         change:53101563,  gainLoss:-10398437,yield:-7.52 },
+  { month:'2020/11', endVal:199066766, deposit:48600820,   withdraw:0,         change:71174150,  gainLoss:22573330, yield:12.79 },
+  { month:'2020/12', endVal:204572417, deposit:500000,     withdraw:27000000,  change:5505651,   gainLoss:32005651, yield:16.04 },
+  { month:'2021/01', endVal:159937173, deposit:63600000,   withdraw:122499409, change:-44635244, gainLoss:14264165, yield:5.32  },
+  { month:'2021/02', endVal:194268536, deposit:70002366,   withdraw:40000000,  change:34331363,  gainLoss:4328997,  yield:1.88  },
+  { month:'2021/03', endVal:221784014, deposit:67001757,   withdraw:20000000,  change:27515478,  gainLoss:-19486279,yield:-7.46 },
+  { month:'2021/04', endVal:205806992, deposit:5508724,    withdraw:30000000,  change:-15977022, gainLoss:8514254,  yield:3.75  },
+  { month:'2021/05', endVal:185443141, deposit:32001739,   withdraw:50900000,  change:-20363851, gainLoss:-1465590, yield:-0.62 },
+  { month:'2021/06', endVal:195275819, deposit:15700000,   withdraw:4999152,   change:9832678,   gainLoss:-868170,  yield:-0.43 },
+  { month:'2021/07', endVal:276229255, deposit:75202834,   withdraw:5000000,   change:80953436,  gainLoss:10750602, yield:3.97  },
+  { month:'2021/08', endVal:259788368, deposit:29500814,   withdraw:20700000,  change:-16440887, gainLoss:-25241701,yield:-8.26 },
+  { month:'2021/09', endVal:195277115, deposit:8801028,    withdraw:80000000,  change:-64511253, gainLoss:6687719,  yield:2.49  },
+  { month:'2021/10', endVal:185583515, deposit:3200462,    withdraw:760590,    change:-9693600,  gainLoss:-12133472,yield:-6.11 },
+  { month:'2021/11', endVal:213640180, deposit:37528957,   withdraw:10000000,  change:28056665,  gainLoss:527708,   yield:0.24  },
+  { month:'2021/12', endVal:203631817, deposit:5524620,    withdraw:25296400,  change:-10008363, gainLoss:9763417,  yield:4.45  },
   { month:'2022/01', endVal:172281993, deposit:3627703,   withdraw:19046800, change:-31349824, gainLoss:-15930727,yield:-7.69 },
   { month:'2022/02', endVal:179540783, deposit:250172,    withdraw:0,        change:7258790,   gainLoss:7008618,  yield:4.06  },
   { month:'2022/03', endVal:174218572, deposit:300000,    withdraw:13000000, change:-5322211,  gainLoss:7377789,  yield:4.10  },
