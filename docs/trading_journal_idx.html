@@ -397,7 +397,7 @@ select.fi option{background:var(--card)}
 <div id="tab-gainloss" class="panel">
   <div class="sg" id="gl-stats"></div>
   <div class="card">
-    <div class="card-title" id="gl-chart-title">Net P&amp;L per Saham (Rp) · 2025/08 – 2026/07</div>
+    <div class="card-title" id="gl-chart-title">Net P&amp;L per Saham (Rp) · 2025/06 – 2026/07</div>
     <canvas id="gl-chart" height="180"></canvas>
   </div>
   <div class="card">
@@ -405,7 +405,7 @@ select.fi option{background:var(--card)}
     <div id="gl-period-bar" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
       <button onclick="setGLPeriod(0,this)" style="padding:4px 10px;border-radius:5px;border:1px solid var(--accent);background:var(--accent);color:#000;font-size:12px;font-weight:600;cursor:pointer">Semua</button>
       <button onclick="setGLPeriod(1,this)" style="padding:4px 10px;border-radius:5px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer">P1 · 2026/02~07</button>
-      <button onclick="setGLPeriod(2,this)" style="padding:4px 10px;border-radius:5px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer">P2 · 2025/08~2026/02</button>
+      <button onclick="setGLPeriod(2,this)" style="padding:4px 10px;border-radius:5px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer">P2 · 2025/06~2026/02</button>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
       <input type="text" class="fi" id="gl-filter" placeholder="Filter kode saham…" style="max-width:200px" oninput="filterGL()">
@@ -1633,6 +1633,83 @@ const GL_DATA = [
   {date:'2026/01/29',code:'ANTM',sell:4390,   buy:4380,    lot:6,  pct:0.2,   gross:6000,     net:-4527  },
   {date:'2026/01/29',code:'INDO',sell:374,    buy:498,     lot:60, pct:-24.9, gross:-744000,  net:-754092},
   {date:'2026/01/30',code:'ARCI',sell:1840,   buy:1935,    lot:12, pct:-4.9,  gross:-114000,  net:-123003},
+  // ── P2 lanjutan: 2025/06/04 – 2025/07/31 ─────────────
+  {date:'2025/06/04',code:'PSAB',sell:555,    buy:456,     lot:11, pct:21.7,  gross:108900,   net:106623 },
+  {date:'2025/06/04',code:'BEEF',sell:262,    buy:266,     lot:22, pct:-1.5,  gross:-8800,    net:-11117 },
+  {date:'2025/06/05',code:'MBMA',sell:476,    buy:404,     lot:6,  pct:17.8,  gross:43200,    net:42124  },
+  {date:'2025/06/05',code:'DATA',sell:1355,   buy:1415,    lot:7,  pct:-4.2,  gross:-42000,   net:-45855 },
+  {date:'2025/06/10',code:'MDKA',sell:2140,   buy:2190,    lot:4,  pct:-2.3,  gross:-20000,   net:-23454 },
+  {date:'2025/06/10',code:'INCO',sell:3580,   buy:3720,    lot:2,  pct:-3.8,  gross:-28000,   net:-30906 },
+  {date:'2025/06/11',code:'TOBA',sell:675,    buy:550,     lot:8,  pct:22.7,  gross:100000,   net:97990  },
+  {date:'2025/06/12',code:'ANTM',sell:3192.5, buy:3355,    lot:4,  pct:-4.8,  gross:-65000,   net:-70204 },
+  {date:'2025/06/12',code:'TINS',sell:1180,   buy:1250,    lot:8,  pct:-5.6,  gross:-56000,   net:-59860 },
+  {date:'2025/06/12',code:'CUAN',sell:11825,  buy:12125,   lot:1,  pct:-2.5,  gross:-30000,   net:-34773 },
+  {date:'2025/06/13',code:'CASA',sell:905,    buy:948.8,   lot:9,  pct:-4.6,  gross:-39499,   net:-42814 },
+  {date:'2025/06/13',code:'ARCI',sell:496,    buy:395.5,   lot:10, pct:25.4,  gross:100500,   net:98667  },
+  {date:'2025/06/13',code:'TINS',sell:1145,   buy:1165,    lot:8,  pct:-1.7,  gross:-16000,   net:-19688 },
+  {date:'2025/06/16',code:'ARCI',sell:536.7,  buy:395.5,   lot:14, pct:35.7,  gross:197800,   net:195093 },
+  {date:'2025/06/16',code:'AMMN',sell:7600,   buy:8200,    lot:2,  pct:-7.3,  gross:-120000,  net:-126260},
+  {date:'2025/06/16',code:'ADHI',sell:264,    buy:282,     lot:58, pct:-6.4,  gross:-104400,  net:-110680},
+  {date:'2025/06/16',code:'DSSA',sell:59925,  buy:59950,   lot:1,  pct:0.0,   gross:-2500,    net:-26472 },
+  {date:'2025/06/16',code:'DKFT',sell:448,    buy:418,     lot:24, pct:7.2,   gross:72000,    net:67809  },
+  {date:'2025/06/16',code:'DEWA',sell:192,    buy:187,     lot:38, pct:2.7,   gross:19000,    net:16112  },
+  {date:'2025/06/16',code:'BRMS',sell:458,    buy:430,     lot:23, pct:6.5,   gross:64400,    net:60284  },
+  {date:'2025/06/16',code:'MBMA',sell:460,    buy:404,     lot:18, pct:13.9,  gross:100800,   net:97640  },
+  {date:'2025/06/16',code:'KPIG',sell:144,    buy:158,     lot:48, pct:-8.9,  gross:-67200,   net:-70064 },
+  {date:'2025/06/16',code:'IPCC',sell:1175,   buy:1050,    lot:7,  pct:11.9,  gross:87500,    net:84343  },
+  {date:'2025/06/16',code:'HRTA',sell:680,    buy:670,     lot:11, pct:1.5,   gross:11000,    net:8025   },
+  {date:'2025/06/16',code:'TOBA',sell:890,    buy:690,     lot:16, pct:29.0,  gross:320000,   net:314784 },
+  {date:'2025/06/16',code:'RATU',sell:7875,   buy:7975,    lot:1,  pct:-1.3,  gross:-10000,   net:-13164 },
+  {date:'2025/06/16',code:'PSAB',sell:515,    buy:483,     lot:22, pct:6.6,   gross:70400,    net:65975  },
+  {date:'2025/06/17',code:'BUMI',sell:126,    buy:144,     lot:84, pct:-12.5, gross:-151200,  net:-155659},
+  {date:'2025/06/17',code:'PTPP',sell:448,    buy:462.1,   lot:17, pct:-3.1,  gross:-23999,   net:-27080 },
+  {date:'2025/06/17',code:'HRUM',sell:885,    buy:955,     lot:13, pct:-7.3,  gross:-91000,   net:-95737 },
+  {date:'2025/06/18',code:'BRPT',sell:1520,   buy:1550,    lot:45, pct:-1.9,  gross:-135000,  net:-162562},
+  {date:'2025/06/18',code:'BBTN',sell:1190,   buy:1210,    lot:12, pct:-1.7,  gross:-24000,   net:-29748 },
+  {date:'2025/06/18',code:'SMDR',sell:336,    buy:334,     lot:29, pct:0.6,   gross:5800,     net:1913   },
+  {date:'2025/06/18',code:'RAJA',sell:2740,   buy:2920,    lot:3,  pct:-6.2,  gross:-54000,   net:-57369 },
+  {date:'2025/06/18',code:'MDKA',sell:2260,   buy:2310,    lot:4,  pct:-2.2,  gross:-20000,   net:-23646 },
+  {date:'2025/06/18',code:'INDY',sell:1510,   buy:1535,    lot:9,  pct:-1.6,  gross:-22500,   net:-27969 },
+  {date:'2025/06/30',code:'ARCI',sell:547.5,  buy:612.5,   lot:2,  pct:-10.6, gross:-13000,   net:-13455 },
+  {date:'2025/07/02',code:'BTPS',sell:1320,   buy:1330,    lot:9,  pct:-0.8,  gross:-9000,    net:-13765 },
+  {date:'2025/07/03',code:'CUAN',sell:12050,  buy:12600,   lot:1,  pct:-4.4,  gross:-55000,   net:-59902 },
+  {date:'2025/07/07',code:'DEWA',sell:180,    buy:185,     lot:53, pct:-2.7,  gross:-26500,   net:-30355 },
+  {date:'2025/07/07',code:'TPIA',sell:9775,   buy:9950,    lot:1,  pct:-1.8,  gross:-17500,   net:-21435 },
+  {date:'2025/07/09',code:'BTPS',sell:1320,   buy:1365,    lot:9,  pct:-3.3,  gross:-40500,   net:-45312 },
+  {date:'2025/07/11',code:'AMMN',sell:8450,   buy:8800,    lot:2,  pct:-4.0,  gross:-70000,   net:-76865 },
+  {date:'2025/07/14',code:'BRPT',sell:2120,   buy:1570,    lot:2,  pct:35.0,  gross:110000,   net:108469 },
+  {date:'2025/07/14',code:'SSIA',sell:2330,   buy:1695,    lot:2,  pct:37.5,  gross:127000,   net:125327 },
+  {date:'2025/07/14',code:'PTPP',sell:426,    buy:440,     lot:20, pct:-3.2,  gross:-28000,   net:-31450 },
+  {date:'2025/07/14',code:'MDKA',sell:2070,   buy:2150,    lot:5,  pct:-3.7,  gross:-40000,   net:-44199 },
+  {date:'2025/07/14',code:'CUAN',sell:16950,  buy:12625,   lot:1,  pct:34.3,  gross:432500,   net:426370 },
+  {date:'2025/07/14',code:'TOBA',sell:795,    buy:810,     lot:8,  pct:-1.9,  gross:-12000,   net:-14562 },
+  {date:'2025/07/15',code:'TPIA',sell:9775,   buy:10325,   lot:1,  pct:-5.3,  gross:-55000,   net:-58991 },
+  {date:'2025/07/15',code:'PSAB',sell:432,    buy:456,     lot:34, pct:-5.3,  gross:-81600,   net:-87596 },
+  {date:'2025/07/15',code:'KPIG',sell:165,    buy:166.9,   lot:106,pct:-1.1,  gross:-20299,   net:-27324 },
+  {date:'2025/07/16',code:'CUAN',sell:1560,   buy:1262.5,  lot:10, pct:23.6,  gross:297500,   net:291707 },
+  {date:'2025/07/16',code:'CASA',sell:990,    buy:995,     lot:18, pct:-0.5,  gross:-9000,    net:-16141 },
+  {date:'2025/07/16',code:'BRPT',sell:2000,   buy:1570,    lot:4,  pct:27.4,  gross:172000,   net:169058 },
+  {date:'2025/07/16',code:'ASSA',sell:805,    buy:820,     lot:17, pct:-1.8,  gross:-25500,   net:-31011 },
+  {date:'2025/07/16',code:'ERAA',sell:550,    buy:575,     lot:15, pct:-4.3,  gross:-37500,   net:-40855 },
+  {date:'2025/07/16',code:'ENRG',sell:438,    buy:398,     lot:29, pct:10.1,  gross:116000,   net:111094 },
+  {date:'2025/07/16',code:'DKFT',sell:565,    buy:480,     lot:21, pct:17.7,  gross:178500,   net:174023 },
+  {date:'2025/07/16',code:'DEWA',sell:189,    buy:192,     lot:39, pct:-1.6,  gross:-11700,   net:-14665 },
+  {date:'2025/07/16',code:'SMDR',sell:328,    buy:332,     lot:32, pct:-1.2,  gross:-12800,   net:-17016 },
+  {date:'2025/07/16',code:'MDKA',sell:2150,   buy:2190,    lot:5,  pct:-1.8,  gross:-20000,   net:-24329 },
+  {date:'2025/07/16',code:'MBMA',sell:560,    buy:505,     lot:19, pct:10.9,  gross:104500,   net:100401 },
+  {date:'2025/07/16',code:'HEAL',sell:1550,   buy:1510,    lot:13, pct:2.6,   gross:52000,    net:44019  },
+  {date:'2025/07/16',code:'SSIA',sell:2593.3, buy:1695,    lot:3,  pct:53.0,  gross:269500,   net:266793 },
+  {date:'2025/07/23',code:'SMBR',sell:284,    buy:308,     lot:23, pct:-7.8,  gross:-55200,   net:-57894 },
+  {date:'2025/07/23',code:'ANTM',sell:2930,   buy:3090,    lot:5,  pct:-5.2,  gross:-80000,   net:-85979 },
+  {date:'2025/07/24',code:'JATI',sell:143,    buy:166,     lot:67, pct:-13.9, gross:-154100,  net:-158163},
+  {date:'2025/07/25',code:'SMDR',sell:338,    buy:360,     lot:25, pct:-6.1,  gross:-55000,   net:-58462 },
+  {date:'2025/07/28',code:'ENRG',sell:530,    buy:482,     lot:5,  pct:10.0,  gross:24000,    net:22977  },
+  {date:'2025/07/28',code:'DEWA',sell:232,    buy:195,     lot:13, pct:19.0,  gross:48100,    net:46967  },
+  {date:'2025/07/29',code:'PACK',sell:3690,   buy:3970,    lot:2,  pct:-7.1,  gross:-56000,   net:-59036 },
+  {date:'2025/07/31',code:'INCO',sell:3570,   buy:3560,    lot:3,  pct:0.3,   gross:3000,     net:-1279  },
+  {date:'2025/07/31',code:'ENRG',sell:600,    buy:492.7,   lot:5,  pct:21.8,  gross:53625,    net:52506  },
+  {date:'2025/07/31',code:'DATA',sell:1855,   buy:1970,    lot:4,  pct:-5.8,  gross:-46000,   net:-49037 },
+  {date:'2025/07/31',code:'ASSA',sell:850,    buy:920,     lot:10, pct:-7.6,  gross:-70000,   net:-73505 },
 ];
 
 let glChart = null;
