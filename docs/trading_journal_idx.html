@@ -1059,6 +1059,7 @@ async function fetchStockChart(sym, range, interval) {
       const first  = cData[0], last = cData[cData.length-1];
       const isUp   = last >= first;
       const color  = isUp ? '#00c853' : '#ff4d4d';
+      const maxVol = Math.max(...vData.filter(v => v > 0)) || 1;
       const h = holdings.find(x => x.sym === sym);
       const avgSet = h ? [{
         label:'Avg Beli', data: cData.map(() => h.avg),
@@ -1071,20 +1072,35 @@ async function fetchStockChart(sym, range, interval) {
         type:'line',
         data:{ labels, datasets:[
           { label:sym, data:cData, borderColor:color, backgroundColor:color+'18',
-            fill:true, tension:0.2, pointRadius:0, borderWidth:2, yAxisID:'y' },
+            fill:true, tension:0.2, pointRadius:0, borderWidth:2, yAxisID:'y', order:1 },
           ...avgSet,
           { label:'Volume', data:vData, type:'bar',
-            backgroundColor:color+'33', borderRadius:1, yAxisID:'vol', order:10 }
+            backgroundColor:color+'50', borderRadius:1, yAxisID:'vol', order:2 }
         ]},
         options:{
           plugins:{
             legend:{ display:true, position:'top', labels:{ color:'#a8a8c8', boxWidth:12, font:{size:11} } },
-            tooltip:{ mode:'index', intersect:false }
+            tooltip:{
+              mode:'index', intersect:false,
+              callbacks:{
+                label: ctx => {
+                  if (ctx.dataset.label === 'Volume') return ' Vol: ' + (ctx.parsed.y/1e6).toFixed(2) + 'M';
+                  return ' ' + ctx.dataset.label + ': ' + idrRaw(ctx.parsed.y);
+                }
+              }
+            }
           },
           scales:{
             x:{ ticks:{ color:'#6868a8', maxTicksLimit:7, maxRotation:0 } },
             y:{ position:'right', ticks:{ color:'#6868a8', callback:v=>idrRaw(v) } },
-            vol:{ position:'left', ticks:{display:false}, grid:{display:false} }
+            vol:{
+              position:'left',
+              min: 0,
+              max: maxVol * 4,
+              ticks:{ display:false },
+              grid:{ display:false },
+              border:{ display:false }
+            }
           },
           interaction:{ mode:'index', intersect:false }
         }
