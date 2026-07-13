@@ -397,11 +397,16 @@ select.fi option{background:var(--card)}
 <div id="tab-gainloss" class="panel">
   <div class="sg" id="gl-stats"></div>
   <div class="card">
-    <div class="card-title">Net P&amp;L per Saham (Rp) · 2026/02/01 – 2026/07/13</div>
+    <div class="card-title" id="gl-chart-title">Net P&amp;L per Saham (Rp) · 2025/08 – 2026/07</div>
     <canvas id="gl-chart" height="180"></canvas>
   </div>
   <div class="card">
     <div class="card-title">Riwayat Transaksi</div>
+    <div id="gl-period-bar" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+      <button onclick="setGLPeriod(0,this)" style="padding:4px 10px;border-radius:5px;border:1px solid var(--accent);background:var(--accent);color:#000;font-size:12px;font-weight:600;cursor:pointer">Semua</button>
+      <button onclick="setGLPeriod(1,this)" style="padding:4px 10px;border-radius:5px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer">P1 · 2026/02~07</button>
+      <button onclick="setGLPeriod(2,this)" style="padding:4px 10px;border-radius:5px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer">P2 · 2025/08~2026/02</button>
+    </div>
     <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
       <input type="text" class="fi" id="gl-filter" placeholder="Filter kode saham…" style="max-width:200px" oninput="filterGL()">
       <select class="fi" id="gl-sort" onchange="filterGL()" style="max-width:180px">
@@ -429,6 +434,7 @@ select.fi option{background:var(--card)}
       </table>
     </div>
     <div style="font-size:11px;color:var(--muted);margin-top:8px" id="gl-count"></div>
+    <div style="font-size:11px;color:#ff9500;margin-top:4px" id="gl-period-note"></div>
   </div>
 </div>
 
@@ -1504,26 +1510,143 @@ const GL_DATA = [
   {date:'2026/04/29',code:'EMAS',sell:9625,   buy:9598.8,  lot:11, pct:0.3,   gross:28750,    net:-13555 },
   {date:'2026/04/29',code:'EURO',sell:3100,   buy:2750,    lot:8,  pct:12.7,  gross:280000,   net:270500 },
   {date:'2026/04/29',code:'SIMP',sell:835,    buy:860,     lot:10, pct:-2.9,  gross:-25000,   net:-28377 },
+  // ── P1 lanjutan: Mei–Jul 2026 ─────────────────────────
+  {date:'2026/05/07',code:'ITMG',sell:26175,  buy:27438.8, lot:3,  pct:-4.6,  gross:-379167,  net:-411144},
+  {date:'2026/05/07',code:'LUCY',sell:1695,   buy:1982.5,  lot:27, pct:-14.5, gross:-776499,  net:-795968},
+  {date:'2026/05/07',code:'MEDC',sell:1665,   buy:1805,    lot:27, pct:-7.8,  gross:-378000,  net:-396548},
+  {date:'2026/05/12',code:'AADI',sell:9125,   buy:11650,   lot:3,  pct:-21.7, gross:-757500,  net:-769585},
+  {date:'2026/05/12',code:'ENRG',sell:1585,   buy:2090,    lot:17, pct:-24.2, gross:-858500,  net:-870564},
+  {date:'2026/05/12',code:'FORE',sell:970,    buy:1115,    lot:35, pct:-13.0, gross:-507500,  net:-521840},
+  {date:'2026/06/22',code:'BDMN',sell:4080,   buy:4010,    lot:5,  pct:1.7,   gross:35000,    net:26893  },
+  {date:'2026/07/01',code:'SIMP',sell:530,    buy:825.5,   lot:54, pct:-35.8, gross:-1596000, net:-1609842},
+  // ── P2: 2025/10 – 2026/01 ─────────────────────────────
+  {date:'2025/10/29',code:'KRAS',sell:328,    buy:350,     lot:30, pct:-6.3,  gross:-66000,   net:-70035 },
+  {date:'2025/11/03',code:'ADMR',sell:1365,   buy:1410,    lot:8,  pct:-3.2,  gross:-36000,   net:-40422 },
+  {date:'2025/11/03',code:'BEEF',sell:484,    buy:706.2,   lot:20, pct:-31.5, gross:-444500,  net:-449038},
+  {date:'2025/11/03',code:'NCKL',sell:1195,   buy:1190,    lot:10, pct:0.4,   gross:5000,     net:228    },
+  {date:'2025/11/04',code:'DATA',sell:5250,   buy:5700,    lot:3,  pct:-7.9,  gross:-135000,  net:-141502},
+  {date:'2025/11/05',code:'MBMA',sell:610,    buy:620,     lot:16, pct:-1.6,  gross:-16000,   net:-19928 },
+  {date:'2025/11/06',code:'CYBR',sell:1295,   buy:1310,    lot:10, pct:-1.1,  gross:-15000,   net:-20202 },
+  {date:'2025/11/07',code:'DSNG',sell:1770,   buy:1920,    lot:6,  pct:-7.8,  gross:-90000,   net:-94383 },
+  {date:'2025/11/11',code:'BUVA',sell:925,    buy:900,     lot:15, pct:2.8,   gross:37500,    net:32007  },
+  {date:'2025/11/11',code:'HMSP',sell:845,    buy:865,     lot:17, pct:-2.3,  gross:-34000,   net:-39795 },
+  {date:'2025/11/11',code:'INET',sell:456,    buy:301.3,   lot:22, pct:51.3,  gross:340333,   net:336832 },
+  {date:'2025/11/11',code:'WIIM',sell:1390,   buy:1375,    lot:9,  pct:1.1,   gross:13500,    net:8517   },
+  {date:'2025/11/13',code:'DEWA',sell:426,    buy:340,     lot:10, pct:25.3,  gross:86000,    net:84425  },
+  {date:'2025/11/13',code:'MBMA',sell:660,    buy:675,     lot:22, pct:-2.2,  gross:-33000,   net:-38857 },
+  {date:'2025/11/13',code:'SCMA',sell:358,    buy:388,     lot:23, pct:-7.7,  gross:-69000,   net:-72396 },
+  {date:'2025/11/14',code:'BUMI',sell:222,    buy:192,     lot:78, pct:15.6,  gross:234000,   net:227426 },
+  {date:'2025/11/14',code:'ENRG',sell:905,    buy:925,     lot:16, pct:-2.2,  gross:-32000,   net:-37840 },
+  {date:'2025/11/14',code:'INET',sell:520,    buy:301.3,   lot:44, pct:72.6,  gross:962267,   net:954559 },
+  {date:'2025/11/14',code:'PTRO',sell:9100,   buy:7800,    lot:2,  pct:16.7,  gross:260000,   net:253110 },
+  {date:'2025/11/14',code:'RATU',sell:10125,  buy:8475,    lot:3,  pct:19.5,  gross:495000,   net:483594 },
+  {date:'2025/11/17',code:'ARCI',sell:1225,   buy:1302.2,  lot:9,  pct:-5.9,  gross:-69499,   net:-74011 },
+  {date:'2025/11/17',code:'BRPT',sell:3800,   buy:3830,    lot:3,  pct:-0.8,  gross:-9000,    net:-13573 },
+  {date:'2025/11/17',code:'DEWA',sell:410,    buy:340,     lot:25, pct:20.6,  gross:175000,   net:171163 },
+  {date:'2025/11/17',code:'KRAS',sell:422,    buy:378,     lot:22, pct:11.6,  gross:96600,    net:93033  },
+  {date:'2025/11/24',code:'STAA',sell:1390,   buy:1530,    lot:6,  pct:-9.2,  gross:-84000,   net:-87462 },
+  {date:'2025/11/26',code:'BRMS',sell:965,    buy:995,     lot:10, pct:-3.0,  gross:-30000,   net:-33904 },
+  {date:'2025/11/27',code:'RAJA',sell:6925,   buy:5150,    lot:1,  pct:34.5,  gross:177500,   net:174998 },
+  {date:'2025/12/01',code:'ENRG',sell:1205,   buy:985,     lot:3,  pct:22.3,  gross:66000,    net:64654  },
+  {date:'2025/12/01',code:'FILM',sell:8725,   buy:7662.5,  lot:1,  pct:13.9,  gross:106250,   net:102921 },
+  {date:'2025/12/02',code:'GTSI',sell:190,    buy:136,     lot:15, pct:39.7,  gross:81000,    net:79982  },
+  {date:'2025/12/03',code:'CYBR',sell:1420,   buy:1395,    lot:7,  pct:1.8,   gross:17500,    net:13551  },
+  {date:'2025/12/04',code:'KEEN',sell:1105,   buy:1151.6,  lot:12, pct:-4.0,  gross:-55999,   net:-61386 },
+  {date:'2025/12/05',code:'DEWA',sell:420,    buy:466,     lot:60, pct:-9.9,  gross:-276000,  net:-286494},
+  {date:'2025/12/09',code:'CUAN',sell:2570,   buy:2300,    lot:4,  pct:11.7,  gross:108000,   net:104050 },
+  {date:'2025/12/09',code:'RATU',sell:11300,  buy:10000,   lot:1,  pct:13.0,  gross:130000,   net:125675 },
+  {date:'2025/12/09',code:'UNVR',sell:2610,   buy:2625,    lot:6,  pct:-0.6,  gross:-9000,    net:-15277 },
+  {date:'2025/12/10',code:'HRTA',sell:1485,   buy:1513.8,  lot:13, pct:-1.9,  gross:-37500,   net:-45275 },
+  {date:'2025/12/10',code:'KRAS',sell:393.5,  buy:402,     lot:40, pct:-2.1,  gross:-33800,   net:-40144 },
+  {date:'2025/12/10',code:'PTRO',sell:10200,  buy:9725,    lot:2,  pct:4.9,   gross:95000,    net:86983  },
+  {date:'2025/12/17',code:'RSCH',sell:472,    buy:484,     lot:15, pct:-2.5,  gross:-18000,   net:-20859 },
+  {date:'2025/12/18',code:'CSIS',sell:500,    buy:428,     lot:26, pct:16.8,  gross:187200,   net:182281 },
+  {date:'2025/12/18',code:'EMTK',sell:1330,   buy:1400,    lot:8,  pct:-5.0,  gross:-56000,   net:-60340 },
+  {date:'2025/12/19',code:'DEWA',sell:520,    buy:565,     lot:12, pct:-8.0,  gross:-54000,   net:-56577 },
+  {date:'2025/12/19',code:'FILM',sell:7250,   buy:7662.5,  lot:1,  pct:-5.4,  gross:-41250,   net:-44211 },
+  {date:'2025/12/19',code:'JPFA',sell:2600,   buy:2760,    lot:8,  pct:-5.8,  gross:-128000,  net:-136512},
+  {date:'2025/12/23',code:'HATM',sell:398,    buy:402,     lot:60, pct:-1.0,  gross:-24000,   net:-33588 },
+  {date:'2025/12/24',code:'BRMS',sell:1095,   buy:1081.6,  lot:19, pct:1.2,   gross:25333,    net:17051  },
+  {date:'2025/12/29',code:'ASSA',sell:1140,   buy:1145,    lot:24, pct:-0.4,  gross:-12000,   net:-22962 },
+  {date:'2025/12/30',code:'BULL',sell:444,    buy:342,     lot:10, pct:29.8,  gross:102000,   net:100377 },
+  {date:'2026/01/02',code:'POLA',sell:52,     buy:57,      lot:100,pct:-8.8,  gross:-50000,   net:-52155 },
+  {date:'2026/01/05',code:'BULL',sell:530,    buy:342,     lot:10, pct:55.0,  gross:188000,   net:186162 },
+  {date:'2026/01/05',code:'GTSI',sell:392.6,  buy:261,     lot:150,pct:50.4,  gross:1973795,  net:1953195},
+  {date:'2026/01/05',code:'IATA',sell:191,    buy:133.7,   lot:50, pct:42.9,  gross:286400,   net:283011 },
+  {date:'2026/01/07',code:'DEWA',sell:835,    buy:675,     lot:29, pct:23.7,  gross:464000,   net:455011 },
+  {date:'2026/01/07',code:'GTSI',sell:398,    buy:261,     lot:55, pct:52.5,  gross:753058,   net:745433 },
+  {date:'2026/01/07',code:'JPFA',sell:2660,   buy:2850,    lot:7,  pct:-6.7,  gross:-133000,  net:-140647},
+  {date:'2026/01/07',code:'KETR',sell:1085,   buy:1170,    lot:16, pct:-7.3,  gross:-136000,  net:-143148},
+  {date:'2026/01/07',code:'LPPF',sell:1770,   buy:1770,    lot:20, pct:0.0,   gross:0,        net:-14160 },
+  {date:'2026/01/08',code:'AMRT',sell:1985,   buy:2000,    lot:15, pct:-0.8,  gross:-22500,   net:-34443 },
+  {date:'2026/01/08',code:'IMPC',sell:3850,   buy:3370,    lot:5,  pct:14.2,  gross:240000,   net:232661 },
+  {date:'2026/01/08',code:'MBMA',sell:635,    buy:710,     lot:42, pct:-10.6, gross:-315000,  net:-326140},
+  {date:'2026/01/09',code:'HRUM',sell:1135,   buy:1210,    lot:8,  pct:-6.2,  gross:-60000,   net:-63722 },
+  {date:'2026/01/09',code:'INKP',sell:9758.3, buy:9725,    lot:3,  pct:0.3,   gross:10000,    net:-1693  },
+  {date:'2026/01/09',code:'TKIM',sell:8000,   buy:7925,    lot:3,  pct:0.9,   gross:22500,    net:12935  },
+  {date:'2026/01/12',code:'ASSA',sell:1200,   buy:1275,    lot:38, pct:-5.9,  gross:-285000,  net:-303667},
+  {date:'2026/01/12',code:'BRMS',sell:1190,   buy:1230,    lot:14, pct:-3.3,  gross:-56000,   net:-62748 },
+  {date:'2026/01/12',code:'BUMI',sell:418,    buy:303.5,   lot:54, pct:37.7,  gross:618300,   net:610200 },
 ];
 
 let glChart = null;
+let glPeriod = 0; // 0=semua, 1=P1 (2026/02+), 2=P2 (sebelum 2026/02)
+
+function setGLPeriod(p, btn) {
+  glPeriod = p;
+  document.querySelectorAll('#gl-period-bar button').forEach(b => {
+    b.style.background = 'transparent';
+    b.style.color = 'var(--accent)';
+  });
+  btn.style.background = 'var(--accent)';
+  btn.style.color = '#000';
+  renderGainLoss();
+}
+
+function _glFilter(r) {
+  if (glPeriod === 1) return r.date >= '2026/02/01';
+  if (glPeriod === 2) return r.date <  '2026/02/01';
+  return true;
+}
 
 function renderGainLoss() {
-  const d = GL_DATA;
-  const totalGross = -5653999;
-  const totalNet   = -6656995;
-  const wins  = d.filter(r => r.gross > 0).length;
-  const losses= d.filter(r => r.gross < 0).length;
-  const even  = d.filter(r => r.gross === 0).length;
-  const winRate = (wins / d.length * 100).toFixed(1);
+  const P1_GROSS = -5653999,  P1_NET = -6656995;
+  const P2_GROSS =  10507373, P2_NET =  8950587;
+  const totalGross = glPeriod===1 ? P1_GROSS : glPeriod===2 ? P2_GROSS : P1_GROSS+P2_GROSS;
+  const totalNet   = glPeriod===1 ? P1_NET   : glPeriod===2 ? P2_NET   : P1_NET+P2_NET;
+
+  const d = GL_DATA.filter(_glFilter);
+  const wins   = d.filter(r => r.gross > 0).length;
+  const losses = d.filter(r => r.gross < 0).length;
+  const even   = d.filter(r => r.gross === 0).length;
+  const winRate  = (wins / d.length * 100).toFixed(1);
   const bestNet  = d.reduce((b,r) => r.net > b.net ? r : b, d[0]);
   const worstNet = d.reduce((b,r) => r.net < b.net ? r : b, d[0]);
-  const avgPct = d.reduce((s,r) => s + r.pct, 0) / d.length;
+  const avgPct   = d.reduce((s,r) => s + r.pct, 0) / d.length;
+
+  const periodLabel = glPeriod===1 ? '· 2026/02/01 – 2026/07/13'
+                    : glPeriod===2 ? '· 2025/08/03 – 2026/02/03'
+                    : '· 2025/08 – 2026/07';
+  const titleEl = document.getElementById('gl-chart-title');
+  if (titleEl) titleEl.textContent = 'Net P&L per Saham (Rp) ' + periodLabel;
+
+  const note = glPeriod===2
+    ? '⚠ Data P2 belum lengkap — tersedia Nov 2025–Jan 2026 saja (sebagian Okt 2025–Agt 2025 belum diinput)'
+    : glPeriod===0
+    ? '⚠ Catatan: data P2 baru mencakup Nov 2025–Jan 2026; total resmi Neo HOTS tetap ditampilkan'
+    : '';
+  const noteEl = document.getElementById('gl-period-note');
+  if (noteEl) noteEl.textContent = note;
+
+  const gc = totalGross >= 0 ? 'g' : 'r';
+  const nc = totalNet   >= 0 ? 'g' : 'r';
+  const gs = (totalGross >= 0 ? '+' : '') + idrRaw(totalGross);
+  const ns = (totalNet   >= 0 ? '+' : '') + idrRaw(totalNet);
 
   document.getElementById('gl-stats').innerHTML = `
-    <div class="sb"><div class="sb-l">Total Gross</div><div class="sb-v r">${idrRaw(totalGross)}</div></div>
-    <div class="sb"><div class="sb-l">Total Net</div><div class="sb-v r">${idrRaw(totalNet)}</div></div>
-    <div class="sb"><div class="sb-l">Jumlah Transaksi</div><div class="sb-v">${d.length}</div></div>
+    <div class="sb"><div class="sb-l">Total Gross</div><div class="sb-v ${gc}">${gs}</div></div>
+    <div class="sb"><div class="sb-l">Total Net</div><div class="sb-v ${nc}">${ns}</div></div>
+    <div class="sb"><div class="sb-l">Transaksi (data)</div><div class="sb-v">${d.length}</div></div>
     <div class="sb"><div class="sb-l">Win / Loss / BE</div><div class="sb-v"><span class="g">${wins}</span> / <span class="r">${losses}</span> / <span class="m">${even}</span></div></div>
     <div class="sb"><div class="sb-l">Win Rate</div><div class="sb-v ${parseFloat(winRate)>=50?'g':'r'}">${winRate}%</div></div>
     <div class="sb"><div class="sb-l">Avg %</div><div class="sb-v ${avgPct>=0?'g':'r'}">${avgPct>=0?'+':''}${avgPct.toFixed(2)}%</div></div>
@@ -1531,7 +1654,6 @@ function renderGainLoss() {
     <div class="sb"><div class="sb-l">Worst Trade</div><div class="sb-v r" style="font-size:13px">${worstNet.code} <span style="font-size:11px">${idrRaw(worstNet.net)}</span></div></div>
   `;
 
-  // Aggregate net per code, sort by net
   const byCode = {};
   d.forEach(r => { byCode[r.code] = (byCode[r.code]||0) + r.net; });
   const codes = Object.keys(byCode).sort((a,b) => byCode[b] - byCode[a]);
@@ -1565,7 +1687,7 @@ function renderGainLoss() {
 function filterGL() {
   const q = (document.getElementById('gl-filter')?.value||'').toUpperCase();
   const sort = document.getElementById('gl-sort')?.value || 'date-desc';
-  let rows = GL_DATA.filter(r => !q || r.code.includes(q));
+  let rows = GL_DATA.filter(r => _glFilter(r) && (!q || r.code.includes(q)));
   if (sort==='date-asc')  rows.sort((a,b)=>a.date.localeCompare(b.date));
   if (sort==='date-desc') rows.sort((a,b)=>b.date.localeCompare(a.date));
   if (sort==='net-asc')   rows.sort((a,b)=>a.net-b.net);
@@ -1583,7 +1705,8 @@ function filterGL() {
       <td class="${r.gross>0?'g':r.gross<0?'r':'m'}">${r.gross>=0?(r.gross>0?'+'+idrRaw(r.gross):'0'):idrRaw(r.gross)}</td>
       <td class="${r.net>0?'g':r.net<0?'r':'m'}" style="font-weight:700">${r.net>=0?(r.net>0?'+'+idrRaw(r.net):'0'):idrRaw(r.net)}</td>
     </tr>`).join('');
-  document.getElementById('gl-count').textContent = `Menampilkan ${rows.length} dari ${GL_DATA.length} transaksi`;
+  const total = GL_DATA.filter(_glFilter).length;
+  document.getElementById('gl-count').textContent = `Menampilkan ${rows.length} dari ${total} transaksi (data tersedia)`;
 }
 
 // ── INIT ───────────────────────────────────────────────
