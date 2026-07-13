@@ -366,7 +366,7 @@ select.fi option{background:var(--card)}
 <div id="tab-preturn" class="panel">
   <div class="sg" id="pr-stats"></div>
   <div class="card">
-    <div class="card-title">Yield Bulanan (%) · 2020/01 – 2026/07</div>
+    <div class="card-title">Yield Bulanan (%) · 2018/08 – 2026/07</div>
     <canvas id="pr-chart" height="160"></canvas>
   </div>
   <div class="card">
@@ -1200,6 +1200,23 @@ function drawModalChart({ valid, fmtT, meta, sym }) {
 
 // ── P.RETURN ───────────────────────────────────────────
 const PRETURN_DATA = [
+  { month:'2018/08', endVal:3267978,   deposit:3190000,   withdraw:0,         change:0,          gainLoss:0,         yield:0.00  },
+  { month:'2018/09', endVal:2865622,   deposit:0,         withdraw:0,         change:-402356,    gainLoss:-402356,   yield:-12.31},
+  { month:'2018/10', endVal:2830591,   deposit:500000,    withdraw:350000,    change:-35031,     gainLoss:-185031,   yield:-5.50 },
+  { month:'2018/11', endVal:1441087,   deposit:850000,    withdraw:2010000,   change:-1389504,   gainLoss:-229504,   yield:-6.24 },
+  { month:'2018/12', endVal:5337705,   deposit:4000000,   withdraw:0,         change:3896618,    gainLoss:-103382,   yield:-1.90 },
+  { month:'2019/01', endVal:17677565,  deposit:13000000,  withdraw:800000,    change:12339860,   gainLoss:139860,    yield:0.76  },
+  { month:'2019/02', endVal:25099618,  deposit:8000000,   withdraw:0,         change:7422053,    gainLoss:-577947,   yield:-2.25 },
+  { month:'2019/03', endVal:35745899,  deposit:11000492,  withdraw:0,         change:10646281,   gainLoss:-354211,   yield:-0.98 },
+  { month:'2019/04', endVal:45311070,  deposit:15003173,  withdraw:5000000,   change:9565171,    gainLoss:-438002,   yield:-0.86 },
+  { month:'2019/05', endVal:44108444,  deposit:15003754,  withdraw:15000751,  change:-1202626,   gainLoss:-1205629,  yield:-2.00 },
+  { month:'2019/06', endVal:22570381,  deposit:11234,     withdraw:20002247,  change:-21538063,  gainLoss:-1547050,  yield:-3.51 },
+  { month:'2019/07', endVal:38069489,  deposit:21305902,  withdraw:4750000,   change:15499108,   gainLoss:-1056794,  yield:-2.41 },
+  { month:'2019/08', endVal:52662335,  deposit:13106486,  withdraw:3243,      change:14592846,   gainLoss:1489603,   yield:2.91  },
+  { month:'2019/09', endVal:48058587,  deposit:663,       withdraw:0,         change:-4603748,   gainLoss:-4604411,  yield:-8.74 },
+  { month:'2019/10', endVal:48798238,  deposit:2000461,   withdraw:0,         change:739651,     gainLoss:-1260810,  yield:-2.52 },
+  { month:'2019/11', endVal:56345041,  deposit:15000416,  withdraw:5000000,   change:7546803,    gainLoss:-2453613,  yield:-3.85 },
+  { month:'2019/12', endVal:84932827,  deposit:22502900,  withdraw:14000000,  change:28587786,   gainLoss:20084886,  yield:25.47 },
   { month:'2020/01', endVal:58520409,  deposit:3006,       withdraw:0,         change:-26412418, gainLoss:-26415424,yield:-31.10},
   { month:'2020/02', endVal:41216443,  deposit:5000000,    withdraw:19996897,  change:-17303966, gainLoss:-2307069, yield:-3.63 },
   { month:'2020/03', endVal:39666492,  deposit:12800000,   withdraw:9996053,   change:-1549951,  gainLoss:-4353898, yield:-8.06 },
