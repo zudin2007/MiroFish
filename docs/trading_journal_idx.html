@@ -4723,6 +4723,7 @@ const GL_DATA = [
 
 let glChart = null;
 let glPeriod = 0; // 0=semua, 1=P1 (2026/02+), 2=P2 (sebelum 2026/02)
+const glCollapsedYears = new Set();
 
 function setGLPeriod(p, btn) {
   glPeriod = p;
@@ -4885,19 +4886,81 @@ function filterGL() {
     }
   }
 
-  document.getElementById('gl-body').innerHTML = rows.map(r => `
-    <tr>
-      <td style="text-align:left;color:var(--muted)">${r.date}</td>
-      <td style="text-align:left"><span class="sym-click" onclick="openStockChart('${r.code}')">${r.code}</span></td>
-      <td>${r.sell.toLocaleString('id-ID')}</td>
-      <td>${r.buy.toLocaleString('id-ID')}</td>
-      <td>${r.lot}</td>
-      <td class="${r.pct>0?'g':r.pct<0?'r':'m'}">${r.pct>0?'+':''}${r.pct.toFixed(1)}%</td>
-      <td class="${r.gross>0?'g':r.gross<0?'r':'m'}">${r.gross>=0?(r.gross>0?'+'+idrRaw(r.gross):'0'):idrRaw(r.gross)}</td>
-      <td class="${r.net>0?'g':r.net<0?'r':'m'}" style="font-weight:700">${r.net>=0?(r.net>0?'+'+idrRaw(r.net):'0'):idrRaw(r.net)}</td>
-    </tr>`).join('');
+  const useYearGroup = sort === 'date-desc' || sort === 'date-asc';
+  let html = '';
+
+  if (useYearGroup && rows.length > 0) {
+    // Group rows by year
+    const groups = [];
+    let curYear = null, curGroup = [];
+    for (const r of rows) {
+      const y = r.date.slice(0, 4);
+      if (y !== curYear) {
+        if (curYear !== null) groups.push({ year: curYear, rows: curGroup });
+        curYear = y; curGroup = [r];
+      } else {
+        curGroup.push(r);
+      }
+    }
+    if (curYear !== null) groups.push({ year: curYear, rows: curGroup });
+
+    for (const g of groups) {
+      const collapsed = glCollapsedYears.has(g.year);
+      const yNet   = g.rows.reduce((s,r) => s + r.net, 0);
+      const yGross = g.rows.reduce((s,r) => s + r.gross, 0);
+      const yWins  = g.rows.filter(r => r.net > 0).length;
+      const yLoss  = g.rows.filter(r => r.net < 0).length;
+      const nc = yNet >= 0 ? '#4caf50' : '#f44336';
+      const gc = yGross >= 0 ? '#4caf50' : '#f44336';
+      const arrow = collapsed ? '▶' : '▼';
+      html += `<tr class="gl-year-hdr" onclick="glToggleYear('${g.year}')" style="cursor:pointer;background:var(--card-alt,var(--bg2));user-select:none">
+        <td colspan="8" style="padding:6px 10px;font-weight:700;font-size:13px;letter-spacing:.5px;border-bottom:2px solid var(--border)">
+          <span style="opacity:.6;margin-right:6px;font-size:11px">${arrow}</span>${g.year}
+          <span style="font-weight:400;font-size:12px;margin-left:12px;color:var(--muted)">${g.rows.length} transaksi &nbsp;
+            <span style="color:#0f0">${yWins}W</span>/<span style="color:#f44">${yLoss}L</span></span>
+          <span style="float:right;font-size:12px">
+            G: <span style="color:${gc}">${yGross>=0?'+':''}${idrRaw(yGross)}</span>
+            &nbsp; N: <strong style="color:${nc}">${yNet>=0?'+':''}${idrRaw(yNet)}</strong>
+          </span>
+        </td></tr>`;
+      if (!collapsed) {
+        for (const r of g.rows) {
+          html += `<tr>
+            <td style="text-align:left;color:var(--muted)">${r.date}</td>
+            <td style="text-align:left"><span class="sym-click" onclick="openStockChart('${r.code}')">${r.code}</span></td>
+            <td>${r.sell.toLocaleString('id-ID')}</td>
+            <td>${r.buy.toLocaleString('id-ID')}</td>
+            <td>${r.lot}</td>
+            <td class="${r.pct>0?'g':r.pct<0?'r':'m'}">${r.pct>0?'+':''}${r.pct.toFixed(1)}%</td>
+            <td class="${r.gross>0?'g':r.gross<0?'r':'m'}">${r.gross>=0?(r.gross>0?'+'+idrRaw(r.gross):'0'):idrRaw(r.gross)}</td>
+            <td class="${r.net>0?'g':r.net<0?'r':'m'}" style="font-weight:700">${r.net>=0?(r.net>0?'+'+idrRaw(r.net):'0'):idrRaw(r.net)}</td>
+          </tr>`;
+        }
+      }
+    }
+  } else {
+    html = rows.map(r => `
+      <tr>
+        <td style="text-align:left;color:var(--muted)">${r.date}</td>
+        <td style="text-align:left"><span class="sym-click" onclick="openStockChart('${r.code}')">${r.code}</span></td>
+        <td>${r.sell.toLocaleString('id-ID')}</td>
+        <td>${r.buy.toLocaleString('id-ID')}</td>
+        <td>${r.lot}</td>
+        <td class="${r.pct>0?'g':r.pct<0?'r':'m'}">${r.pct>0?'+':''}${r.pct.toFixed(1)}%</td>
+        <td class="${r.gross>0?'g':r.gross<0?'r':'m'}">${r.gross>=0?(r.gross>0?'+'+idrRaw(r.gross):'0'):idrRaw(r.gross)}</td>
+        <td class="${r.net>0?'g':r.net<0?'r':'m'}" style="font-weight:700">${r.net>=0?(r.net>0?'+'+idrRaw(r.net):'0'):idrRaw(r.net)}</td>
+      </tr>`).join('');
+  }
+
+  document.getElementById('gl-body').innerHTML = html;
   const total = GL_DATA.filter(_glFilter).length;
   document.getElementById('gl-count').textContent = `Menampilkan ${rows.length} dari ${total} transaksi (data tersedia)`;
+}
+
+function glToggleYear(year) {
+  if (glCollapsedYears.has(year)) glCollapsedYears.delete(year);
+  else glCollapsedYears.add(year);
+  filterGL();
 }
 
 // ── INIT ───────────────────────────────────────────────
