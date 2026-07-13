@@ -400,42 +400,50 @@ select.fi option{background:var(--card)}
     <div class="card-title" id="gl-chart-title">Net P&amp;L per Saham (Rp) · 2018/08 – 2026/07</div>
     <canvas id="gl-chart" height="180"></canvas>
   </div>
-  <div class="card">
-    <div class="card-title">Riwayat Transaksi</div>
-    <div id="gl-period-bar" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
-      <button onclick="setGLPeriod(0,this)" style="padding:4px 10px;border-radius:5px;border:1px solid var(--accent);background:var(--accent);color:#000;font-size:12px;font-weight:600;cursor:pointer">Semua</button>
-      <button onclick="setGLPeriod(1,this)" style="padding:4px 10px;border-radius:5px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer">P1 · 2026/02~07</button>
-      <button onclick="setGLPeriod(2,this)" style="padding:4px 10px;border-radius:5px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer">P2 · 2018/08~2026/02</button>
+  <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
+    <!-- ── Aktivitas sidebar ── -->
+    <div class="card" style="flex:0 0 auto;min-width:160px">
+      <div class="card-title" style="font-size:13px">Aktivitas</div>
+      <div id="gl-activity" style="display:flex;flex-direction:column;gap:12px;font-size:13px"></div>
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
-      <input type="text" class="fi" id="gl-filter" placeholder="Filter kode saham…" style="max-width:200px" oninput="filterGL()">
-      <select class="fi" id="gl-sort" onchange="filterGL()" style="max-width:180px">
-        <option value="date-desc">Terbaru dulu</option>
-        <option value="date-asc">Terlama dulu</option>
-        <option value="net-asc">Net: Terbesar rugi</option>
-        <option value="net-desc">Net: Terbesar untung</option>
-        <option value="pct-asc">%: Terbesar rugi</option>
-        <option value="pct-desc">%: Terbesar untung</option>
-      </select>
+    <!-- ── Riwayat Transaksi ── -->
+    <div class="card" style="flex:1;min-width:0">
+      <div class="card-title">Riwayat Transaksi</div>
+      <div id="gl-period-bar" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+        <button onclick="setGLPeriod(0,this)" style="padding:4px 10px;border-radius:5px;border:1px solid var(--accent);background:var(--accent);color:#000;font-size:12px;font-weight:600;cursor:pointer">Semua</button>
+        <button onclick="setGLPeriod(1,this)" style="padding:4px 10px;border-radius:5px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer">P1 · 2026/02~07</button>
+        <button onclick="setGLPeriod(2,this)" style="padding:4px 10px;border-radius:5px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer">P2 · 2018/08~2026/02</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
+        <input type="text" class="fi" id="gl-filter" placeholder="Filter kode saham…" style="max-width:200px" oninput="filterGL()">
+        <select class="fi" id="gl-sort" onchange="filterGL()" style="max-width:180px">
+          <option value="date-desc">Terbaru dulu</option>
+          <option value="date-asc">Terlama dulu</option>
+          <option value="net-asc">Net: Terbesar rugi</option>
+          <option value="net-desc">Net: Terbesar untung</option>
+          <option value="pct-asc">%: Terbesar rugi</option>
+          <option value="pct-desc">%: Terbesar untung</option>
+        </select>
+      </div>
+      <div id="gl-code-summary" style="display:none;background:var(--card);border:1px solid var(--accent);border-radius:8px;padding:10px 14px;margin-bottom:10px"></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th style="text-align:left">Tanggal</th>
+            <th style="text-align:left">Kode</th>
+            <th>Avg Sell</th>
+            <th>Avg Buy</th>
+            <th>Lot</th>
+            <th>%</th>
+            <th>Gross</th>
+            <th>Net</th>
+          </tr></thead>
+          <tbody id="gl-body"></tbody>
+        </table>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px" id="gl-count"></div>
+      <div style="font-size:11px;color:#ff9500;margin-top:4px" id="gl-period-note"></div>
     </div>
-    <div id="gl-code-summary" style="display:none;background:var(--card);border:1px solid var(--accent);border-radius:8px;padding:10px 14px;margin-bottom:10px;display:none"></div>
-    <div class="tbl-wrap">
-      <table>
-        <thead><tr>
-          <th style="text-align:left">Tanggal</th>
-          <th style="text-align:left">Kode</th>
-          <th>Avg Sell</th>
-          <th>Avg Buy</th>
-          <th>Lot</th>
-          <th>%</th>
-          <th>Gross</th>
-          <th>Net</th>
-        </tr></thead>
-        <tbody id="gl-body"></tbody>
-      </table>
-    </div>
-    <div style="font-size:11px;color:var(--muted);margin-top:8px" id="gl-count"></div>
-    <div style="font-size:11px;color:#ff9500;margin-top:4px" id="gl-period-note"></div>
   </div>
 </div>
 
@@ -4790,10 +4798,6 @@ function renderGainLoss() {
     <div class="sb"><div class="sb-l">Total Fee</div><div class="sb-v" style="color:#ff9500">${idrRaw(dataFee)}</div></div>
     ${officialRow}
     <div class="sb"><div class="sb-l">Transaksi (data)</div><div class="sb-v">${d.length}</div></div>
-    <div class="sb"><div class="sb-l">Hari aktif trading</div><div class="sb-v">${uniqueDays} hari · ${uniqueMonths} bln · ${uniqueYears} thn</div></div>
-    <div class="sb"><div class="sb-l">Rata2 / Hari aktif</div><div class="sb-v">${avgPerDay} transaksi</div></div>
-    <div class="sb"><div class="sb-l">Rata2 / Bulan</div><div class="sb-v">${avgPerMonth} transaksi</div></div>
-    <div class="sb"><div class="sb-l">Rata2 / Tahun</div><div class="sb-v">${avgPerYear} transaksi</div></div>
     <div class="sb"><div class="sb-l">Win / Loss / BE</div><div class="sb-v"><span class="g">${wins}</span> / <span class="r">${losses}</span> / <span class="m">${even}</span></div></div>
     <div class="sb"><div class="sb-l">Win Rate</div><div class="sb-v ${parseFloat(winRate)>=50?'g':'r'}">${winRate}%</div></div>
     <div class="sb"><div class="sb-l">Avg %</div><div class="sb-v ${avgPct>=0?'g':'r'}">${avgPct>=0?'+':''}${avgPct.toFixed(2)}%</div></div>
@@ -4827,6 +4831,20 @@ function renderGainLoss() {
       }
     }
   });
+
+  // ── Aktivitas sidebar ──
+  const actEl = document.getElementById('gl-activity');
+  if (actEl) {
+    const fmtN = n => `<strong style="font-size:15px">${n}</strong>`;
+    const lbl  = s => `<div style="color:var(--muted);font-size:11px;margin-top:2px">${s}</div>`;
+    actEl.innerHTML = `
+      <div>${fmtN(uniqueDays)}${lbl('hari aktif')}</div>
+      <div>${fmtN(uniqueMonths)}${lbl('bulan')}</div>
+      <div>${fmtN(uniqueYears)}${lbl('tahun')}</div>
+      <div style="border-top:1px solid var(--border);padding-top:10px">${fmtN(avgPerDay)}${lbl('transaksi/hari')}</div>
+      <div>${fmtN(avgPerMonth)}${lbl('transaksi/bulan')}</div>
+      <div>${fmtN(avgPerYear)}${lbl('transaksi/tahun')}</div>`;
+  }
 
   filterGL();
 }
