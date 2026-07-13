@@ -27,11 +27,11 @@ body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,
 .panel{display:none}.panel.on{display:block}
 .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
 .card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:12px}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:stretch}
-.chip{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;min-width:120px}
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.chip{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px}
 .chip-l{font-size:11px;color:var(--muted);margin-bottom:3px}
 .chip-v{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
-.chip-spacer{flex:1;display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.chip-spacer{grid-column:1/-1;display:flex;align-items:center;justify-content:flex-end;gap:8px}
 .warn{background:rgba(255,77,77,.07);border:1px solid rgba(255,77,77,.25);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub)}
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -84,7 +84,7 @@ select.fi option{background:var(--card)}
 .preview-bar{font-size:12px;color:var(--muted);margin-bottom:10px;min-height:18px}
 @media(max-width:600px){
   .fg-grid{grid-template-columns:1fr 1fr}
-  .chips{flex-direction:column}
+
   .chart-grid{grid-template-columns:1fr}
   .tab{padding:10px 13px;font-size:12px}
 }
@@ -181,6 +181,7 @@ select.fi option{background:var(--card)}
     <div class="chip"><div class="chip-l">Unrealized P&amp;L</div><div class="chip-v" id="c-pnl">—</div></div>
     <div class="chip"><div class="chip-l">Realized P&amp;L</div><div class="chip-v" id="c-rpnl">—</div></div>
     <div class="chip"><div class="chip-l">Equity</div><div class="chip-v" id="c-equity">—</div></div>
+    <div class="chip"><div class="chip-l">Cash Balance</div><div class="chip-v" id="c-cash">—</div></div>
     <div class="chip-spacer">
       <button class="btn btn-o" id="btn-upd" onclick="fetchAll()">↻ Update Harga</button>
     </div>
@@ -530,6 +531,9 @@ function renderPorto() {
   const ce = document.getElementById('c-equity');
   ce.textContent = idr(equity);
   ce.className = 'chip-v ' + (equity>=0?'g':'r');
+  const cc = document.getElementById('c-cash');
+  cc.textContent = (cash>=0?'':'−') + idr(Math.abs(cash));
+  cc.className = 'chip-v ' + (cash>=0?'g':'r');
   const cd = document.getElementById('cash-display');
   cd.textContent = (cash<0?'−Rp ':'Rp ') + idrRaw(Math.abs(cash));
   cd.style.color = cash < 0 ? 'var(--red)' : 'var(--green)';
