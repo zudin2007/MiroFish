@@ -139,6 +139,7 @@ select.fi option{background:var(--card)}
   <button class="tab" onclick="showTab('analitik',this)">Analitik</button>
   <button class="tab" onclick="showTab('mm',this)">Money Mgmt</button>
   <button class="tab" onclick="showTab('akun',this)">Akun</button>
+  <button class="tab" onclick="showTab('preturn',this)">P.Return</button>
 </div>
 
 <div class="content">
@@ -360,6 +361,36 @@ select.fi option{background:var(--card)}
   </div>
 </div>
 
+<!-- ══════════════ P.RETURN ══════════════ -->
+<div id="tab-preturn" class="panel">
+  <div class="sg" id="pr-stats"></div>
+  <div class="card">
+    <div class="card-title">Yield Bulanan (%) · 2025/01 – 2026/07</div>
+    <canvas id="pr-chart" height="160"></canvas>
+  </div>
+  <div class="card">
+    <div class="card-title">Kumulatif Gain/Loss (Rp)</div>
+    <canvas id="pr-cumul" height="130"></canvas>
+  </div>
+  <div class="card">
+    <div class="card-title">Riwayat P.Return Bulanan (Neo HOTS · 108220)</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th style="text-align:left">Bulan</th>
+          <th>Nilai Aset</th>
+          <th>Deposit</th>
+          <th>Penarikan</th>
+          <th>Perubahan</th>
+          <th>Gain/Loss</th>
+          <th>Yield%</th>
+        </tr></thead>
+        <tbody id="pr-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 </div><!-- /content -->
 
 <div class="toast" id="toast"></div>
@@ -456,6 +487,7 @@ function showTab(name, btn) {
   if (name === 'mm')       { try { calcMM(); updateDailyGauge(); } catch(e){} }
   if (name === 'jurnal')   try { renderJournal(); } catch(e){}
   if (name === 'akun')     try { renderAccount(); } catch(e){}
+  if (name === 'preturn')  setTimeout(() => { try { renderPReturn(); } catch(e){} }, 60);
 }
 
 // ── PORTO ──────────────────────────────────────────────
@@ -1073,6 +1105,115 @@ async function fetchStockChart(sym, range, interval) {
     } catch(e) {}
   }
   status.textContent = 'Gagal mengambil data. Cek koneksi atau coba lagi.';
+}
+
+// ── P.RETURN ───────────────────────────────────────────
+const PRETURN_DATA = [
+  { month:'2025/01', endVal:856598,   deposit:945000,    withdraw:6300000,  change:-5032044,  gainLoss:322956,   yield:4.73  },
+  { month:'2025/02', endVal:8054827,  deposit:8800000,   withdraw:790209,   change:7198229,   gainLoss:-811562,  yield:-8.40 },
+  { month:'2025/03', endVal:11436679, deposit:9351300,   withdraw:4500000,  change:3381852,   gainLoss:-1469448, yield:-8.44 },
+  { month:'2025/04', endVal:11519441, deposit:9000000,   withdraw:9500000,  change:82762,     gainLoss:582762,   yield:2.85  },
+  { month:'2025/05', endVal:199108,   deposit:11150000,  withdraw:24300000, change:-11320333, gainLoss:1829667,  yield:8.07  },
+  { month:'2025/06', endVal:6190100,  deposit:22409700,  withdraw:16400000, change:5990992,   gainLoss:-18708,   yield:-0.08 },
+  { month:'2025/07', endVal:8574225,  deposit:15050000,  withdraw:14000000, change:2384125,   gainLoss:1334125,  yield:6.28  },
+  { month:'2025/08', endVal:14624594, deposit:15105000,  withdraw:11400000, change:6050369,   gainLoss:2345369,  yield:9.90  },
+  { month:'2025/09', endVal:19110131, deposit:11750000,  withdraw:7800000,  change:4485537,   gainLoss:535537,   yield:2.03  },
+  { month:'2025/10', endVal:7283077,  deposit:6675000,   withdraw:17700000, change:-11827054, gainLoss:-802054,  yield:-3.11 },
+  { month:'2025/11', endVal:13364969, deposit:12780000,  withdraw:9338297,  change:6081892,   gainLoss:2640189,  yield:13.16 },
+  { month:'2025/12', endVal:35399670, deposit:18765000,  withdraw:0,        change:22034701,  gainLoss:3269701,  yield:10.18 },
+  { month:'2026/01', endVal:28869703, deposit:11693000,  withdraw:19000000, change:-6529967,  gainLoss:777033,   yield:1.65  },
+  { month:'2026/02', endVal:45547660, deposit:23420140,  withdraw:7000000,  change:16677957,  gainLoss:257817,   yield:0.49  },
+  { month:'2026/03', endVal:30651514, deposit:17255132,  withdraw:29000000, change:-14896146, gainLoss:-3151278, yield:-5.02 },
+  { month:'2026/04', endVal:25298330, deposit:2200200,   withdraw:6860000,  change:-5353184,  gainLoss:-693384,  yield:-2.11 },
+  { month:'2026/05', endVal:3012103,  deposit:0,         withdraw:18750000, change:-22286227, gainLoss:-3536227, yield:-13.98},
+  { month:'2026/06', endVal:2856534,  deposit:0,         withdraw:0,        change:-155569,   gainLoss:-155569,  yield:-5.16 },
+  { month:'2026/07', endVal:666808,   deposit:500000,    withdraw:2700000,  change:-2189726,  gainLoss:10274,    yield:0.31  },
+];
+
+let prYieldChart = null, prCumulChart = null;
+
+function renderPReturn() {
+  const d = PRETURN_DATA;
+  const totalGain  = d.reduce((s,r) => s + r.gainLoss, 0);
+  const winMonths  = d.filter(r => r.gainLoss > 0).length;
+  const avgYield   = d.reduce((s,r) => s + r.yield, 0) / d.length;
+  const bestIdx    = d.reduce((bi,r,i,a) => r.yield > a[bi].yield ? i : bi, 0);
+  const worstIdx   = d.reduce((wi,r,i,a) => r.yield < a[wi].yield ? i : wi, 0);
+  const maxVal     = Math.max(...d.map(r => r.endVal));
+  const maxMonth   = d[d.map(r => r.endVal).indexOf(maxVal)].month;
+
+  document.getElementById('pr-stats').innerHTML = `
+    <div class="sb"><div class="sb-l">Kumulatif Gain</div><div class="sb-v ${totalGain>=0?'g':'r'}">${totalGain>=0?'+':''}${idrRaw(totalGain)}</div></div>
+    <div class="sb"><div class="sb-l">Bulan Profit</div><div class="sb-v g">${winMonths} / ${d.length}</div></div>
+    <div class="sb"><div class="sb-l">Avg Yield/Bln</div><div class="sb-v ${avgYield>=0?'g':'r'}">${avgYield>=0?'+':''}${avgYield.toFixed(2)}%</div></div>
+    <div class="sb"><div class="sb-l">Best Month</div><div class="sb-v g">${d[bestIdx].month} <span style="font-size:11px">+${d[bestIdx].yield.toFixed(2)}%</span></div></div>
+    <div class="sb"><div class="sb-l">Worst Month</div><div class="sb-v r">${d[worstIdx].month} <span style="font-size:11px">${d[worstIdx].yield.toFixed(2)}%</span></div></div>
+    <div class="sb"><div class="sb-l">Peak Aset</div><div class="sb-v">${idrRaw(maxVal)} <span style="font-size:11px;color:var(--muted)">${maxMonth}</span></div></div>
+  `;
+
+  // Bar chart – monthly yield%
+  if (prYieldChart) prYieldChart.destroy();
+  prYieldChart = new Chart(document.getElementById('pr-chart'), {
+    type: 'bar',
+    data: {
+      labels: d.map(r => r.month),
+      datasets: [{
+        label: 'Yield%',
+        data: d.map(r => r.yield),
+        backgroundColor: d.map(r => r.yield >= 0 ? 'rgba(0,200,83,.75)' : 'rgba(255,77,77,.75)'),
+        borderRadius: 3,
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' ' + ctx.parsed.y.toFixed(2) + '%' } } },
+      scales: {
+        x: { ticks: { color: '#6868a8', maxRotation: 45, font: { size: 10 } } },
+        y: { ticks: { color: '#6868a8', callback: v => v + '%' },
+             grid: { color: '#2d2d50' } }
+      }
+    }
+  });
+
+  // Line chart – cumulative gain/loss
+  let cumul = 0;
+  const cumulData = d.map(r => { cumul += r.gainLoss; return cumul; });
+  if (prCumulChart) prCumulChart.destroy();
+  prCumulChart = new Chart(document.getElementById('pr-cumul'), {
+    type: 'line',
+    data: {
+      labels: d.map(r => r.month),
+      datasets: [{
+        label: 'Kumulatif Gain/Loss',
+        data: cumulData,
+        borderColor: '#ff7a00',
+        backgroundColor: 'rgba(255,122,0,.1)',
+        fill: true, tension: 0.3, pointRadius: 3, borderWidth: 2,
+        pointBackgroundColor: cumulData.map(v => v >= 0 ? '#00c853' : '#ff4d4d'),
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' ' + (ctx.parsed.y >= 0 ? '+' : '') + idrRaw(ctx.parsed.y) } } },
+      scales: {
+        x: { ticks: { color: '#6868a8', maxRotation: 45, font: { size: 10 } } },
+        y: { ticks: { color: '#6868a8', callback: v => idrRaw(v) },
+             grid: { color: '#2d2d50' } }
+      }
+    }
+  });
+
+  // Table – newest first
+  document.getElementById('pr-body').innerHTML = [...d].reverse().map(r => `
+    <tr>
+      <td style="text-align:left;font-weight:700">${r.month}</td>
+      <td>${idrRaw(r.endVal)}</td>
+      <td class="${r.deposit>0?'b':'m'}">${r.deposit > 0 ? '+'+idrRaw(r.deposit) : '—'}</td>
+      <td class="${r.withdraw>0?'r':'m'}">${r.withdraw > 0 ? '−'+idrRaw(r.withdraw) : '—'}</td>
+      <td class="${r.change>=0?'g':'r'}">${r.change>=0?'+':''}${idrRaw(r.change)}</td>
+      <td class="${r.gainLoss>=0?'g':'r'}" style="font-weight:700">${r.gainLoss>=0?'+':''}${idrRaw(r.gainLoss)}</td>
+      <td class="${r.yield>=0?'g':'r'}">${r.yield>=0?'+':''}${r.yield.toFixed(2)}%</td>
+    </tr>`).join('');
 }
 
 // ── INIT ───────────────────────────────────────────────
