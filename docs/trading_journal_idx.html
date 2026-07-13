@@ -217,6 +217,22 @@ select.fi option{background:var(--card)}
       <button class="btn btn-o" id="gt-btn" onclick="fetchGotrade()">↻ Update Harga</button>
     </div>
   </div>
+  <!-- shortlist -->
+  <div class="card" style="margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:6px">
+      <div class="card-title" style="margin:0">Shortlist</div>
+      <div id="gt-sort-row" style="display:flex;gap:4px">
+        <button class="tf-btn on" onclick="setGtSort('value',this)">Nilai</button>
+        <button class="tf-btn" onclick="setGtSort('return',this)">Return</button>
+        <button class="tf-btn" onclick="setGtSort('pct',this)">%Return</button>
+      </div>
+    </div>
+    <div id="gt-shortlist" style="font-size:13px">
+      <div style="text-align:center;color:var(--muted);padding:12px">Klik ↻ Update Harga untuk memuat data</div>
+    </div>
+  </div>
+
+  <!-- detail table -->
   <div class="card">
     <div class="tbl-wrap">
       <table id="gt-table">
@@ -4786,6 +4802,9 @@ const calcFee = r => Math.round(r.lot * 100 * (r.buy * 0.0015 + r.sell * 0.0025)
 let glChart = null;
 let actChart = null;
 let actTF = 'max';
+let gtPrices = {};
+let gtUSDIDR = 16000;
+let gtSort = 'value';
 let glPeriod = 0; // 0=semua, 1=P1 (2026/02+), 2=P2 (sebelum 2026/02)
 const glCollapsedYears = new Set();
 
@@ -5211,46 +5230,101 @@ async function fetchGotrade() {
     ...GT_HOLDINGS.map(h => fetchGtQuote(h.t)),
   ]);
 
-  const usdIDR = usdRes?.price || 16000;
-  const prices = {};
-  GT_HOLDINGS.forEach((h, i) => { if (stockRes[i]) prices[h.t] = stockRes[i]; });
+  gtUSDIDR = usdRes?.price || 16000;
+  GT_HOLDINGS.forEach((h, i) => { if (stockRes[i]) gtPrices[h.t] = stockRes[i]; });
 
-  renderGotrade(prices, usdIDR);
+  renderGotrade();
 
   if (btn) { btn.textContent = '↻ Update Harga'; btn.disabled = false; }
   const tsEl = document.getElementById('gt-ts');
   if (tsEl) tsEl.textContent = 'Update: ' + new Date().toLocaleTimeString('id-ID');
 }
 
-function renderGotrade(prices, usdIDR) {
-  const fP  = v => v >= 0 ? '+' : '';
+function setGtSort(s, btn) {
+  gtSort = s;
+  document.querySelectorAll('#gt-sort-row .tf-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  if (Object.keys(gtPrices).length > 0) renderGotrade();
+}
+
+function renderGotrade() {
+  const fP   = v => v >= 0 ? '+' : '';
   const fPct = v => `${fP(v)}${v.toFixed(2)}%`;
   const fIDR = v => `${fP(v)}${idrRaw(Math.round(Math.abs(v)))}`;
   const sgn  = v => v >= 0 ? 'g' : 'r';
 
+  // Enrich each holding with computed values
+  const enriched = GT_HOLDINGS.map(h => {
+    const q        = gtPrices[h.t];
+    const priceUSD = q?.price ?? null;
+    const prevUSD  = q?.prev  ?? null;
+    const valueIDR = priceUSD !== null ? priceUSD * h.s * gtUSDIDR : null;
+    const pnlIDR   = valueIDR !== null ? valueIDR - h.c : null;
+    const pnlPct   = pnlIDR   !== null ? pnlIDR / h.c * 100 : null;
+    const dailyPct = priceUSD && prevUSD ? (priceUSD - prevUSD) / prevUSD * 100 : null;
+    const dailyIDR = dailyPct !== null && valueIDR !== null ? valueIDR * dailyPct / 100 : null;
+    return { ...h, priceUSD, prevUSD, valueIDR, pnlIDR, pnlPct, dailyPct, dailyIDR };
+  });
+
+  // Sort by chosen metric (null values go last)
+  const sortKey = { value:'valueIDR', return:'pnlIDR', pct:'pnlPct' }[gtSort] || 'valueIDR';
+  const sorted = [...enriched].sort((a, b) => {
+    if (b[sortKey] === null && a[sortKey] === null) return 0;
+    if (b[sortKey] === null) return -1;
+    if (a[sortKey] === null) return 1;
+    return b[sortKey] - a[sortKey];
+  });
+
+  // ── Shortlist ──
+  const slEl = document.getElementById('gt-shortlist');
+  if (slEl) {
+    const metricLabel = { value:'Nilai (IDR)', return:'Total Return (IDR)', pct:'%Return' }[gtSort];
+    const barMax = Math.max(...sorted.map(h => Math.abs(h[sortKey] ?? 0)));
+    slEl.innerHTML = `
+      <div style="display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:0;column-gap:8px">
+        ${sorted.map((h, i) => {
+          const val = h[sortKey];
+          const cls = val !== null ? sgn(val) : '';
+          const barPct = barMax > 0 && val !== null ? Math.abs(val) / barMax * 100 : 0;
+          const barColor = val === null ? 'var(--border)' : val >= 0 ? 'rgba(76,175,80,.35)' : 'rgba(244,67,54,.35)';
+          const fmt = val === null ? '—'
+            : gtSort === 'pct' ? fPct(val)
+            : fIDR(val);
+          return `
+            <span style="font-size:11px;color:var(--muted);text-align:right;padding:5px 0;${i<sorted.length-1?'border-bottom:1px solid rgba(128,128,128,.08)':''}">${i+1}</span>
+            <div style="position:relative;padding:5px 0;${i<sorted.length-1?'border-bottom:1px solid rgba(128,128,128,.08)':''}">
+              <div style="position:absolute;inset:0;background:${barColor};width:${barPct.toFixed(1)}%;border-radius:2px;opacity:.7"></div>
+              <span style="position:relative;font-weight:700;font-size:13px">${h.t}</span>
+              <span style="position:relative;font-size:10px;color:var(--muted);margin-left:5px">${h.priceUSD ? '$'+h.priceUSD.toFixed(2) : ''}</span>
+            </div>
+            <span class="${cls}" style="font-weight:600;font-variant-numeric:tabular-nums;font-size:13px;padding:5px 0;text-align:right;${i<sorted.length-1?'border-bottom:1px solid rgba(128,128,128,.08)':''}">${fmt}</span>
+            <span style="font-size:11px;color:var(--muted);padding:5px 0;${i<sorted.length-1?'border-bottom:1px solid rgba(128,128,128,.08)':''}">
+              ${h.pnlPct !== null && gtSort !== 'pct' ? `<span class="${sgn(h.pnlPct)}">${fPct(h.pnlPct)}</span>` : ''}
+            </span>`;
+        }).join('')}
+      </div>`;
+  }
+
+  // ── Main table ──
   let totalValue = GT_CASH_IDR;
   let totalPnL   = 0;
 
-  const rows = GT_HOLDINGS.map(h => {
-    const q = prices[h.t];
-    const priceUSD  = q?.price ?? null;
-    const prevUSD   = q?.prev  ?? null;
-    const valueIDR  = priceUSD !== null ? priceUSD * h.s * usdIDR : null;
-    const pnlIDR    = valueIDR !== null ? valueIDR - h.c : null;
-    const pnlPct    = pnlIDR   !== null ? pnlIDR / h.c * 100 : null;
-    const dailyPct  = priceUSD !== null && prevUSD ? (priceUSD - prevUSD) / prevUSD * 100 : null;
-    const dailyIDR  = dailyPct !== null && valueIDR !== null ? valueIDR * dailyPct / 100 : null;
-
+  const rows = sorted.map(h => {
+    const { priceUSD, valueIDR, pnlIDR, pnlPct, dailyPct, dailyIDR } = h;
     if (valueIDR !== null) { totalValue += valueIDR; totalPnL += pnlIDR; }
 
     const v1 = valueIDR !== null ? idrRaw(Math.round(valueIDR)) : '—';
-    const v2 = idrRaw(Math.round(h.c));
     const d1 = dailyPct !== null ? fPct(dailyPct) : '—';
     const d2 = dailyIDR !== null ? fIDR(dailyIDR) : '—';
     const t1 = pnlPct   !== null ? fPct(pnlPct)   : '—';
     const t2 = pnlIDR   !== null ? fIDR(pnlIDR)   : '—';
     const dc = dailyPct !== null ? sgn(dailyPct)   : '';
     const tc = pnlPct   !== null ? sgn(pnlPct)     : '';
+
+    // highlight active sort column header
+    const vStyle = `text-align:right;vertical-align:top;padding:8px 6px 4px;font-variant-numeric:tabular-nums${gtSort==='value'?';background:rgba(128,128,255,.04)':''}`;
+    const dStyle = `text-align:right;vertical-align:top;padding:8px 6px 4px;font-variant-numeric:tabular-nums`;
+    const tStyle = `text-align:right;vertical-align:top;padding:8px 6px 4px;font-variant-numeric:tabular-nums${gtSort!=='value'?';background:rgba(128,128,255,.04)':''}`;
 
     let extra = '';
     if (h.at !== null || h.rz !== null) {
@@ -5263,33 +5337,31 @@ function renderGotrade(prices, usdIDR) {
 
     return `<tr style="border-bottom:${extra?'none':'1px solid var(--border)'}">
       <td style="text-align:left;vertical-align:top;padding:8px 6px 4px">
-        <div style="font-weight:700;font-size:14px;letter-spacing:.02em">${h.t}</div>
+        <div style="font-weight:700;font-size:14px">${h.t}</div>
         <div style="font-size:11px;color:var(--muted)">${priceUSD !== null ? '$'+priceUSD.toFixed(2) : '—'}</div>
         <div style="font-size:10px;color:var(--muted)">${h.s} sh @ $${h.a}</div>
       </td>
-      <td style="text-align:right;vertical-align:top;padding:8px 6px 4px;font-variant-numeric:tabular-nums">
+      <td style="${vStyle}">
         <div style="font-weight:600">${v1}</div>
-        <div style="font-size:11px;color:var(--muted)">${v2}</div>
+        <div style="font-size:11px;color:var(--muted)">${idrRaw(Math.round(h.c))}</div>
       </td>
-      <td class="${dc}" style="text-align:right;vertical-align:top;padding:8px 6px 4px;font-variant-numeric:tabular-nums">
+      <td class="${dc}" style="${dStyle}">
         <div style="font-weight:600">${d1}</div>
         <div style="font-size:11px">${d2}</div>
       </td>
-      <td class="${tc}" style="text-align:right;vertical-align:top;padding:8px 6px 4px;font-variant-numeric:tabular-nums">
+      <td class="${tc}" style="${tStyle}">
         <div style="font-weight:600">${t1}</div>
         <div style="font-size:11px">${t2}</div>
       </td>
     </tr>${extra}`;
   }).join('');
 
-  // Cash row
   const cashRow = `<tr style="border-top:2px solid var(--border)">
     <td style="text-align:left;padding:8px 6px;font-weight:700;color:var(--muted)">USD Cash</td>
     <td style="text-align:right;padding:8px 6px;font-variant-numeric:tabular-nums">${idrRaw(Math.round(GT_CASH_IDR))}</td>
     <td colspan="2"></td>
   </tr>`;
 
-  // Total row
   const totalPct = totalPnL / GT_COST_IDR * 100;
   const totRow = `<tr style="background:var(--card2);font-weight:700;border-top:2px solid var(--accent)">
     <td style="text-align:left;padding:10px 6px">Unrealized Total</td>
@@ -5299,7 +5371,6 @@ function renderGotrade(prices, usdIDR) {
 
   document.getElementById('gt-body').innerHTML = rows + cashRow + totRow;
 
-  // Update chips
   const uPnlEl = document.getElementById('gt-upnl');
   const nilaiEl = document.getElementById('gt-nilai');
   if (nilaiEl) nilaiEl.textContent = idrRaw(Math.round(totalValue));
