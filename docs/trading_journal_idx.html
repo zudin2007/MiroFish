@@ -178,6 +178,7 @@ select.fi option{background:var(--card)}
     <div class="chip"><div class="chip-l">Total Nilai</div><div class="chip-v" id="c-nilai">—</div></div>
     <div class="chip"><div class="chip-l">Total Modal</div><div class="chip-v" id="c-modal">—</div></div>
     <div class="chip"><div class="chip-l">Unrealized P&amp;L</div><div class="chip-v" id="c-pnl">—</div></div>
+    <div class="chip"><div class="chip-l">Realized P&amp;L</div><div class="chip-v" id="c-rpnl">—</div></div>
     <div class="chip"><div class="chip-l">Equity</div><div class="chip-v" id="c-equity">—</div></div>
     <div class="chip-spacer">
       <button class="btn btn-o" id="btn-upd" onclick="fetchAll()">↻ Update Harga</button>
@@ -380,6 +381,8 @@ select.fi option{background:var(--card)}
       <button class="tf-btn"    id="tf-6mo" onclick="setTF('6mo','1d',this)">6 Bln</button>
       <button class="tf-btn"    id="tf-1y"  onclick="setTF('1y','1wk',this)">1 Tahun</button>
       <button class="tf-btn"    id="tf-2y"  onclick="setTF('2y','1wk',this)">2 Tahun</button>
+      <button class="tf-btn"    id="tf-5y"  onclick="setTF('5y','1mo',this)">5 Tahun</button>
+      <button class="tf-btn"    id="tf-max" onclick="setTF('max','1mo',this)">Maks</button>
     </div>
     <div id="modal-status" style="font-size:12px;color:var(--muted);min-height:16px;margin-bottom:6px"></div>
     <canvas id="modal-chart" height="220"></canvas>
@@ -478,11 +481,15 @@ function renderPorto() {
   }).join('');
   const pnl    = totalNilai - totalModal;
   const equity = totalNilai + cash;
+  const rpnl   = loadTrades().filter(t=>t.pnl!=null).reduce((s,t)=>s+t.pnl,0);
   document.getElementById('c-nilai').textContent  = idr(totalNilai);
   document.getElementById('c-modal').textContent  = idr(totalModal);
   const cp = document.getElementById('c-pnl');
   cp.textContent = (pnl>=0?'+':'') + idr(pnl);
   cp.className = 'chip-v ' + (pnl>=0?'g':'r');
+  const cr = document.getElementById('c-rpnl');
+  cr.textContent = (rpnl>=0?'+':'') + idr(rpnl);
+  cr.className = 'chip-v ' + (rpnl>=0?'g':'r');
   const ce = document.getElementById('c-equity');
   ce.textContent = idr(equity);
   ce.className = 'chip-v ' + (equity>=0?'g':'r');
@@ -1010,9 +1017,10 @@ async function fetchStockChart(sym, range, interval) {
       const valid  = times.map((t,i) => ({ t, c: closes[i], v: vols[i] })).filter(d => d.c != null);
       if (!valid.length) continue;
       const isIntra = range === '1d';
+      const longRange = range === '1y' || range === '2y' || range === '5y' || range === 'max';
       const fmtT = isIntra
         ? t => new Date(t*1000).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})
-        : t => new Date(t*1000).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:range==='1y'||range==='2y'?'numeric':undefined});
+        : t => new Date(t*1000).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:longRange?'numeric':undefined});
       const labels = valid.map(d => fmtT(d.t));
       const cData  = valid.map(d => d.c);
       const vData  = valid.map(d => d.v || 0);
