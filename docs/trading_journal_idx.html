@@ -658,6 +658,37 @@ select.fi option{background:var(--card)}
   </div>
 </div>
 
+<!-- ══ ASSET CHART MODAL (Gotrade / Crypto — USD) ══ -->
+<div class="modal-overlay" id="asset-modal" onclick="if(event.target===this)closeAssetModal()">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-title" id="amodal-sym">—</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px" id="amodal-posinfo">—</div>
+      </div>
+      <button class="modal-close" onclick="closeAssetModal()">✕</button>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center" id="amodal-ct-row">
+      <span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0">Tipe:</span>
+      <button class="tf-btn on" onclick="setAssetChartType('line',this)">Line</button>
+      <button class="tf-btn"    onclick="setAssetChartType('candle',this)">Candle</button>
+    </div>
+    <div class="tf-wrap" id="amodal-tf-row">
+      <button class="tf-btn on" id="atf-1d"  onclick="setAssetTF('1d','5m',this)">1 Hari</button>
+      <button class="tf-btn"    id="atf-1mo" onclick="setAssetTF('1mo','1d',this)">1 Bln</button>
+      <button class="tf-btn"    id="atf-3mo" onclick="setAssetTF('3mo','1d',this)">3 Bln</button>
+      <button class="tf-btn"    id="atf-6mo" onclick="setAssetTF('6mo','1d',this)">6 Bln</button>
+      <button class="tf-btn"    id="atf-1y"  onclick="setAssetTF('1y','1wk',this)">1 Tahun</button>
+      <button class="tf-btn"    id="atf-2y"  onclick="setAssetTF('2y','1wk',this)">2 Tahun</button>
+      <button class="tf-btn"    id="atf-5y"  onclick="setAssetTF('5y','1mo',this)">5 Tahun</button>
+      <button class="tf-btn"    id="atf-max" onclick="setAssetTF('max','1mo',this)">Maks</button>
+    </div>
+    <div id="amodal-status" style="font-size:12px;color:var(--muted);min-height:16px;margin-bottom:6px"></div>
+    <canvas id="amodal-chart" height="220"></canvas>
+    <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px" id="amodal-stats"></div>
+  </div>
+</div>
+
 <script>
 // ── CONSTANTS ──────────────────────────────────────────
 const SEED = [
@@ -1340,6 +1371,13 @@ let modalChart      = null;
 let modalSym        = '';
 let modalChartType  = 'line';
 let modalCachedData = null;
+let aModalChart     = null;
+let aModalSym       = '';
+let aModalAvgUSD    = 0;
+let aModalShares    = 0;
+let aModalName      = '';
+let aModalChartType = 'line';
+let aModalCached    = null;
 
 function openStockChart(sym) {
   modalSym = sym;
@@ -1495,6 +1533,155 @@ function drawModalChart({ valid, fmtT, meta, sym }) {
     ${meta.regularMarketVolume?`<div class="sb"><div class="sb-l">Volume</div><div class="sb-v">${(meta.regularMarketVolume/1e6).toFixed(1)}M</div></div>`:''}
   `;
 }
+
+// ── ASSET CHART MODAL (Gotrade / Crypto — USD) ──────────
+function openAssetChart(sym, displayName, avgUSD, sharesAmt) {
+  aModalSym    = sym;
+  aModalAvgUSD = avgUSD;
+  aModalShares = sharesAmt;
+  aModalName   = displayName;
+  document.getElementById('amodal-sym').textContent = displayName;
+  const pnlUSD = (gtPrices[sym]?.price ?? cryptoPrices[sym]?.price ?? null);
+  if (pnlUSD !== null) {
+    const pl = (pnlUSD - avgUSD) * sharesAmt;
+    const pc = avgUSD > 0 ? (pnlUSD - avgUSD) / avgUSD * 100 : 0;
+    document.getElementById('amodal-posinfo').innerHTML =
+      `${sharesAmt} units &nbsp;·&nbsp; Avg: $${avgUSD.toLocaleString('en-US',{maximumFractionDigits:4})} &nbsp;·&nbsp; Harga: $${pnlUSD.toLocaleString('en-US',{maximumFractionDigits:4})} &nbsp;·&nbsp; P&L: <span class="${pl>=0?'g':'r'}">${pl>=0?'+':''}$${Math.abs(pl).toLocaleString('en-US',{maximumFractionDigits:2})} (${pc>=0?'+':''}${pc.toFixed(2)}%)</span>`;
+  } else {
+    document.getElementById('amodal-posinfo').innerHTML =
+      `${sharesAmt} units &nbsp;·&nbsp; Avg: $${avgUSD.toLocaleString('en-US',{maximumFractionDigits:4})}`;
+  }
+  document.querySelectorAll('#amodal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('atf-1d').classList.add('on');
+  document.getElementById('asset-modal').classList.add('on');
+  fetchAssetChart(sym, '1d', '5m');
+}
+
+function closeAssetModal() {
+  document.getElementById('asset-modal').classList.remove('on');
+}
+
+function setAssetTF(range, interval, btn) {
+  document.querySelectorAll('#amodal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  fetchAssetChart(aModalSym, range, interval);
+}
+
+function setAssetChartType(type, btn) {
+  document.querySelectorAll('#amodal-ct-row .tf-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  aModalChartType = type;
+  if (aModalCached) drawAssetChart(aModalCached);
+}
+
+async function fetchAssetChart(sym, range, interval) {
+  const status = document.getElementById('amodal-status');
+  status.textContent = '⟳ Mengambil data…';
+  document.getElementById('amodal-stats').innerHTML = '';
+  aModalCached = null;
+  const yfUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?range=${range}&interval=${interval}`;
+  const proxies = [
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(yfUrl),
+    'https://corsproxy.io/?url=' + encodeURIComponent(yfUrl),
+  ];
+  for (const url of proxies) {
+    try {
+      const r   = await tFetch(url);
+      const j   = await r.json();
+      const res = j?.chart?.result?.[0];
+      if (!res) continue;
+      const meta   = res.meta;
+      const times  = res.timestamp || [];
+      const q      = res.indicators?.quote?.[0] || {};
+      const closes = q.close  || [];
+      const opens  = q.open   || [];
+      const highs  = q.high   || [];
+      const lows   = q.low    || [];
+      const vols   = q.volume || [];
+      const valid  = times.map((t,i) => ({
+        t, o:opens[i], h:highs[i], l:lows[i], c:closes[i], v:vols[i]
+      })).filter(d => d.c != null);
+      if (!valid.length) continue;
+      const isIntra   = range === '1d';
+      const longRange = ['1y','2y','5y','max'].includes(range);
+      const fmtT = isIntra
+        ? t => new Date(t*1000).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})
+        : t => new Date(t*1000).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:longRange?'numeric':undefined});
+      aModalCached = { valid, fmtT, meta, sym };
+      drawAssetChart(aModalCached);
+      status.textContent = '';
+      return;
+    } catch(e) {}
+  }
+  status.textContent = 'Gagal mengambil data. Cek koneksi atau coba lagi.';
+}
+
+function drawAssetChart({ valid, fmtT, meta, sym }) {
+  const fUSD  = v => v == null ? '—' : '$' + v.toLocaleString('en-US', { maximumFractionDigits: v >= 100 ? 2 : 4 });
+  const labels = valid.map(d => fmtT(d.t));
+  const cData  = valid.map(d => d.c);
+  const vData  = valid.map(d => d.v || 0);
+  const first  = cData[0], last = cData[cData.length-1];
+  const isUp   = last >= first;
+  const color  = isUp ? '#00c853' : '#ff4d4d';
+  const maxVol = Math.max(...vData.filter(v => v > 0)) || 1;
+  const isCandle = aModalChartType === 'candle';
+  const avgSet = aModalAvgUSD > 0 ? [{
+    label:'Avg Beli', data:cData.map(() => aModalAvgUSD),
+    borderColor:'#f59e0b', borderDash:[5,4], borderWidth:1.5,
+    pointRadius:0, fill:false, yAxisID:'y'
+  }] : [];
+  const priceDs = isCandle
+    ? { label:sym, data:cData, borderColor:'transparent', backgroundColor:'transparent', fill:false, tension:0, pointRadius:0, borderWidth:0, yAxisID:'y', order:1 }
+    : { label:aModalName, data:cData, borderColor:color, backgroundColor:color+'18', fill:true, tension:0.2, pointRadius:0, borderWidth:2, yAxisID:'y', order:1 };
+  const ctx = document.getElementById('amodal-chart').getContext('2d');
+  if (aModalChart) { aModalChart.destroy(); aModalChart = null; }
+  aModalChart = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets:[ priceDs, ...avgSet,
+      { label:'Volume', data:vData, type:'bar', backgroundColor:color+'50', borderRadius:1, yAxisID:'vol', order:2 }
+    ]},
+    options:{
+      plugins:{
+        legend:{ display:true, position:'top', labels:{ color:'#a8a8c8', boxWidth:12, font:{size:11},
+          filter: item => !(isCandle && item.datasetIndex === 0)
+        }},
+        tooltip:{
+          mode:'index', intersect:false,
+          callbacks:{ label: ctx => {
+            if (ctx.dataset.label === 'Volume')
+              return ' Vol: ' + (ctx.parsed.y >= 1e6 ? (ctx.parsed.y/1e6).toFixed(2)+'M' : ctx.parsed.y.toLocaleString());
+            if (isCandle && ctx.datasetIndex === 0) {
+              const d = valid[ctx.dataIndex];
+              if (!d) return '';
+              return [` O: ${fUSD(d.o)}`, ` H: ${fUSD(d.h)}`, ` L: ${fUSD(d.l)}`, ` C: ${fUSD(d.c)}`];
+            }
+            return ' ' + ctx.dataset.label + ': ' + fUSD(ctx.parsed.y);
+          }}
+        }
+      },
+      scales:{
+        x:{ ticks:{ color:'#6868a8', maxTicksLimit:7, maxRotation:0 } },
+        y:{ position:'right', ticks:{ color:'#6868a8', callback: v => fUSD(v) } },
+        vol:{ position:'left', min:0, max:maxVol*4, ticks:{ display:false }, grid:{ display:false }, border:{ display:false } }
+      },
+      interaction:{ mode:'index', intersect:false }
+    }
+  });
+  const priceChg = last - first;
+  const pct = first > 0 ? priceChg / first * 100 : 0;
+  const hi = Math.max(...cData), lo = Math.min(...cData);
+  const vol = meta.regularMarketVolume;
+  document.getElementById('amodal-stats').innerHTML = `
+    <div class="sb"><div class="sb-l">Harga</div><div class="sb-v">${fUSD(last)}</div></div>
+    <div class="sb"><div class="sb-l">Perubahan</div><div class="sb-v ${priceChg>=0?'g':'r'}">${priceChg>=0?'+':''}${fUSD(priceChg)}</div></div>
+    <div class="sb"><div class="sb-l">% Rentang</div><div class="sb-v ${pct>=0?'g':'r'}">${pct>=0?'+':''}${pct.toFixed(2)}%</div></div>
+    <div class="sb"><div class="sb-l">Tertinggi</div><div class="sb-v">${fUSD(hi)}</div></div>
+    <div class="sb"><div class="sb-l">Terendah</div><div class="sb-v">${fUSD(lo)}</div></div>
+    ${vol ? `<div class="sb"><div class="sb-l">Volume</div><div class="sb-v">${vol>=1e6?(vol/1e6).toFixed(1)+'M':vol.toLocaleString()}</div></div>` : ''}
+  `;
+}
+// ── END ASSET CHART MODAL ────────────────────────────────
 
 // ── P.RETURN ───────────────────────────────────────────
 const PRETURN_DATA = [
@@ -5513,7 +5700,7 @@ function renderGotrade() {
 
     return `<tr style="border-bottom:${extra?'none':'1px solid var(--border)'}">
       <td style="text-align:left;vertical-align:top;padding:8px 6px 4px">
-        <div style="font-weight:700;font-size:14px">${h.t}</div>
+        <div><span class="sym-click" onclick="openAssetChart('${h.t}','${h.t}',${h.a},${h.s})" style="font-weight:700;font-size:14px">${h.t}</span></div>
         <div style="font-size:11px;color:var(--muted)">${priceUSD !== null ? '$'+priceUSD.toFixed(2) : '—'}</div>
         <div style="font-size:10px;color:var(--muted)">${h.s} sh @ $${h.a}</div>
       </td>
@@ -5724,7 +5911,7 @@ function renderCrypto() {
 
     return `<tr style="border-bottom:${extra?'none':'1px solid var(--border)'}">
       <td style="text-align:left;vertical-align:top;padding:8px 6px 4px">
-        <div style="font-weight:700;font-size:14px">${h.n}</div>
+        <div><span class="sym-click" onclick="openAssetChart('${h.t}','${h.n}',${h.a},${h.s})" style="font-weight:700;font-size:14px">${h.n}</span></div>
         <div style="font-size:11px;color:var(--muted)">${priceStr}</div>
         <div style="font-size:10px;color:var(--muted)">${h.s} @ $${h.a.toLocaleString('en-US',{maximumFractionDigits:2})}</div>
       </td>
