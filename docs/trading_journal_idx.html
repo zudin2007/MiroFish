@@ -1275,30 +1275,11 @@ function addGtTrade() {
   if (!date || !code || !units || !price) { alert('Tanggal, aset, units, dan harga wajib diisi.'); return; }
   let pnl = null;
   if (action === 'Sell' && cb > 0) pnl = parseFloat(((price - cb) * units - fee).toFixed(6));
+  const costIdr = parseFloat((price * units * (gtUSDIDR || 16000)).toFixed(2));
   const trades = loadGtTrades();
-  trades.unshift({ id: Date.now(), date, code, action, units, price, fee, cb: cb || null, strat, emotion, notes, pnl });
+  trades.unshift({ id: Date.now(), date, code, action, units, price, fee, cb: cb || null, strat, emotion, notes, pnl, usdIdr: gtUSDIDR || 16000, costIdr });
   saveGtTrades(trades);
-  // ── Sync gtHoldings ──
-  const ticker = code.toUpperCase();
-  const hIdx = gtHoldings.findIndex(x => x.t.toUpperCase() === ticker);
-  if (action === 'Buy') {
-    const costIDR = parseFloat((price * units * (gtUSDIDR || 16000)).toFixed(2));
-    if (hIdx >= 0) {
-      const h2 = gtHoldings[hIdx];
-      const newS = parseFloat((h2.s + units).toFixed(8));
-      h2.a = parseFloat(((h2.a * h2.s + price * units) / newS).toFixed(6));
-      h2.c = parseFloat((h2.c + costIDR).toFixed(2));
-      h2.s = newS;
-    } else {
-      gtHoldings.push({ t: ticker, s: units, a: price, c: costIDR, at: null, rz: null, ry: null });
-    }
-  } else if (hIdx >= 0) {
-    const h2 = gtHoldings[hIdx];
-    const remaining = parseFloat((h2.s - units).toFixed(8));
-    if (remaining <= 0) { gtHoldings.splice(hIdx, 1); }
-    else { h2.c = parseFloat((h2.c * remaining / h2.s).toFixed(2)); h2.s = remaining; }
-  }
-  saveGtHoldings(gtHoldings);
+  gtHoldings = rebuildGtHoldings();
   ['jgt-units','jgt-price','jgt-fee','jgt-cb','jgt-notes'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('jgt-preview').innerHTML = '';
   renderGtJournal();
@@ -1308,7 +1289,9 @@ function addGtTrade() {
 function deleteGtTrade(id) {
   if (!confirm('Hapus trade ini?')) return;
   saveGtTrades(loadGtTrades().filter(t => String(t.id) !== String(id)));
+  gtHoldings = rebuildGtHoldings();
   renderGtJournal();
+  if (Object.keys(gtPrices).length > 0) renderGotrade();
 }
 function renderGtJournal() {
   const trades   = loadGtTrades();
@@ -1401,32 +1384,15 @@ function addCrTrade() {
   const strat  = document.getElementById('jcr-strat').value;
   const emotion= document.getElementById('jcr-emotion').value;
   const notes  = document.getElementById('jcr-notes').value.trim();
-  if (!date || !code || !units || !price) { alert('Tanggal, aset, units, dan harga wajib diisi.'); return; }
+  const ticker = normalizeCrTicker(code);
+  if (!date || !ticker || !units || !price) { alert('Tanggal, aset, units, dan harga wajib diisi.'); return; }
   let pnl = null;
   if (action === 'Sell' && cb > 0) pnl = parseFloat(((price - cb) * units - fee).toFixed(8));
+  const costIdr = parseFloat((price * units * (cryptoUSDIDR || 16000)).toFixed(2));
   const trades = loadCrTrades();
-  trades.unshift({ id: Date.now(), date, code, action, units, price, fee, cb: cb || null, strat, emotion, notes, pnl });
+  trades.unshift({ id: Date.now(), date, code: ticker, action, units, price, fee, cb: cb || null, strat, emotion, notes, pnl, usdIdr: cryptoUSDIDR || 16000, costIdr });
   saveCrTrades(trades);
-  // ── Sync crHoldings ──
-  const hIdx = crHoldings.findIndex(x => x.t.toUpperCase() === code.toUpperCase());
-  if (action === 'Buy') {
-    const costIDR = parseFloat((price * units * (cryptoUSDIDR || 16000)).toFixed(2));
-    if (hIdx >= 0) {
-      const h2 = crHoldings[hIdx];
-      const newS = parseFloat((h2.s + units).toFixed(8));
-      h2.a = parseFloat(((h2.a * h2.s + price * units) / newS).toFixed(6));
-      h2.c = parseFloat((h2.c + costIDR).toFixed(2));
-      h2.s = newS;
-    } else {
-      crHoldings.push({ t: code, n: code, s: units, a: price, c: costIDR, at: null, rz: null, ry: null });
-    }
-  } else if (hIdx >= 0) {
-    const h2 = crHoldings[hIdx];
-    const remaining = parseFloat((h2.s - units).toFixed(8));
-    if (remaining <= 0) { crHoldings.splice(hIdx, 1); }
-    else { h2.c = parseFloat((h2.c * remaining / h2.s).toFixed(2)); h2.s = remaining; }
-  }
-  saveCrHoldings(crHoldings);
+  crHoldings = rebuildCrHoldings();
   ['jcr-units','jcr-price','jcr-fee','jcr-cb','jcr-notes'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('jcr-preview').innerHTML = '';
   renderCrJournal();
@@ -1436,7 +1402,9 @@ function addCrTrade() {
 function deleteCrTrade(id) {
   if (!confirm('Hapus trade ini?')) return;
   saveCrTrades(loadCrTrades().filter(t => String(t.id) !== String(id)));
+  crHoldings = rebuildCrHoldings();
   renderCrJournal();
+  if (Object.keys(cryptoPrices).length > 0) renderCrypto();
 }
 function renderCrJournal() {
   const trades   = loadCrTrades();
@@ -6011,12 +5979,72 @@ const GT_COST_IDR  = 9711772.77;
 const GT_REALIZED  = -2359352.62;
 const GT_RLZD_YTD  = -1515403.12;
 
-function loadGtHoldings() {
-  try { const s = localStorage.getItem('gt_holdings_v1'); return s ? JSON.parse(s) : JSON.parse(JSON.stringify(GT_HOLDINGS_SEED)); }
-  catch(e) { return JSON.parse(JSON.stringify(GT_HOLDINGS_SEED)); }
+// Clear stale holdings cache from previous approach
+try { localStorage.removeItem('gt_holdings_v1'); localStorage.removeItem('cr_holdings_v1'); } catch(e) {}
+
+function normalizeCrTicker(t) {
+  const map = {
+    'ETH':'ETH-USD','ETHEREUM':'ETH-USD','ETHER':'ETH-USD',
+    'BTC':'BTC-USD','BITCOIN':'BTC-USD',
+    'BNB':'BNB-USD','SOL':'SOL-USD','SOLANA':'SOL-USD',
+    'XRP':'XRP-USD','ADA':'ADA-USD','DOGE':'DOGE-USD',
+    'MATIC':'MATIC-USD','LINK':'LINK-USD','LTC':'LTC-USD',
+    'AVAX':'AVAX-USD','UNI':'UNI-USD','DOT':'DOT-USD',
+    'XAU':'GC%3DF','GOLD':'GC%3DF','XAUUSD':'GC%3DF','XAUSD':'GC%3DF',
+  };
+  const up = t.toUpperCase().replace(/\s+/g,'');
+  return map[up] || t.toUpperCase();
 }
-function saveGtHoldings(h) { try { localStorage.setItem('gt_holdings_v1', JSON.stringify(h)); } catch(e) {} }
-let gtHoldings = loadGtHoldings();
+
+function rebuildGtHoldings() {
+  const h = JSON.parse(JSON.stringify(GT_HOLDINGS_SEED));
+  const trades = loadGtTrades().slice().sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
+  for (const t of trades) {
+    const idx = h.findIndex(x => x.t === t.code);
+    const cost = t.costIdr || (t.price * t.units * (t.usdIdr || 16000));
+    if (t.action === 'Buy') {
+      if (idx >= 0) {
+        const newS = h[idx].s + t.units;
+        h[idx].a = (h[idx].a * h[idx].s + t.price * t.units) / newS;
+        h[idx].c += cost;
+        h[idx].s = newS;
+      } else {
+        h.push({ t: t.code, s: t.units, a: t.price, c: cost, at: null, rz: null, ry: null });
+      }
+    } else if (idx >= 0) {
+      const rem = h[idx].s - t.units;
+      if (rem <= 0) h.splice(idx, 1);
+      else { h[idx].c *= rem / h[idx].s; h[idx].s = rem; }
+    }
+  }
+  return h;
+}
+
+function rebuildCrHoldings() {
+  const h = JSON.parse(JSON.stringify(CRYPTO_HOLDINGS_SEED));
+  const trades = loadCrTrades().slice().sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
+  for (const t of trades) {
+    const idx = h.findIndex(x => x.t === t.code);
+    const cost = t.costIdr || (t.price * t.units * (t.usdIdr || 16000));
+    if (t.action === 'Buy') {
+      if (idx >= 0) {
+        const newS = h[idx].s + t.units;
+        h[idx].a = (h[idx].a * h[idx].s + t.price * t.units) / newS;
+        h[idx].c += cost;
+        h[idx].s = newS;
+      } else {
+        h.push({ t: t.code, n: t.code, s: t.units, a: t.price, c: cost, at: null, rz: null, ry: null });
+      }
+    } else if (idx >= 0) {
+      const rem = h[idx].s - t.units;
+      if (rem <= 0) h.splice(idx, 1);
+      else { h[idx].c *= rem / h[idx].s; h[idx].s = rem; }
+    }
+  }
+  return h;
+}
+
+let gtHoldings = rebuildGtHoldings();
 
 async function fetchGtQuote(sym) {
   const base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + sym;
@@ -6245,12 +6273,7 @@ const CRYPTO_COST_IDR  = 256910877.59;
 const CRYPTO_REALIZED  =  62627602.75;
 const CRYPTO_RLZD_YTD  = -18661788.85;
 
-function loadCrHoldings() {
-  try { const s = localStorage.getItem('cr_holdings_v1'); return s ? JSON.parse(s) : JSON.parse(JSON.stringify(CRYPTO_HOLDINGS_SEED)); }
-  catch(e) { return JSON.parse(JSON.stringify(CRYPTO_HOLDINGS_SEED)); }
-}
-function saveCrHoldings(h) { try { localStorage.setItem('cr_holdings_v1', JSON.stringify(h)); } catch(e) {} }
-let crHoldings = loadCrHoldings();
+let crHoldings = rebuildCrHoldings();
 
 async function fetchCrypto() {
   const btn = document.getElementById('cr-btn');
