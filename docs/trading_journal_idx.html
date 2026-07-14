@@ -5565,7 +5565,7 @@ let grandGotNilai = 0;
 let grandCryptoNilai = 0;
 let portoSort = 'nilai';
 let glPeriod = 0; // 0=semua, 1=P1 (2026/02+), 2=P2 (sebelum 2026/02)
-const glCollapsedYears = new Set();
+const glCollapsedYears = new Set(GL_DATA.map(r => r.date.slice(0, 4)));
 
 function setGLPeriod(p, btn) {
   glPeriod = p;
