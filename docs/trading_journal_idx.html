@@ -5563,7 +5563,48 @@ const GL_DATA = [
 ];
 
 // fee beli 0.15% + fee jual 0.25%
-const calcFee = r => Math.round(r.lot * 100 * (r.buy * 0.0015 + r.sell * 0.0025));
+const calcFee = r => r._usd ? Math.max(0, Math.round(r.gross - r.net)) : Math.round(r.lot * 100 * (r.buy * 0.0015 + r.sell * 0.0025));
+
+function buildAllGLData() {
+  const rows = [...GL_DATA];
+  const usdFmt = v => '$' + v.toLocaleString('en-US', {maximumFractionDigits: v >= 100 ? 2 : 6});
+  loadGtTrades().filter(t => t.action === 'Sell' && t.pnl !== null && t.cb).forEach(t => {
+    const r = t.usdIdr || 16000;
+    const g = (t.price - t.cb) * t.units;
+    rows.push({ date: t.date.replace(/-/g,'/'), code: t.code,
+      sell: t.price, buy: t.cb, lot: t.units,
+      pct: t.cb > 0 ? (t.price - t.cb) / t.cb * 100 : 0,
+      gross: Math.round(g * r), net: Math.round(t.pnl * r),
+      _src:'gt', _usd:true, _usdIdr:r });
+  });
+  loadCrTrades().filter(t => t.action === 'Sell' && t.pnl !== null && t.cb).forEach(t => {
+    const r = t.usdIdr || 16000;
+    const g = (t.price - t.cb) * t.units;
+    rows.push({ date: t.date.replace(/-/g,'/'), code: t.code,
+      sell: t.price, buy: t.cb, lot: t.units,
+      pct: t.cb > 0 ? (t.price - t.cb) / t.cb * 100 : 0,
+      gross: Math.round(g * r), net: Math.round(t.pnl * r),
+      _src:'cr', _usd:true, _usdIdr:r });
+  });
+  return rows;
+}
+
+function glRowHtml(r) {
+  const sellStr = r._usd ? '$'+r.sell.toLocaleString('en-US',{maximumFractionDigits:r.sell>=100?2:6}) : r.sell.toLocaleString('id-ID');
+  const buyStr  = r._usd ? '$'+r.buy.toLocaleString('en-US',{maximumFractionDigits:r.buy>=100?2:6})  : r.buy.toLocaleString('id-ID');
+  const lotStr  = r._usd ? r.lot.toLocaleString('en-US',{maximumFractionDigits:8}) : r.lot;
+  const badge   = r._src==='gt' ? ' <span style="font-size:9px;color:#29B6F6">[GT]</span>'
+                : r._src==='cr' ? ' <span style="font-size:9px;color:#AB47BC">[CR]</span>' : '';
+  const clickFn = r._usd ? `openAssetChart('${r.code}','${r.code}',${r.buy},${r.lot})` : `openStockChart('${r.code}')`;
+  return `<tr>
+    <td style="text-align:left;color:var(--muted)">${r.date}</td>
+    <td style="text-align:left"><span class="sym-click" onclick="${clickFn}">${r.code}</span>${badge}</td>
+    <td>${sellStr}</td><td>${buyStr}</td><td>${lotStr}</td>
+    <td class="${r.pct>0?'g':r.pct<0?'r':'m'}">${r.pct>0?'+':''}${r.pct.toFixed(1)}%</td>
+    <td class="${r.gross>0?'g':r.gross<0?'r':'m'}">${r.gross>=0?(r.gross>0?'+'+idrRaw(r.gross):'0'):idrRaw(r.gross)}</td>
+    <td class="${r.net>0?'g':r.net<0?'r':'m'}" style="font-weight:700">${r.net>=0?(r.net>0?'+'+idrRaw(r.net):'0'):idrRaw(r.net)}</td>
+  </tr>`;
+}
 
 let glChart = null;
 let actChart = null;
@@ -5582,7 +5623,9 @@ let grandGotNilai = 0;
 let grandCryptoNilai = 0;
 let portoSort = 'nilai';
 let glPeriod = 0; // 0=semua, 1=P1 (2026/02+), 2=P2 (sebelum 2026/02)
-const glCollapsedYears = new Set(GL_DATA.map(r => r.date.slice(0, 4)));
+let glExpandedYears  = new Set(); // empty = all collapsed by default
+let glExpandedMonths = new Set(); // key: "YYYY/MM"
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
 
 function setGLPeriod(p, btn) {
   glPeriod = p;
@@ -5607,7 +5650,7 @@ function renderGainLoss() {
   const totalGross = glPeriod===1 ? P1_GROSS : glPeriod===2 ? P2_GROSS : P1_GROSS+P2_GROSS;
   const totalNet   = glPeriod===1 ? P1_NET   : glPeriod===2 ? P2_NET   : P1_NET+P2_NET;
 
-  const d = GL_DATA.filter(_glFilter);
+  const d = buildAllGLData().filter(_glFilter);
   const wins   = d.filter(r => r.gross > 0).length;
   const losses = d.filter(r => r.gross < 0).length;
   const even   = d.filter(r => r.gross === 0).length;
@@ -5766,9 +5809,10 @@ function renderGainLoss() {
 }
 
 function filterGL() {
-  const q = (document.getElementById('gl-filter')?.value||'').toUpperCase().trim();
+  const q    = (document.getElementById('gl-filter')?.value||'').toUpperCase().trim();
   const sort = document.getElementById('gl-sort')?.value || 'date-desc';
-  let rows = GL_DATA.filter(r => _glFilter(r) && (!q || r.code.includes(q)));
+  const all  = buildAllGLData();
+  let rows = all.filter(r => _glFilter(r) && (!q || r.code.toUpperCase().includes(q)));
   if (sort==='date-asc')  rows.sort((a,b)=>a.date.localeCompare(b.date));
   if (sort==='date-desc') rows.sort((a,b)=>b.date.localeCompare(a.date));
   if (sort==='net-asc')   rows.sort((a,b)=>a.net-b.net);
@@ -5791,92 +5835,98 @@ function filterGL() {
       summaryEl.innerHTML = `
         <div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px">
           <span style="color:var(--muted);font-weight:700">📌 ${q}</span>
-          <span style="color:var(--muted)">${rows.length} transaksi &nbsp;(<span style="color:#0f0">${wins}W</span> / <span style="color:#f44">${losses}L</span>)</span>
+          <span style="color:var(--muted)">${rows.length} transaksi (<span style="color:#0f0">${wins}W</span>/<span style="color:#f44">${losses}L</span>)</span>
           <span>Gross: <strong class="${gc}">${filtGross>=0?'+':''}${idrRaw(filtGross)}</strong></span>
           <span>Net: <strong class="${nc}" style="font-size:14px">${filtNet>=0?'+':''}${idrRaw(filtNet)}</strong></span>
           <span style="color:#ff9500">Fee: <strong>${idrRaw(Math.abs(filtFee))}</strong></span>
         </div>`;
-    } else {
-      summaryEl.style.display = 'none';
-    }
+    } else { summaryEl.style.display = 'none'; }
   }
 
-  const useYearGroup = sort === 'date-desc' || sort === 'date-asc';
+  const useGroup = sort === 'date-desc' || sort === 'date-asc';
   let html = '';
 
-  if (useYearGroup && rows.length > 0) {
-    // Group rows by year
-    const groups = [];
-    let curYear = null, curGroup = [];
+  if (useGroup && rows.length > 0) {
+    // ── Group by year ──
+    const yearMap = {};
     for (const r of rows) {
       const y = r.date.slice(0, 4);
-      if (y !== curYear) {
-        if (curYear !== null) groups.push({ year: curYear, rows: curGroup });
-        curYear = y; curGroup = [r];
-      } else {
-        curGroup.push(r);
-      }
+      (yearMap[y] = yearMap[y] || []).push(r);
     }
-    if (curYear !== null) groups.push({ year: curYear, rows: curGroup });
+    const years = Object.keys(yearMap).sort((a,b) => sort==='date-asc' ? a-b : b-a);
 
-    for (const g of groups) {
-      const collapsed = glCollapsedYears.has(g.year);
-      const yNet   = g.rows.reduce((s,r) => s + r.net, 0);
-      const yGross = g.rows.reduce((s,r) => s + r.gross, 0);
-      const yWins  = g.rows.filter(r => r.net > 0).length;
-      const yLoss  = g.rows.filter(r => r.net < 0).length;
-      const nc = yNet >= 0 ? '#4caf50' : '#f44336';
-      const gc = yGross >= 0 ? '#4caf50' : '#f44336';
-      const arrow = collapsed ? '▶' : '▼';
-      html += `<tr class="gl-year-hdr" onclick="glToggleYear('${g.year}')" style="cursor:pointer;background:var(--card-alt,var(--bg2));user-select:none">
-        <td colspan="8" style="padding:6px 10px;font-weight:700;font-size:13px;letter-spacing:.5px;border-bottom:2px solid var(--border)">
-          <span style="opacity:.6;margin-right:6px;font-size:11px">${arrow}</span>${g.year}
-          <span style="font-weight:400;font-size:12px;margin-left:12px;color:var(--muted)">${g.rows.length} transaksi &nbsp;
+    for (const year of years) {
+      const yRows   = yearMap[year];
+      const yNet    = yRows.reduce((s,r) => s + r.net,   0);
+      const yGross  = yRows.reduce((s,r) => s + r.gross, 0);
+      const yWins   = yRows.filter(r => r.net > 0).length;
+      const yLoss   = yRows.filter(r => r.net < 0).length;
+      const ync     = yNet   >= 0 ? '#4caf50' : '#f44336';
+      const ygc     = yGross >= 0 ? '#4caf50' : '#f44336';
+      const yExp    = glExpandedYears.has(year);
+      const yArrow  = yExp ? '▼' : '▶';
+      html += `<tr class="gl-year-hdr" onclick="glToggleYear('${year}')" style="cursor:pointer;background:rgba(40,40,80,.55);user-select:none">
+        <td colspan="8" style="padding:7px 10px;font-weight:700;font-size:13px;letter-spacing:.5px;border-bottom:2px solid var(--border)">
+          <span style="opacity:.6;margin-right:6px;font-size:11px">${yArrow}</span>${year}
+          <span style="font-weight:400;font-size:12px;margin-left:12px;color:var(--muted)">${yRows.length} tx &nbsp;
             <span style="color:#0f0">${yWins}W</span>/<span style="color:#f44">${yLoss}L</span></span>
           <span style="float:right;font-size:12px">
-            G: <span style="color:${gc}">${yGross>=0?'+':''}${idrRaw(yGross)}</span>
-            &nbsp; N: <strong style="color:${nc}">${yNet>=0?'+':''}${idrRaw(yNet)}</strong>
+            G: <span style="color:${ygc}">${yGross>=0?'+':''}${idrRaw(yGross)}</span>
+            &nbsp; N: <strong style="color:${ync}">${yNet>=0?'+':''}${idrRaw(yNet)}</strong>
           </span>
         </td></tr>`;
-      if (!collapsed) {
-        for (const r of g.rows) {
-          html += `<tr>
-            <td style="text-align:left;color:var(--muted)">${r.date}</td>
-            <td style="text-align:left"><span class="sym-click" onclick="openStockChart('${r.code}')">${r.code}</span></td>
-            <td>${r.sell.toLocaleString('id-ID')}</td>
-            <td>${r.buy.toLocaleString('id-ID')}</td>
-            <td>${r.lot}</td>
-            <td class="${r.pct>0?'g':r.pct<0?'r':'m'}">${r.pct>0?'+':''}${r.pct.toFixed(1)}%</td>
-            <td class="${r.gross>0?'g':r.gross<0?'r':'m'}">${r.gross>=0?(r.gross>0?'+'+idrRaw(r.gross):'0'):idrRaw(r.gross)}</td>
-            <td class="${r.net>0?'g':r.net<0?'r':'m'}" style="font-weight:700">${r.net>=0?(r.net>0?'+'+idrRaw(r.net):'0'):idrRaw(r.net)}</td>
-          </tr>`;
+
+      if (yExp) {
+        // ── Group by month within year ──
+        const monthMap = {};
+        for (const r of yRows) {
+          const mk = r.date.slice(0, 7); // "YYYY/MM"
+          (monthMap[mk] = monthMap[mk] || []).push(r);
+        }
+        const months = Object.keys(monthMap).sort((a,b) => sort==='date-asc' ? a.localeCompare(b) : b.localeCompare(a));
+
+        for (const mk of months) {
+          const mRows  = monthMap[mk];
+          const mNet   = mRows.reduce((s,r) => s + r.net,   0);
+          const mGross = mRows.reduce((s,r) => s + r.gross, 0);
+          const mWins  = mRows.filter(r => r.net > 0).length;
+          const mLoss  = mRows.filter(r => r.net < 0).length;
+          const mnc    = mNet   >= 0 ? '#4caf50' : '#f44336';
+          const mgc    = mGross >= 0 ? '#4caf50' : '#f44336';
+          const mExp   = glExpandedMonths.has(mk);
+          const mArrow = mExp ? '▼' : '▶';
+          const mLabel = MONTH_NAMES[parseInt(mk.slice(5,7))-1];
+          html += `<tr onclick="glToggleMonth('${mk}')" style="cursor:pointer;background:rgba(60,60,110,.35);user-select:none">
+            <td colspan="8" style="padding:5px 10px 5px 26px;font-size:12px;border-bottom:1px solid rgba(128,128,200,.2)">
+              <span style="opacity:.5;margin-right:5px;font-size:10px">${mArrow}</span>
+              <span style="font-weight:600">${mLabel}</span>
+              <span style="margin-left:10px;color:var(--muted)">${mRows.length} tx &nbsp;
+                <span style="color:#0f0">${mWins}W</span>/<span style="color:#f44">${mLoss}L</span></span>
+              <span style="float:right;font-size:11px">
+                G: <span style="color:${mgc}">${mGross>=0?'+':''}${idrRaw(mGross)}</span>
+                &nbsp; N: <strong style="color:${mnc}">${mNet>=0?'+':''}${idrRaw(mNet)}</strong>
+              </span>
+            </td></tr>`;
+          if (mExp) {
+            for (const r of mRows) html += glRowHtml(r);
+          }
         }
       }
     }
   } else {
-    html = rows.map(r => `
-      <tr>
-        <td style="text-align:left;color:var(--muted)">${r.date}</td>
-        <td style="text-align:left"><span class="sym-click" onclick="openStockChart('${r.code}')">${r.code}</span></td>
-        <td>${r.sell.toLocaleString('id-ID')}</td>
-        <td>${r.buy.toLocaleString('id-ID')}</td>
-        <td>${r.lot}</td>
-        <td class="${r.pct>0?'g':r.pct<0?'r':'m'}">${r.pct>0?'+':''}${r.pct.toFixed(1)}%</td>
-        <td class="${r.gross>0?'g':r.gross<0?'r':'m'}">${r.gross>=0?(r.gross>0?'+'+idrRaw(r.gross):'0'):idrRaw(r.gross)}</td>
-        <td class="${r.net>0?'g':r.net<0?'r':'m'}" style="font-weight:700">${r.net>=0?(r.net>0?'+'+idrRaw(r.net):'0'):idrRaw(r.net)}</td>
-      </tr>`).join('');
+    html = rows.map(r => glRowHtml(r)).join('');
   }
 
   document.getElementById('gl-body').innerHTML = html;
-  const total = GL_DATA.filter(_glFilter).length;
-  document.getElementById('gl-count').textContent = `Menampilkan ${rows.length} dari ${total} transaksi (data tersedia)`;
+  const total = all.filter(_glFilter).length;
+  document.getElementById('gl-count').textContent = `Menampilkan ${rows.length} dari ${total} transaksi`;
 }
 
 function setActTF(tf, btn) {
   actTF = tf;
   document.querySelectorAll('#act-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
-  const d = GL_DATA.filter(_glFilter).sort((a,b)=>a.date.localeCompare(b.date));
+  const d = buildAllGLData().filter(_glFilter).sort((a,b)=>a.date.localeCompare(b.date));
   _drawActChart(tf, d);
 }
 
@@ -5950,8 +6000,13 @@ function _drawActChart(tf, d) {
 }
 
 function glToggleYear(year) {
-  if (glCollapsedYears.has(year)) glCollapsedYears.delete(year);
-  else glCollapsedYears.add(year);
+  if (glExpandedYears.has(year)) glExpandedYears.delete(year);
+  else glExpandedYears.add(year);
+  filterGL();
+}
+function glToggleMonth(month) {
+  if (glExpandedMonths.has(month)) glExpandedMonths.delete(month);
+  else glExpandedMonths.add(month);
   filterGL();
 }
 
