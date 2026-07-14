@@ -873,7 +873,14 @@ function showTab(name, btn) {
   if (name === 'porto')    try { renderPorto(); } catch(e){}
   if (name === 'analitik') setTimeout(renderAnalytics, 60);
   if (name === 'mm')       { try { calcMM(); updateDailyGauge(); } catch(e){} }
-  if (name === 'jurnal')   try { renderJournal(); } catch(e){}
+  if (name === 'jurnal') {
+    try { renderJournal(); } catch(e){}
+    const savedSub = localStorage.getItem('jurnal_sub') || 'idx';
+    if (savedSub !== 'idx') {
+      const btn = document.querySelector(`.sub-tab-bar .sub-tab[onclick*="'${savedSub}'"]`);
+      if (btn) showJurnalSub(savedSub, btn);
+    }
+  }
   if (name === 'akun')     try { renderAccount(); } catch(e){}
   if (name === 'preturn')  setTimeout(() => { try { renderPReturn(); } catch(e){} }, 60);
   if (name === 'gotrade')   setTimeout(() => { try { fetchGotrade();   } catch(e){} }, 60);
@@ -1176,6 +1183,7 @@ function showJurnalSub(sub, btn) {
   });
   document.querySelectorAll('.sub-tab-bar .sub-tab').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
+  try { localStorage.setItem('jurnal_sub', sub); } catch(e) {}
   if (sub === 'gotrade') renderGtJournal();
   if (sub === 'crypto')  renderCrJournal();
 }
