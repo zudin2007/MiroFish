@@ -836,7 +836,12 @@ const SAMPLE_TRADES = [
 ];
 
 // ── STATE ──────────────────────────────────────────────
-let holdings = JSON.parse(JSON.stringify(SEED));
+function loadPortoHoldings() {
+  try { const s = localStorage.getItem('porto_holdings_v1'); return s ? JSON.parse(s) : JSON.parse(JSON.stringify(SEED)); }
+  catch(e) { return JSON.parse(JSON.stringify(SEED)); }
+}
+function savePortoHoldings() { try { localStorage.setItem('porto_holdings_v1', JSON.stringify(holdings)); } catch(e) {} }
+let holdings = loadPortoHoldings();
 
 // ── STORAGE ────────────────────────────────────────────
 function loadTrades() {
@@ -1140,6 +1145,7 @@ function addTrade() {
     h.shares = Math.max(0, h.shares - shares);
     if (h.shares === 0) holdings = holdings.filter(x => x.sym !== code);
   }
+  savePortoHoldings();
   const trades = loadTrades();
   trades.unshift({ id: Date.now(), date, code, action, lot, price, fee, strat, emotion, notes, pnl });
   saveTrades(trades);
@@ -1272,9 +1278,31 @@ function addGtTrade() {
   const trades = loadGtTrades();
   trades.unshift({ id: Date.now(), date, code, action, units, price, fee, cb: cb || null, strat, emotion, notes, pnl });
   saveGtTrades(trades);
+  // ── Sync gtHoldings ──
+  const ticker = code.toUpperCase();
+  const hIdx = gtHoldings.findIndex(x => x.t.toUpperCase() === ticker);
+  if (action === 'Buy') {
+    const costIDR = parseFloat((price * units * (gtUSDIDR || 16000)).toFixed(2));
+    if (hIdx >= 0) {
+      const h2 = gtHoldings[hIdx];
+      const newS = parseFloat((h2.s + units).toFixed(8));
+      h2.a = parseFloat(((h2.a * h2.s + price * units) / newS).toFixed(6));
+      h2.c = parseFloat((h2.c + costIDR).toFixed(2));
+      h2.s = newS;
+    } else {
+      gtHoldings.push({ t: ticker, s: units, a: price, c: costIDR, at: null, rz: null, ry: null });
+    }
+  } else if (hIdx >= 0) {
+    const h2 = gtHoldings[hIdx];
+    const remaining = parseFloat((h2.s - units).toFixed(8));
+    if (remaining <= 0) { gtHoldings.splice(hIdx, 1); }
+    else { h2.c = parseFloat((h2.c * remaining / h2.s).toFixed(2)); h2.s = remaining; }
+  }
+  saveGtHoldings(gtHoldings);
   ['jgt-units','jgt-price','jgt-fee','jgt-cb','jgt-notes'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('jgt-preview').innerHTML = '';
   renderGtJournal();
+  if (Object.keys(gtPrices).length > 0) renderGotrade();
   showToast('Trade Gotrade disimpan ✓');
 }
 function deleteGtTrade(id) {
@@ -1379,9 +1407,30 @@ function addCrTrade() {
   const trades = loadCrTrades();
   trades.unshift({ id: Date.now(), date, code, action, units, price, fee, cb: cb || null, strat, emotion, notes, pnl });
   saveCrTrades(trades);
+  // ── Sync crHoldings ──
+  const hIdx = crHoldings.findIndex(x => x.t.toUpperCase() === code.toUpperCase());
+  if (action === 'Buy') {
+    const costIDR = parseFloat((price * units * (cryptoUSDIDR || 16000)).toFixed(2));
+    if (hIdx >= 0) {
+      const h2 = crHoldings[hIdx];
+      const newS = parseFloat((h2.s + units).toFixed(8));
+      h2.a = parseFloat(((h2.a * h2.s + price * units) / newS).toFixed(6));
+      h2.c = parseFloat((h2.c + costIDR).toFixed(2));
+      h2.s = newS;
+    } else {
+      crHoldings.push({ t: code, n: code, s: units, a: price, c: costIDR, at: null, rz: null, ry: null });
+    }
+  } else if (hIdx >= 0) {
+    const h2 = crHoldings[hIdx];
+    const remaining = parseFloat((h2.s - units).toFixed(8));
+    if (remaining <= 0) { crHoldings.splice(hIdx, 1); }
+    else { h2.c = parseFloat((h2.c * remaining / h2.s).toFixed(2)); h2.s = remaining; }
+  }
+  saveCrHoldings(crHoldings);
   ['jcr-units','jcr-price','jcr-fee','jcr-cb','jcr-notes'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('jcr-preview').innerHTML = '';
   renderCrJournal();
+  if (Object.keys(cryptoPrices).length > 0) renderCrypto();
   showToast('Trade Crypto disimpan ✓');
 }
 function deleteCrTrade(id) {
@@ -5939,7 +5988,7 @@ function glToggleYear(year) {
 }
 
 // ══ GOTRADE ══════════════════════════════════════════════
-const GT_HOLDINGS = [
+const GT_HOLDINGS_SEED = [
   // t=ticker, s=shares, a=avgUSD, c=costIDR, at=allTime, rz=realized, ry=rlzdYTD
   {t:'FTNT', s:0.50182,  a:149.76, c:1362191.51, at: 62994.94,   rz:-45767.68,   ry:null},
   {t:'CRWD', s:0.28463,  a:174.62, c:900870.66,  at:null,        rz:null,        ry:null},
@@ -5961,6 +6010,13 @@ const GT_CASH_IDR  = 12227.33;
 const GT_COST_IDR  = 9711772.77;
 const GT_REALIZED  = -2359352.62;
 const GT_RLZD_YTD  = -1515403.12;
+
+function loadGtHoldings() {
+  try { const s = localStorage.getItem('gt_holdings_v1'); return s ? JSON.parse(s) : JSON.parse(JSON.stringify(GT_HOLDINGS_SEED)); }
+  catch(e) { return JSON.parse(JSON.stringify(GT_HOLDINGS_SEED)); }
+}
+function saveGtHoldings(h) { try { localStorage.setItem('gt_holdings_v1', JSON.stringify(h)); } catch(e) {} }
+let gtHoldings = loadGtHoldings();
 
 async function fetchGtQuote(sym) {
   const base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + sym;
@@ -5986,11 +6042,11 @@ async function fetchGotrade() {
 
   const [usdRes, ...stockRes] = await Promise.all([
     fetchGtQuote('USDIDR%3DX'),
-    ...GT_HOLDINGS.map(h => fetchGtQuote(h.t)),
+    ...gtHoldings.map(h => fetchGtQuote(h.t)),
   ]);
 
   gtUSDIDR = usdRes?.price || 16000;
-  GT_HOLDINGS.forEach((h, i) => { if (stockRes[i]) gtPrices[h.t] = stockRes[i]; });
+  gtHoldings.forEach((h, i) => { if (stockRes[i]) gtPrices[h.t] = stockRes[i]; });
 
   renderGotrade();
 
@@ -6013,7 +6069,7 @@ function renderGotrade() {
   const sgn  = v => v >= 0 ? 'g' : 'r';
 
   // Enrich each holding with computed values
-  const enriched = GT_HOLDINGS.map(h => {
+  const enriched = gtHoldings.map(h => {
     const q        = gtPrices[h.t];
     const priceUSD = q?.price ?? null;
     const prevUSD  = q?.prev  ?? null;
@@ -6176,7 +6232,7 @@ function renderGotrade() {
 
 // ══ CRYPTO (TANGEM WALLET) ════════════════════════════════
 // t=ticker(yahoo), n=display name, s=units, a=avgUSD, c=costIDR, at=allTimeIDR, rz=realizedIDR, ry=rlzdYTDIDR
-const CRYPTO_HOLDINGS = [
+const CRYPTO_HOLDINGS_SEED = [
   {t:'BTC-USD', n:'Bitcoin',    s:0.11915,   a:75618.26,  c:163320292.01, at: 42066483,  rz: 70931861,  ry:-16480115},
   {t:'GC%3DF',  n:'XAU/USD',   s:1.0365,    a:4910.99,   c:92265769.63,  at:-16147400,  rz:  616644,   ry:  616644},
   {t:'GOOGL',   n:'GOOGL (ON)', s:0.029547,  a:336.67,    c:180309.99,    at:null,       rz:null,       ry:null},
@@ -6189,17 +6245,24 @@ const CRYPTO_COST_IDR  = 256910877.59;
 const CRYPTO_REALIZED  =  62627602.75;
 const CRYPTO_RLZD_YTD  = -18661788.85;
 
+function loadCrHoldings() {
+  try { const s = localStorage.getItem('cr_holdings_v1'); return s ? JSON.parse(s) : JSON.parse(JSON.stringify(CRYPTO_HOLDINGS_SEED)); }
+  catch(e) { return JSON.parse(JSON.stringify(CRYPTO_HOLDINGS_SEED)); }
+}
+function saveCrHoldings(h) { try { localStorage.setItem('cr_holdings_v1', JSON.stringify(h)); } catch(e) {} }
+let crHoldings = loadCrHoldings();
+
 async function fetchCrypto() {
   const btn = document.getElementById('cr-btn');
   if (btn) { btn.textContent = '⟳ Mengambil…'; btn.disabled = true; }
 
   const [usdRes, ...assetRes] = await Promise.all([
     fetchGtQuote('USDIDR%3DX'),
-    ...CRYPTO_HOLDINGS.map(h => fetchGtQuote(h.t)),
+    ...crHoldings.map(h => fetchGtQuote(h.t)),
   ]);
 
   cryptoUSDIDR = usdRes?.price || 16000;
-  CRYPTO_HOLDINGS.forEach((h, i) => { if (assetRes[i]) cryptoPrices[h.t] = assetRes[i]; });
+  crHoldings.forEach((h, i) => { if (assetRes[i]) cryptoPrices[h.t] = assetRes[i]; });
 
   renderCrypto();
 
@@ -6221,7 +6284,7 @@ function renderCrypto() {
   const fIDR = v => `${fP(v)}${idrRaw(Math.round(Math.abs(v)))}`;
   const sgn  = v => v >= 0 ? 'g' : 'r';
 
-  const enriched = CRYPTO_HOLDINGS.map(h => {
+  const enriched = crHoldings.map(h => {
     const q        = cryptoPrices[h.t];
     const priceUSD = q?.price ?? null;
     const prevUSD  = q?.prev  ?? null;
