@@ -2037,6 +2037,7 @@ function drawAssetChart({ valid, fmtT, meta, sym }) {
     ]},
     options:{
       plugins:{
+        candlestick: isCandle ? { ohlcv:valid } : { ohlcv:null },
         legend:{ display:true, position:'top', labels:{ color:'#a8a8c8', boxWidth:12, font:{size:11},
           filter: item => !(isCandle && item.datasetIndex === 0)
         }},
