@@ -109,6 +109,10 @@ select.fi option{background:var(--card)}
 .modal-close{background:none;border:1px solid var(--border);color:var(--sub);border-radius:6px;padding:4px 12px;cursor:pointer;font-size:16px;line-height:1.4}
 .modal-close:hover{border-color:var(--accent);color:var(--text)}
 .tf-wrap{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.sub-tab-bar{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:14px}
+.sub-tab{padding:8px 18px;font-size:13px;font-weight:600;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:color .15s}
+.sub-tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.sub-tab:hover:not(.on){color:var(--sub)}
 .tf-btn{background:var(--card2);border:1px solid var(--border);color:var(--sub);border-radius:5px;padding:5px 13px;font-size:12px;cursor:pointer;font-weight:600;transition:all .15s}
 .tf-btn:hover{border-color:var(--accent);color:var(--accent)}
 .tf-btn.on{background:var(--accent);border-color:var(--accent);color:#000}
@@ -356,55 +360,171 @@ select.fi option{background:var(--card)}
 
 <!-- ══════════════ JURNAL ══════════════ -->
 <div id="tab-jurnal" class="panel">
-  <div class="sg" id="j-stats"></div>
-  <div class="card">
-    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
-      <span>Tambah Trade</span>
-      <button class="btn btn-sm btn-csv" onclick="exportCSV()">↓ Export CSV</button>
-    </div>
-    <div class="fg-grid">
-      <div class="fg"><label class="fl">Tanggal</label><input class="fi" id="j-date" type="date"></div>
-      <div class="fg"><label class="fl">Saham</label>
-        <input class="fi" id="j-code" type="text" list="wl-dl" placeholder="BBCA / ketik bebas" oninput="onCodeOrActionChange()" autocomplete="off">
-        <datalist id="wl-dl"></datalist></div>
-      <div class="fg"><label class="fl">Aksi</label>
-        <select class="fi" id="j-action" onchange="onCodeOrActionChange()">
-          <option value="Buy">Buy</option><option value="Sell">Sell</option>
-        </select></div>
-      <div class="fg"><label class="fl">Lot</label><input class="fi" id="j-lot" type="number" step="0.01" min="0.01" placeholder="1" oninput="calcPreview()"></div>
-      <div class="fg"><label class="fl">Harga (Rp)</label><input class="fi" id="j-price" type="number" placeholder="6150" oninput="calcPreview()"></div>
-      <div class="fg" id="j-cb-wrap" style="display:none"><label class="fl">Avg Beli (Rp)</label><input class="fi" id="j-cb" type="number" placeholder="auto" oninput="calcPreview()"></div>
-      <div class="fg"><label class="fl">Fee (Rp)</label><input class="fi" id="j-fee" type="number" placeholder="0" oninput="calcPreview()"></div>
-      <div class="fg"><label class="fl">Strategi</label>
-        <select class="fi" id="j-strat">
-          <option>Value</option><option>Swing</option><option>Dividend</option>
-          <option>Scalp</option><option>Growth</option><option>Average Down</option>
-        </select></div>
-      <div class="fg"><label class="fl">Emosi</label>
-        <select class="fi" id="j-emotion">
-          <option>Discipline</option><option>FOMO</option><option>Fear</option>
-          <option>Greedy</option><option>Neutral</option><option>Hopeful</option>
-        </select></div>
-      <div class="fg" style="grid-column:span 2"><label class="fl">Catatan</label>
-        <input class="fi" id="j-notes" type="text" placeholder="Setup, alasan entry, dll"></div>
-    </div>
-    <div class="preview-bar" id="trade-preview"></div>
-    <button class="btn btn-o" onclick="addTrade()">+ Simpan Trade</button>
+
+  <!-- Sub-tab bar -->
+  <div class="sub-tab-bar">
+    <button class="sub-tab on" onclick="showJurnalSub('idx',this)">IDX</button>
+    <button class="sub-tab" onclick="showJurnalSub('gotrade',this)">Gotrade</button>
+    <button class="sub-tab" onclick="showJurnalSub('crypto',this)">Crypto</button>
   </div>
-  <div class="card">
-    <div class="card-title">Riwayat Trade</div>
-    <div class="tbl-wrap">
-      <table>
-        <thead><tr>
-          <th style="text-align:left">Tgl</th><th style="text-align:left">Saham</th>
-          <th>Aksi</th><th>Lot</th><th>Harga</th><th>Fee</th>
-          <th>P&amp;L (Rp)</th><th>Strategi</th><th>Emosi</th>
-          <th style="text-align:left">Catatan</th><th></th>
-        </tr></thead>
-        <tbody id="j-body"></tbody>
-      </table>
+
+  <!-- ── IDX ── -->
+  <div id="jsub-idx">
+    <div class="sg" id="j-stats"></div>
+    <div class="card">
+      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>Tambah Trade IDX</span>
+        <button class="btn btn-sm btn-csv" onclick="exportCSV()">↓ Export CSV</button>
+      </div>
+      <div class="fg-grid">
+        <div class="fg"><label class="fl">Tanggal</label><input class="fi" id="j-date" type="date"></div>
+        <div class="fg"><label class="fl">Saham</label>
+          <input class="fi" id="j-code" type="text" list="wl-dl" placeholder="BBCA / ketik bebas" oninput="onCodeOrActionChange()" autocomplete="off">
+          <datalist id="wl-dl"></datalist></div>
+        <div class="fg"><label class="fl">Aksi</label>
+          <select class="fi" id="j-action" onchange="onCodeOrActionChange()">
+            <option value="Buy">Buy</option><option value="Sell">Sell</option>
+          </select></div>
+        <div class="fg"><label class="fl">Lot</label><input class="fi" id="j-lot" type="number" step="0.01" min="0.01" placeholder="1" oninput="calcPreview()"></div>
+        <div class="fg"><label class="fl">Harga (Rp)</label><input class="fi" id="j-price" type="number" placeholder="6150" oninput="calcPreview()"></div>
+        <div class="fg" id="j-cb-wrap" style="display:none"><label class="fl">Avg Beli (Rp)</label><input class="fi" id="j-cb" type="number" placeholder="auto" oninput="calcPreview()"></div>
+        <div class="fg"><label class="fl">Fee (Rp)</label><input class="fi" id="j-fee" type="number" placeholder="0" oninput="calcPreview()"></div>
+        <div class="fg"><label class="fl">Strategi</label>
+          <select class="fi" id="j-strat">
+            <option>Value</option><option>Swing</option><option>Dividend</option>
+            <option>Scalp</option><option>Growth</option><option>Average Down</option>
+          </select></div>
+        <div class="fg"><label class="fl">Emosi</label>
+          <select class="fi" id="j-emotion">
+            <option>Discipline</option><option>FOMO</option><option>Fear</option>
+            <option>Greedy</option><option>Neutral</option><option>Hopeful</option>
+          </select></div>
+        <div class="fg" style="grid-column:span 2"><label class="fl">Catatan</label>
+          <input class="fi" id="j-notes" type="text" placeholder="Setup, alasan entry, dll"></div>
+      </div>
+      <div class="preview-bar" id="trade-preview"></div>
+      <button class="btn btn-o" onclick="addTrade()">+ Simpan Trade</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Riwayat Trade IDX</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th style="text-align:left">Tgl</th><th style="text-align:left">Saham</th>
+            <th>Aksi</th><th>Lot</th><th>Harga</th><th>Fee</th>
+            <th>P&amp;L (Rp)</th><th>Strategi</th><th>Emosi</th>
+            <th style="text-align:left">Catatan</th><th></th>
+          </tr></thead>
+          <tbody id="j-body"></tbody>
+        </table>
+      </div>
     </div>
   </div>
+
+  <!-- ── GOTRADE ── -->
+  <div id="jsub-gotrade" style="display:none">
+    <div class="sg" id="jgt-stats"></div>
+    <div class="card">
+      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>Tambah Trade Gotrade</span>
+        <button class="btn btn-sm btn-csv" onclick="exportGtCSV()">↓ Export CSV</button>
+      </div>
+      <div class="fg-grid">
+        <div class="fg"><label class="fl">Tanggal</label><input class="fi" id="jgt-date" type="date"></div>
+        <div class="fg"><label class="fl">Aset (Ticker)</label>
+          <input class="fi" id="jgt-code" type="text" placeholder="FTNT / NVDA / …" autocomplete="off"></div>
+        <div class="fg"><label class="fl">Aksi</label>
+          <select class="fi" id="jgt-action" onchange="onGtActionChange()">
+            <option value="Buy">Buy</option><option value="Sell">Sell</option>
+          </select></div>
+        <div class="fg"><label class="fl">Units (lembar)</label><input class="fi" id="jgt-units" type="number" step="0.000001" placeholder="0.5" oninput="calcGtPreview()"></div>
+        <div class="fg"><label class="fl">Harga (USD)</label><input class="fi" id="jgt-price" type="number" step="0.01" placeholder="150.00" oninput="calcGtPreview()"></div>
+        <div class="fg" id="jgt-cb-wrap" style="display:none"><label class="fl">Avg Beli (USD)</label><input class="fi" id="jgt-cb" type="number" step="0.01" placeholder="auto" oninput="calcGtPreview()"></div>
+        <div class="fg"><label class="fl">Fee (USD)</label><input class="fi" id="jgt-fee" type="number" step="0.01" placeholder="0" oninput="calcGtPreview()"></div>
+        <div class="fg"><label class="fl">Strategi</label>
+          <select class="fi" id="jgt-strat">
+            <option>Value</option><option>Swing</option><option>Growth</option>
+            <option>Scalp</option><option>Dividend</option><option>Average Down</option>
+          </select></div>
+        <div class="fg"><label class="fl">Emosi</label>
+          <select class="fi" id="jgt-emotion">
+            <option>Discipline</option><option>FOMO</option><option>Fear</option>
+            <option>Greedy</option><option>Neutral</option><option>Hopeful</option>
+          </select></div>
+        <div class="fg" style="grid-column:span 2"><label class="fl">Catatan</label>
+          <input class="fi" id="jgt-notes" type="text" placeholder="Setup, alasan entry, dll"></div>
+      </div>
+      <div class="preview-bar" id="jgt-preview"></div>
+      <button class="btn btn-o" onclick="addGtTrade()">+ Simpan Trade</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Riwayat Trade Gotrade</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th style="text-align:left">Tgl</th><th style="text-align:left">Aset</th>
+            <th>Aksi</th><th>Units</th><th>Harga ($)</th><th>Fee ($)</th>
+            <th>P&amp;L ($)</th><th>Strategi</th><th>Emosi</th>
+            <th style="text-align:left">Catatan</th><th></th>
+          </tr></thead>
+          <tbody id="jgt-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CRYPTO ── -->
+  <div id="jsub-crypto" style="display:none">
+    <div class="sg" id="jcr-stats"></div>
+    <div class="card">
+      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>Tambah Trade Crypto</span>
+        <button class="btn btn-sm btn-csv" onclick="exportCrCSV()">↓ Export CSV</button>
+      </div>
+      <div class="fg-grid">
+        <div class="fg"><label class="fl">Tanggal</label><input class="fi" id="jcr-date" type="date"></div>
+        <div class="fg"><label class="fl">Aset</label>
+          <input class="fi" id="jcr-code" type="text" placeholder="Bitcoin / XAU / GOOGL ON …" autocomplete="off"></div>
+        <div class="fg"><label class="fl">Aksi</label>
+          <select class="fi" id="jcr-action" onchange="onCrActionChange()">
+            <option value="Buy">Buy</option><option value="Sell">Sell</option>
+          </select></div>
+        <div class="fg"><label class="fl">Units</label><input class="fi" id="jcr-units" type="number" step="0.000001" placeholder="0.001" oninput="calcCrPreview()"></div>
+        <div class="fg"><label class="fl">Harga (USD)</label><input class="fi" id="jcr-price" type="number" step="0.01" placeholder="75000" oninput="calcCrPreview()"></div>
+        <div class="fg" id="jcr-cb-wrap" style="display:none"><label class="fl">Avg Beli (USD)</label><input class="fi" id="jcr-cb" type="number" step="0.01" placeholder="auto" oninput="calcCrPreview()"></div>
+        <div class="fg"><label class="fl">Fee (USD)</label><input class="fi" id="jcr-fee" type="number" step="0.01" placeholder="0" oninput="calcCrPreview()"></div>
+        <div class="fg"><label class="fl">Strategi</label>
+          <select class="fi" id="jcr-strat">
+            <option>HODl</option><option>Swing</option><option>DCA</option>
+            <option>Growth</option><option>Scalp</option><option>Hedge</option>
+          </select></div>
+        <div class="fg"><label class="fl">Emosi</label>
+          <select class="fi" id="jcr-emotion">
+            <option>Discipline</option><option>FOMO</option><option>Fear</option>
+            <option>Greedy</option><option>Neutral</option><option>Hopeful</option>
+          </select></div>
+        <div class="fg" style="grid-column:span 2"><label class="fl">Catatan</label>
+          <input class="fi" id="jcr-notes" type="text" placeholder="Setup, alasan entry, dll"></div>
+      </div>
+      <div class="preview-bar" id="jcr-preview"></div>
+      <button class="btn btn-o" onclick="addCrTrade()">+ Simpan Trade</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Riwayat Trade Crypto</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th style="text-align:left">Tgl</th><th style="text-align:left">Aset</th>
+            <th>Aksi</th><th>Units</th><th>Harga ($)</th><th>Fee ($)</th>
+            <th>P&amp;L ($)</th><th>Strategi</th><th>Emosi</th>
+            <th style="text-align:left">Catatan</th><th></th>
+          </tr></thead>
+          <tbody id="jcr-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ══════════════ ANALITIK ══════════════ -->
@@ -1046,6 +1166,231 @@ function exportCSV() {
   const csv  = 'Date,Code,Action,Lot,Price,Fee,PnL,Strategy,Emotion,Notes\n' + rows.join('\n');
   const blob = new Blob([csv], { type:'text/csv' });
   const a    = Object.assign(document.createElement('a'), { href:URL.createObjectURL(blob), download:'idx_journal_'+new Date().toISOString().split('T')[0]+'.csv' });
+  a.click();
+}
+
+// ── JURNAL SUB-TABS ────────────────────────────────────
+function showJurnalSub(sub, btn) {
+  ['idx','gotrade','crypto'].forEach(s => {
+    document.getElementById('jsub-' + s).style.display = s === sub ? '' : 'none';
+  });
+  document.querySelectorAll('.sub-tab-bar .sub-tab').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  if (sub === 'gotrade') renderGtJournal();
+  if (sub === 'crypto')  renderCrJournal();
+}
+
+// ── GOTRADE JOURNAL ────────────────────────────────────
+function loadGtTrades() { try { return JSON.parse(localStorage.getItem('gt_trades_v1') || '[]'); } catch(e) { return []; } }
+function saveGtTrades(a) { localStorage.setItem('gt_trades_v1', JSON.stringify(a)); }
+
+function onGtActionChange() {
+  const isSell = document.getElementById('jgt-action').value === 'Sell';
+  document.getElementById('jgt-cb-wrap').style.display = isSell ? '' : 'none';
+  calcGtPreview();
+}
+function calcGtPreview() {
+  const units = +document.getElementById('jgt-units').value || 0;
+  const price = +document.getElementById('jgt-price').value || 0;
+  const fee   = +document.getElementById('jgt-fee').value   || 0;
+  const cb    = +document.getElementById('jgt-cb').value    || 0;
+  const action= document.getElementById('jgt-action').value;
+  const el    = document.getElementById('jgt-preview');
+  if (!units || !price) { el.innerHTML = ''; return; }
+  const total = units * price;
+  if (action === 'Sell' && cb > 0) {
+    const pnl = (price - cb) * units - fee;
+    const pct = cb > 0 ? (price - cb) / cb * 100 : 0;
+    el.innerHTML = `Nilai jual: <b>$${total.toFixed(2)}</b> &nbsp;·&nbsp; P&L: <b class="${pnl>=0?'g':'r'}">${pnl>=0?'+':''}$${pnl.toFixed(2)} (${pct>=0?'+':''}${pct.toFixed(2)}%)</b>`;
+  } else {
+    el.innerHTML = `Total beli: <b>$${total.toFixed(2)}</b>${fee ? ` + fee $${fee.toFixed(2)}` : ''}`;
+  }
+}
+function addGtTrade() {
+  const date   = document.getElementById('jgt-date').value;
+  const code   = document.getElementById('jgt-code').value.trim().toUpperCase();
+  const action = document.getElementById('jgt-action').value;
+  const units  = +document.getElementById('jgt-units').value  || 0;
+  const price  = +document.getElementById('jgt-price').value  || 0;
+  const fee    = +document.getElementById('jgt-fee').value    || 0;
+  const cb     = +document.getElementById('jgt-cb').value     || 0;
+  const strat  = document.getElementById('jgt-strat').value;
+  const emotion= document.getElementById('jgt-emotion').value;
+  const notes  = document.getElementById('jgt-notes').value.trim();
+  if (!date || !code || !units || !price) { alert('Tanggal, aset, units, dan harga wajib diisi.'); return; }
+  let pnl = null;
+  if (action === 'Sell' && cb > 0) pnl = parseFloat(((price - cb) * units - fee).toFixed(6));
+  const trades = loadGtTrades();
+  trades.unshift({ id: Date.now(), date, code, action, units, price, fee, cb: cb || null, strat, emotion, notes, pnl });
+  saveGtTrades(trades);
+  ['jgt-units','jgt-price','jgt-fee','jgt-cb','jgt-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('jgt-preview').innerHTML = '';
+  renderGtJournal();
+  showToast('Trade Gotrade disimpan ✓');
+}
+function deleteGtTrade(id) {
+  if (!confirm('Hapus trade ini?')) return;
+  saveGtTrades(loadGtTrades().filter(t => String(t.id) !== String(id)));
+  renderGtJournal();
+}
+function renderGtJournal() {
+  const trades   = loadGtTrades();
+  const closed   = trades.filter(t => t.pnl !== null);
+  const wins     = closed.filter(t => t.pnl > 0);
+  const losses   = closed.filter(t => t.pnl < 0);
+  const totalPnl = closed.reduce((s,t) => s+t.pnl, 0);
+  const avgWin   = wins.length   ? wins.reduce((s,t)=>s+t.pnl,0)/wins.length   : 0;
+  const avgLoss  = losses.length ? losses.reduce((s,t)=>s+t.pnl,0)/losses.length : 0;
+  const best     = closed.length ? Math.max(...closed.map(t=>t.pnl)) : 0;
+  const worst    = closed.length ? Math.min(...closed.map(t=>t.pnl)) : 0;
+  const wr       = closed.length ? (wins.length/closed.length*100).toFixed(0) : '—';
+  const fu = v => (v>=0?'+':'')+'$'+Math.abs(v).toFixed(2);
+  document.getElementById('jgt-stats').innerHTML = `
+    <div class="sb"><div class="sb-l">Total Trade</div><div class="sb-v">${trades.length}</div></div>
+    <div class="sb"><div class="sb-l">Realized P&amp;L</div><div class="sb-v ${totalPnl>=0?'g':'r'}">${fu(totalPnl)}</div></div>
+    <div class="sb"><div class="sb-l">Win Rate</div><div class="sb-v ${wins.length>=losses.length?'g':'r'}">${wr}%</div></div>
+    <div class="sb"><div class="sb-l">Avg Win</div><div class="sb-v g">+$${avgWin.toFixed(2)}</div></div>
+    <div class="sb"><div class="sb-l">Avg Loss</div><div class="sb-v r">$${avgLoss.toFixed(2)}</div></div>
+    <div class="sb"><div class="sb-l">Best Trade</div><div class="sb-v g">+$${best.toFixed(2)}</div></div>
+    <div class="sb"><div class="sb-l">Worst Trade</div><div class="sb-v r">$${worst.toFixed(2)}</div></div>
+  `;
+  const SC = { Value:'bw', Swing:'bb', Growth:'bw', Scalp:'bl', Dividend:'bo', 'Average Down':'bbe' };
+  const EC = { Discipline:'bw', FOMO:'bl', Fear:'y', Greedy:'bl', Neutral:'bbe', Hopeful:'bb' };
+  const tbody = document.getElementById('jgt-body');
+  if (!trades.length) {
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:28px;font-style:italic">Belum ada trade Gotrade.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = trades.map(t => {
+    const ps = t.pnl!==null ? (t.pnl>=0?'+':'')+'$'+Math.abs(t.pnl).toFixed(2) : '—';
+    const pc = t.pnl!==null ? (t.pnl>0?'g':t.pnl<0?'r':'m') : 'm';
+    return `<tr>
+      <td style="text-align:left">${t.date}</td>
+      <td style="text-align:left;font-weight:700">${t.code}</td>
+      <td><span class="badge ${t.action==='Buy'?'bw':'bl'}">${t.action}</span></td>
+      <td>${t.units}</td>
+      <td>$${t.price}</td>
+      <td class="m">${t.fee?'$'+t.fee:'—'}</td>
+      <td class="${pc}">${ps}</td>
+      <td><span class="badge ${SC[t.strat]||'bbe'}">${t.strat||'—'}</span></td>
+      <td><span class="badge ${EC[t.emotion]||'bbe'}">${t.emotion||'—'}</span></td>
+      <td style="text-align:left;max-width:140px;overflow:hidden;text-overflow:ellipsis" class="m">${t.notes||'—'}</td>
+      <td><button class="btn btn-sm btn-del" onclick="deleteGtTrade('${t.id}')">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+function exportGtCSV() {
+  const trades = loadGtTrades();
+  const rows   = trades.map(t => [t.date,t.code,t.action,t.units,t.price,t.fee||0,t.pnl!==null?t.pnl:'',t.strat,t.emotion,`"${(t.notes||'').replace(/"/g,'""')}"`].join(','));
+  const csv    = 'Date,Asset,Action,Units,Price(USD),Fee(USD),PnL(USD),Strategy,Emotion,Notes\n' + rows.join('\n');
+  const a = Object.assign(document.createElement('a'), { href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})), download:'gotrade_journal_'+new Date().toISOString().split('T')[0]+'.csv' });
+  a.click();
+}
+
+// ── CRYPTO JOURNAL ─────────────────────────────────────
+function loadCrTrades() { try { return JSON.parse(localStorage.getItem('cr_trades_v1') || '[]'); } catch(e) { return []; } }
+function saveCrTrades(a) { localStorage.setItem('cr_trades_v1', JSON.stringify(a)); }
+
+function onCrActionChange() {
+  const isSell = document.getElementById('jcr-action').value === 'Sell';
+  document.getElementById('jcr-cb-wrap').style.display = isSell ? '' : 'none';
+  calcCrPreview();
+}
+function calcCrPreview() {
+  const units = +document.getElementById('jcr-units').value || 0;
+  const price = +document.getElementById('jcr-price').value || 0;
+  const fee   = +document.getElementById('jcr-fee').value   || 0;
+  const cb    = +document.getElementById('jcr-cb').value    || 0;
+  const action= document.getElementById('jcr-action').value;
+  const el    = document.getElementById('jcr-preview');
+  if (!units || !price) { el.innerHTML = ''; return; }
+  const total = units * price;
+  if (action === 'Sell' && cb > 0) {
+    const pnl = (price - cb) * units - fee;
+    const pct = cb > 0 ? (price - cb) / cb * 100 : 0;
+    el.innerHTML = `Nilai jual: <b>$${total.toLocaleString('en-US',{maximumFractionDigits:2})}</b> &nbsp;·&nbsp; P&L: <b class="${pnl>=0?'g':'r'}">${pnl>=0?'+':''}$${pnl.toFixed(2)} (${pct>=0?'+':''}${pct.toFixed(2)}%)</b>`;
+  } else {
+    el.innerHTML = `Total beli: <b>$${total.toLocaleString('en-US',{maximumFractionDigits:2})}</b>${fee ? ` + fee $${fee.toFixed(2)}` : ''}`;
+  }
+}
+function addCrTrade() {
+  const date   = document.getElementById('jcr-date').value;
+  const code   = document.getElementById('jcr-code').value.trim();
+  const action = document.getElementById('jcr-action').value;
+  const units  = +document.getElementById('jcr-units').value  || 0;
+  const price  = +document.getElementById('jcr-price').value  || 0;
+  const fee    = +document.getElementById('jcr-fee').value    || 0;
+  const cb     = +document.getElementById('jcr-cb').value     || 0;
+  const strat  = document.getElementById('jcr-strat').value;
+  const emotion= document.getElementById('jcr-emotion').value;
+  const notes  = document.getElementById('jcr-notes').value.trim();
+  if (!date || !code || !units || !price) { alert('Tanggal, aset, units, dan harga wajib diisi.'); return; }
+  let pnl = null;
+  if (action === 'Sell' && cb > 0) pnl = parseFloat(((price - cb) * units - fee).toFixed(8));
+  const trades = loadCrTrades();
+  trades.unshift({ id: Date.now(), date, code, action, units, price, fee, cb: cb || null, strat, emotion, notes, pnl });
+  saveCrTrades(trades);
+  ['jcr-units','jcr-price','jcr-fee','jcr-cb','jcr-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('jcr-preview').innerHTML = '';
+  renderCrJournal();
+  showToast('Trade Crypto disimpan ✓');
+}
+function deleteCrTrade(id) {
+  if (!confirm('Hapus trade ini?')) return;
+  saveCrTrades(loadCrTrades().filter(t => String(t.id) !== String(id)));
+  renderCrJournal();
+}
+function renderCrJournal() {
+  const trades   = loadCrTrades();
+  const closed   = trades.filter(t => t.pnl !== null);
+  const wins     = closed.filter(t => t.pnl > 0);
+  const losses   = closed.filter(t => t.pnl < 0);
+  const totalPnl = closed.reduce((s,t) => s+t.pnl, 0);
+  const avgWin   = wins.length   ? wins.reduce((s,t)=>s+t.pnl,0)/wins.length   : 0;
+  const avgLoss  = losses.length ? losses.reduce((s,t)=>s+t.pnl,0)/losses.length : 0;
+  const best     = closed.length ? Math.max(...closed.map(t=>t.pnl)) : 0;
+  const worst    = closed.length ? Math.min(...closed.map(t=>t.pnl)) : 0;
+  const wr       = closed.length ? (wins.length/closed.length*100).toFixed(0) : '—';
+  const fu = v => (v>=0?'+':'')+'$'+Math.abs(v).toFixed(4);
+  document.getElementById('jcr-stats').innerHTML = `
+    <div class="sb"><div class="sb-l">Total Trade</div><div class="sb-v">${trades.length}</div></div>
+    <div class="sb"><div class="sb-l">Realized P&amp;L</div><div class="sb-v ${totalPnl>=0?'g':'r'}">${fu(totalPnl)}</div></div>
+    <div class="sb"><div class="sb-l">Win Rate</div><div class="sb-v ${wins.length>=losses.length?'g':'r'}">${wr}%</div></div>
+    <div class="sb"><div class="sb-l">Avg Win</div><div class="sb-v g">+$${avgWin.toFixed(4)}</div></div>
+    <div class="sb"><div class="sb-l">Avg Loss</div><div class="sb-v r">$${avgLoss.toFixed(4)}</div></div>
+    <div class="sb"><div class="sb-l">Best Trade</div><div class="sb-v g">+$${best.toFixed(4)}</div></div>
+    <div class="sb"><div class="sb-l">Worst Trade</div><div class="sb-v r">$${worst.toFixed(4)}</div></div>
+  `;
+  const SC = { HODl:'bw', Swing:'bb', DCA:'bo', Growth:'bw', Scalp:'bl', Hedge:'bbe' };
+  const EC = { Discipline:'bw', FOMO:'bl', Fear:'y', Greedy:'bl', Neutral:'bbe', Hopeful:'bb' };
+  const tbody = document.getElementById('jcr-body');
+  if (!trades.length) {
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:28px;font-style:italic">Belum ada trade Crypto.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = trades.map(t => {
+    const ps = t.pnl!==null ? (t.pnl>=0?'+':'')+'$'+Math.abs(t.pnl).toFixed(4) : '—';
+    const pc = t.pnl!==null ? (t.pnl>0?'g':t.pnl<0?'r':'m') : 'm';
+    return `<tr>
+      <td style="text-align:left">${t.date}</td>
+      <td style="text-align:left;font-weight:700">${t.code}</td>
+      <td><span class="badge ${t.action==='Buy'?'bw':'bl'}">${t.action}</span></td>
+      <td>${t.units}</td>
+      <td>$${t.price.toLocaleString('en-US',{maximumFractionDigits:2})}</td>
+      <td class="m">${t.fee?'$'+t.fee:'—'}</td>
+      <td class="${pc}">${ps}</td>
+      <td><span class="badge ${SC[t.strat]||'bbe'}">${t.strat||'—'}</span></td>
+      <td><span class="badge ${EC[t.emotion]||'bbe'}">${t.emotion||'—'}</span></td>
+      <td style="text-align:left;max-width:140px;overflow:hidden;text-overflow:ellipsis" class="m">${t.notes||'—'}</td>
+      <td><button class="btn btn-sm btn-del" onclick="deleteCrTrade('${t.id}')">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+function exportCrCSV() {
+  const trades = loadCrTrades();
+  const rows   = trades.map(t => [t.date,`"${t.code}"`,t.action,t.units,t.price,t.fee||0,t.pnl!==null?t.pnl:'',t.strat,t.emotion,`"${(t.notes||'').replace(/"/g,'""')}"`].join(','));
+  const csv    = 'Date,Asset,Action,Units,Price(USD),Fee(USD),PnL(USD),Strategy,Emotion,Notes\n' + rows.join('\n');
+  const a = Object.assign(document.createElement('a'), { href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})), download:'crypto_journal_'+new Date().toISOString().split('T')[0]+'.csv' });
   a.click();
 }
 
@@ -5999,7 +6344,10 @@ function updateGrandTotal() {
 try { initWatchlist(); } catch(e) {}
 try { renderPorto(); } catch(e) { console.error('renderPorto', e); }
 try {
-  document.getElementById('j-date').value = new Date().toISOString().split('T')[0];
+  const _today = new Date().toISOString().split('T')[0];
+  document.getElementById('j-date').value   = _today;
+  document.getElementById('jgt-date').value = _today;
+  document.getElementById('jcr-date').value = _today;
   renderJournal();
 } catch(e) { console.error('renderJournal', e); }
 
