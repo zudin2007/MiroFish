@@ -837,7 +837,16 @@ const SAMPLE_TRADES = [
 
 // ── STATE ──────────────────────────────────────────────
 function loadPortoHoldings() {
-  try { const s = localStorage.getItem('porto_holdings_v1'); return s ? JSON.parse(s) : JSON.parse(JSON.stringify(SEED)); }
+  try {
+    const s = localStorage.getItem('porto_holdings_v1');
+    const h = s ? JSON.parse(s) : JSON.parse(JSON.stringify(SEED));
+    // Strip any non-IDX entries (tickers with dashes belong to Gotrade/Crypto)
+    const clean = h.filter(x => /^[A-Z0-9]+$/.test(x.sym));
+    if (clean.length !== h.length) {
+      try { localStorage.setItem('porto_holdings_v1', JSON.stringify(clean)); } catch(e) {}
+    }
+    return clean;
+  }
   catch(e) { return JSON.parse(JSON.stringify(SEED)); }
 }
 function savePortoHoldings() { try { localStorage.setItem('porto_holdings_v1', JSON.stringify(holdings)); } catch(e) {} }
@@ -1128,6 +1137,7 @@ function addTrade() {
   const emotion = document.getElementById('j-emotion').value;
   const notes   = document.getElementById('j-notes').value.trim();
   if (!date || !code || !lot || !price) { alert('Tanggal, saham, lot, dan harga wajib diisi.'); return; }
+  if (!/^[A-Z0-9]+$/i.test(code)) { alert('Kode saham IDX tidak valid. Untuk aset Gotrade/Crypto gunakan tab jurnal yang sesuai.'); return; }
   const shares = Math.round(lot * 100);
   let pnl = null;
   if (action === 'Sell' && cb > 0) pnl = (price - cb) * shares - fee;
