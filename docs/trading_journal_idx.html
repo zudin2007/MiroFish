@@ -1106,6 +1106,80 @@ async function fetchAll() {
   btn.textContent = '↻ Update Harga'; btn.disabled = false;
 }
 
+// ── AUTO-POLL ──────────────────────────────────────────
+const POLL_INTERVAL = 30000; // 30 detik
+let pollTimers = { idx: null, gt: null, cr: null };
+
+function _wibNow() {
+  // Returns Date object shifted to WIB (UTC+7)
+  return new Date(Date.now() + 7 * 3600000);
+}
+function _isWeekday() {
+  const d = _wibNow().getUTCDay(); return d >= 1 && d <= 5;
+}
+function _inRange(h1, m1, h2, m2) {
+  const n = _wibNow(), t = n.getUTCHours() * 60 + n.getUTCMinutes();
+  return t >= h1 * 60 + m1 && t <= h2 * 60 + m2;
+}
+function isIDXOpen() { return _isWeekday() && _inRange(9, 0, 16, 30); }
+function isUSOpen()  {
+  // US market 09:30–16:00 ET ≈ 21:30–04:00 WIB (EDT) / 22:30–05:00 (EST)
+  const t = _wibNow().getUTCHours() * 60 + _wibNow().getUTCMinutes();
+  return _isWeekday() && (t >= 21 * 60 + 30 || t <= 5 * 60);
+}
+
+function _tabVisible(name) {
+  return document.getElementById('tab-' + name)?.classList.contains('on');
+}
+
+function startAutoPoll() {
+  stopAutoPoll();
+
+  // ── IDX Porto (jam bursa 09:00–16:30 WIB) ──
+  function pollIDX() {
+    pollTimers.idx = setTimeout(async () => {
+      if (isIDXOpen() && _tabVisible('porto')) {
+        await fetchAll().catch(() => {});
+        const ts = document.getElementById('last-ts');
+        if (ts) ts.textContent = '⏱ Auto · ' + new Date().toLocaleTimeString('id-ID');
+      }
+      pollIDX();
+    }, POLL_INTERVAL);
+  }
+  pollIDX();
+
+  // ── Gotrade (US hours, hanya kalau Finnhub tidak aktif) ──
+  function pollGT() {
+    pollTimers.gt = setTimeout(async () => {
+      if (!fhKey && isUSOpen() && _tabVisible('gotrade')) {
+        await fetchGotrade().catch(() => {});
+        const ts = document.getElementById('gt-ts');
+        if (ts) ts.textContent = '⏱ Auto · ' + new Date().toLocaleTimeString('id-ID');
+      }
+      pollGT();
+    }, POLL_INTERVAL);
+  }
+  pollGT();
+
+  // ── Crypto (24/7, hanya kalau Finnhub tidak aktif) ──
+  function pollCR() {
+    pollTimers.cr = setTimeout(async () => {
+      if (!fhKey && _tabVisible('crypto')) {
+        await fetchCrypto().catch(() => {});
+        const ts = document.getElementById('cr-ts');
+        if (ts) ts.textContent = '⏱ Auto · ' + new Date().toLocaleTimeString('id-ID');
+      }
+      pollCR();
+    }, POLL_INTERVAL);
+  }
+  pollCR();
+}
+
+function stopAutoPoll() {
+  Object.values(pollTimers).forEach(t => clearTimeout(t));
+  pollTimers = { idx: null, gt: null, cr: null };
+}
+
 // ── JURNAL ─────────────────────────────────────────────
 function initWatchlist() {
   const dl = document.getElementById('wl-dl');
@@ -6742,6 +6816,7 @@ function updateGrandTotal() {
 // ── INIT ───────────────────────────────────────────────
 try { initWatchlist(); } catch(e) {}
 try { initFinnhub();  } catch(e) { console.error('initFinnhub', e); }
+try { startAutoPoll(); } catch(e) { console.error('startAutoPoll', e); }
 try { renderPorto(); } catch(e) { console.error('renderPorto', e); }
 try {
   const _today = new Date().toISOString().split('T')[0];
