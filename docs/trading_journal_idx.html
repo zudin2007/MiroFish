@@ -625,6 +625,29 @@ select.fi option{background:var(--card)}
     </div>
     <div style="margin-top:12px;font-size:12px" id="akun-tip"></div>
   </div>
+  <!-- ── Finnhub Live ── -->
+  <div class="card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span>Finnhub Live Prices</span>
+      <span id="fh-status" style="font-size:12px;font-weight:600"><span style="color:var(--muted)">● Tidak aktif</span></span>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">
+      WebSocket real-time untuk Gotrade &amp; Crypto. IDX tetap Yahoo Finance.<br>
+      Daftar gratis di <a href="https://finnhub.io" target="_blank" style="color:var(--accent);text-decoration:none">finnhub.io</a> → API Keys → Copy Free API Key.
+    </div>
+    <div class="fg-grid" style="margin-bottom:10px">
+      <div class="fg" style="grid-column:span 2">
+        <label class="fl">API Key</label>
+        <input class="fi" id="fh-key-input" type="password" placeholder="d3xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-o" onclick="saveFinnhubKeyUI()">🟢 Aktifkan Live</button>
+      <button class="btn" style="background:rgba(244,67,54,.15);color:#f44336;border:1px solid #f44336" onclick="disconnectFinnhub()">Nonaktifkan</button>
+    </div>
+    <div id="fh-log" style="margin-top:10px;font-size:11px;color:var(--muted);min-height:16px"></div>
+  </div>
+
   <div class="card">
     <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
       <span>Riwayat Deposit &amp; Penarikan</span>
@@ -1616,6 +1639,9 @@ function renderAccount() {
     tip.innerHTML = `<b class="g">✓ Cash positif</b> — siap untuk transaksi selanjutnya.`;
   }
   try { renderCashHistory(); } catch(e) {}
+  // Populate Finnhub key input if stored
+  const fhInp = document.getElementById('fh-key-input');
+  if (fhInp && !fhInp.value && fhKey) fhInp.value = fhKey;
 }
 
 function applyTopup(sign) {
@@ -6365,6 +6391,171 @@ async function fetchCrypto() {
   if (tsEl) tsEl.textContent = 'Update: ' + new Date().toLocaleTimeString('id-ID');
 }
 
+// ══ FINNHUB LIVE WEBSOCKET ══════════════════════════════════════════
+let fhKey = '';
+let fhWs  = null;
+let fhReconnectTimer = null;
+let fhPrevClose = {}; // ticker → previous close price
+
+// Our ticker → Finnhub WebSocket symbol
+const FH_SYM = {
+  'BTC-USD':'BINANCE:BTCUSDT', 'ETH-USD':'BINANCE:ETHUSD',
+  'BNB-USD':'BINANCE:BNBUSDT', 'SOL-USD':'BINANCE:SOLUSDT',
+  'XRP-USD':'BINANCE:XRPUSDT', 'ADA-USD':'BINANCE:ADAUSDT',
+  'DOGE-USD':'BINANCE:DOGEUSDT','MATIC-USD':'BINANCE:MATICUSDT',
+  'LINK-USD':'BINANCE:LINKUSDT','LTC-USD':'BINANCE:LTCUSDT',
+  'AVAX-USD':'BINANCE:AVAXUSDT','UNI-USD':'BINANCE:UNIUSDT',
+  'DOT-USD':'BINANCE:DOTUSDT',  'GC%3DF':'OANDA:XAU_USD',
+};
+// Reverse map
+const FH_SYM_REV = Object.fromEntries(Object.entries(FH_SYM).map(([k,v])=>[v,k]));
+
+function toFhSym(ticker)   { return FH_SYM[ticker] || ticker; }
+function fromFhSym(fhSym)  { return FH_SYM_REV[fhSym] || fhSym; }
+
+function loadFhKey() { try { return localStorage.getItem('finnhub_key') || ''; } catch(e) { return ''; } }
+function saveFhKey(k){ try { localStorage.setItem('finnhub_key', k); } catch(e) {} }
+
+function fhSetStatus(html) {
+  const el = document.getElementById('fh-status');
+  if (el) el.innerHTML = html;
+}
+function fhLog(msg) {
+  const el = document.getElementById('fh-log');
+  if (el) el.textContent = msg;
+}
+
+async function fhFetchQuote(ticker) {
+  const fhSym = toFhSym(ticker);
+  try {
+    const r = await tFetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(fhSym)}&token=${encodeURIComponent(fhKey)}`);
+    const j = await r.json();
+    if (j && j.c > 0) return { price: j.c, prev: j.pc || j.c };
+  } catch(e) {}
+  return null;
+}
+
+function fhWsConnect() {
+  if (!fhKey) return;
+  if (fhWs && fhWs.readyState < 2) return;
+  clearTimeout(fhReconnectTimer);
+
+  fhSetStatus('<span style="color:#ff9500">● Menghubungkan…</span>');
+  fhWs = new WebSocket('wss://ws.finnhub.io?token=' + encodeURIComponent(fhKey));
+
+  fhWs.onopen = () => {
+    fhSetStatus('<span style="color:#4caf50">● Live</span>');
+    fhLog('WebSocket terhubung — harga real-time aktif');
+    // Subscribe to all GT + CR symbols
+    const syms = [
+      ...gtHoldings.map(h => toFhSym(h.t)),
+      ...crHoldings.map(h => toFhSym(h.t)),
+    ].filter((v, i, a) => a.indexOf(v) === i);
+    syms.forEach(s => fhWs.send(JSON.stringify({ type: 'subscribe', symbol: s })));
+  };
+
+  fhWs.onmessage = evt => {
+    try {
+      const msg = JSON.parse(evt.data);
+      if (msg.type !== 'trade' || !msg.data?.length) return;
+      // Deduplicate: keep latest trade per symbol
+      const latest = {};
+      msg.data.forEach(d => {
+        if (!latest[d.s] || d.t > latest[d.s].t) latest[d.s] = d;
+      });
+      let gtDirty = false, crDirty = false;
+      Object.values(latest).forEach(({ s, p }) => {
+        const ticker = fromFhSym(s);
+        const prev = fhPrevClose[ticker] ?? p;
+        const q = { price: p, prev };
+        if (gtHoldings.find(h => h.t === ticker)) { gtPrices[ticker] = q; gtDirty = true; }
+        if (crHoldings.find(h => h.t === ticker)) { cryptoPrices[ticker] = q; crDirty = true; }
+      });
+      const now = new Date().toLocaleTimeString('id-ID');
+      if (gtDirty) {
+        const ts = document.getElementById('gt-ts');
+        if (ts) ts.textContent = '🟢 Live · ' + now;
+        if (document.getElementById('tab-gotrade')?.classList.contains('on')) renderGotrade();
+      }
+      if (crDirty) {
+        const ts = document.getElementById('cr-ts');
+        if (ts) ts.textContent = '🟢 Live · ' + now;
+        if (document.getElementById('tab-crypto')?.classList.contains('on')) renderCrypto();
+      }
+    } catch(e) {}
+  };
+
+  fhWs.onerror = () => fhSetStatus('<span style="color:#f44336">● Error koneksi</span>');
+
+  fhWs.onclose = () => {
+    fhSetStatus('<span style="color:#ff9500">● Terputus — reconnect 10s…</span>');
+    fhLog('Koneksi putus, mencoba ulang dalam 10 detik…');
+    fhReconnectTimer = setTimeout(fhWsConnect, 10000);
+  };
+}
+
+async function initFinnhub() {
+  fhKey = loadFhKey();
+  const keyInput = document.getElementById('fh-key-input');
+  if (keyInput && fhKey) keyInput.value = fhKey;
+  if (!fhKey) return;
+
+  fhSetStatus('<span style="color:#ff9500">● Mengambil harga awal…</span>');
+  fhLog('Mengambil harga awal via REST…');
+
+  // Fetch initial quotes (price + prev close) from Finnhub REST
+  const allTickers = [
+    ...gtHoldings.map(h => h.t),
+    ...crHoldings.map(h => h.t),
+  ].filter((v, i, a) => a.indexOf(v) === i);
+
+  const quotes = await Promise.all(allTickers.map(t => fhFetchQuote(t)));
+  allTickers.forEach((ticker, i) => {
+    const q = quotes[i];
+    if (!q) return;
+    fhPrevClose[ticker] = q.prev;
+    if (gtHoldings.find(h => h.t === ticker)) gtPrices[ticker] = q;
+    if (crHoldings.find(h => h.t === ticker)) cryptoPrices[ticker] = q;
+  });
+
+  // USD/IDR still from Yahoo (free, reliable)
+  const usdRes = await fetchGtQuote('USDIDR%3DX');
+  if (usdRes?.price) { gtUSDIDR = usdRes.price; cryptoUSDIDR = usdRes.price; }
+
+  // Render with initial data
+  if (Object.keys(gtPrices).length)    renderGotrade();
+  if (Object.keys(cryptoPrices).length) renderCrypto();
+
+  fhLog('Harga awal berhasil — membuka WebSocket…');
+  fhWsConnect();
+}
+
+function saveFinnhubKeyUI() {
+  const k = (document.getElementById('fh-key-input')?.value || '').trim();
+  if (!k) { alert('Masukkan API key Finnhub terlebih dahulu.'); return; }
+  saveFhKey(k);
+  fhKey = k;
+  clearTimeout(fhReconnectTimer);
+  if (fhWs) { fhWs.onclose = null; fhWs.close(); fhWs = null; }
+  fhPrevClose = {};
+  initFinnhub();
+  showToast('✓ Finnhub API key disimpan — Live mode aktif');
+}
+
+function disconnectFinnhub() {
+  clearTimeout(fhReconnectTimer);
+  if (fhWs) { fhWs.onclose = null; fhWs.close(); fhWs = null; }
+  saveFhKey('');
+  fhKey = '';
+  fhPrevClose = {};
+  const inp = document.getElementById('fh-key-input');
+  if (inp) inp.value = '';
+  fhSetStatus('<span style="color:var(--muted)">● Tidak aktif</span>');
+  fhLog('Dinonaktifkan — kembali ke Yahoo Finance manual');
+  showToast('Finnhub dinonaktifkan');
+}
+// ════════════════════════════════════════════════════════════════════
+
 function setCryptoSort(s, btn) {
   cryptoSort = s;
   document.querySelectorAll('#cr-sort-row .tf-btn').forEach(b => b.classList.remove('on'));
@@ -6550,6 +6741,7 @@ function updateGrandTotal() {
 
 // ── INIT ───────────────────────────────────────────────
 try { initWatchlist(); } catch(e) {}
+try { initFinnhub();  } catch(e) { console.error('initFinnhub', e); }
 try { renderPorto(); } catch(e) { console.error('renderPorto', e); }
 try {
   const _today = new Date().toISOString().split('T')[0];
