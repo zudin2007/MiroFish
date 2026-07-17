@@ -149,6 +149,7 @@ select.fi option{background:var(--card)}
   <button class="tab" onclick="showTab('preturn',this)">P.Return</button>
   <button class="tab" onclick="showTab('gainloss',this)">Gain/Loss</button>
   <button class="tab" onclick="showTab('aktivitas',this)">Aktivitas</button>
+  <button class="tab" onclick="showTab('watchlist',this)">Watchlist</button>
 </div>
 
 <div class="content">
@@ -804,6 +805,15 @@ select.fi option{background:var(--card)}
   </div>
 </div>
 
+<!-- ══════════════ WATCHLIST ══════════════ -->
+<div id="tab-watchlist" class="panel">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <div style="font-size:12px;color:var(--muted)" id="wl-status">—</div>
+    <button class="tf-btn" onclick="fetchWatchlist(true)" id="wl-refresh-btn">⟳ Refresh</button>
+  </div>
+  <div id="wl-body"></div>
+</div>
+
 </div><!-- /content -->
 
 <div class="toast" id="toast"></div>
@@ -914,6 +924,56 @@ const SEED = [
 const SEED_CASH = -1484222;
 const WATCHLIST = ['BBCA','BBHI','BBNI','BBRI','BNBA','BMRI','TLKM','ASII','GOTO','BRIS','BBTN','NISP','MEGA','BDMN'];
 const PALETTE   = ['#FF7A00','#00C853','#29B6F6','#AB47BC','#FF4D4D','#FFD54F','#4DD0E1','#AED581'];
+const WL_GROUPS = [
+  { name:'Issi Midcap', usd:false, items:[
+    { sym:'SIDO', yf:'SIDO.JK', name:'Sido Muncul Tbk'                  },
+    { sym:'KLBF', yf:'KLBF.JK', name:'Kalbe Farma Tbk'                  },
+    { sym:'BRIS', yf:'BRIS.JK', name:'Bank Syariah Indonesia Tbk'        },
+    { sym:'MYOR', yf:'MYOR.JK', name:'Mayora Indah Tbk'                  },
+    { sym:'PTBA', yf:'PTBA.JK', name:'Bukit Asam Tbk'                    },
+    { sym:'JPFA', yf:'JPFA.JK', name:'Japfa Comfeed Indonesia Tbk'       },
+    { sym:'ISAT', yf:'ISAT.JK', name:'Indosat Ooredoo Hutchison Tbk'     },
+    { sym:'MIKA', yf:'MIKA.JK', name:'Mitra Keluarga Karyasehat Tbk'     },
+    { sym:'AKRA', yf:'AKRA.JK', name:'AKR Corporindo Tbk'                },
+    { sym:'AMRT', yf:'AMRT.JK', name:'Sumber Alfaria Trijaya Tbk'        },
+  ]},
+  { name:'TH Value Investing', usd:false, items:[
+    { sym:'HRTA', yf:'HRTA.JK', name:'Hartadinata Abadi Tbk'             },
+    { sym:'BMRI', yf:'BMRI.JK', name:'Bank Mandiri (Persero) Tbk'        },
+    { sym:'BBCA', yf:'BBCA.JK', name:'Bank Central Asia Tbk'             },
+    { sym:'ADRO', yf:'ADRO.JK', name:'Alamtri Resources Indonesia Tbk'   },
+    { sym:'BBNI', yf:'BBNI.JK', name:'Bank Negara Indonesia (Persero) Tbk'},
+    { sym:'BBRI', yf:'BBRI.JK', name:'Bank Rakyat Indonesia (Persero) Tbk'},
+    { sym:'TLKM', yf:'TLKM.JK', name:'Telkom Indonesia (Persero) Tbk'    },
+    { sym:'AADI', yf:'AADI.JK', name:'Adaro Andalan Indonesia Tbk'       },
+    { sym:'INDF', yf:'INDF.JK', name:'Indofood Sukses Makmur Tbk'        },
+    { sym:'APLN', yf:'APLN.JK', name:'Agung Podomoro Land Tbk'           },
+  ]},
+  { name:'US Tech', usd:true, items:[
+    { sym:'MU',   yf:'MU',   name:'Micron Technology'  },
+    { sym:'WDC',  yf:'WDC',  name:'Western Digital'    },
+    { sym:'STX',  yf:'STX',  name:'Seagate Technology' },
+    { sym:'LRCX', yf:'LRCX', name:'Lam Research'        },
+    { sym:'CAT',  yf:'CAT',  name:'Caterpillar'         },
+    { sym:'ANET', yf:'ANET', name:'Arista Networks'     },
+    { sym:'NVDA', yf:'NVDA', name:'NVIDIA'              },
+  ]},
+  { name:'LKH', usd:false, items:[
+    { sym:'ABMM', yf:'ABMM.JK', name:'ABM Investama Tbk'                  },
+    { sym:'ADMG', yf:'ADMG.JK', name:'Polychem Indonesia Tbk'             },
+    { sym:'BEST', yf:'BEST.JK', name:'Bekasi Fajar Industrial Estate Tbk' },
+    { sym:'BMTR', yf:'BMTR.JK', name:'Global Mediacom Tbk'                },
+    { sym:'CFIN', yf:'CFIN.JK', name:'Clipan Finance Indonesia Tbk'       },
+    { sym:'DILD', yf:'DILD.JK', name:'Intiland Development Tbk'           },
+    { sym:'GJTL', yf:'GJTL.JK', name:'Gajah Tunggal Tbk'                 },
+    { sym:'LSIP', yf:'LSIP.JK', name:'PP London Sumatra Indonesia Tbk'    },
+    { sym:'MAIN', yf:'MAIN.JK', name:'Malindo Feedmill Tbk'               },
+    { sym:'PNIN', yf:'PNIN.JK', name:'Paninvest Tbk'                     },
+    { sym:'RALS', yf:'RALS.JK', name:'Ramayana Lestari Sentosa Tbk'       },
+    { sym:'SIMP', yf:'SIMP.JK', name:'Salim Ivomas Pratama Tbk'           },
+    { sym:'SRIL', yf:'SRIL.JK', name:'Sri Rejeki Isman Tbk'               },
+  ]},
+];
 const SAMPLE_TRADES = [
   { id:'s7', date:'2026-07-13', code:'BNBA', action:'Sell', lot:0.2,  price:735,  fee:43,   strat:'Swing',    emotion:'FOMO',       notes:'BNBA -80.2% — FOMO gorengan. Rule: max 5% portfolio untuk spekulatif', pnl:-59460 },
   { id:'s6', date:'2026-07-13', code:'BBCA', action:'Sell', lot:1,    price:6600, fee:1914, strat:'Swing',    emotion:'Discipline', notes:'Swing Value thesis worked',         pnl:45000  },
@@ -995,6 +1055,7 @@ function showTab(name, btn) {
   if (name === 'tangem')    setTimeout(() => { try { renderTangem();   } catch(e){} }, 60);
   if (name === 'gainloss')  setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
   if (name === 'aktivitas') setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
+  if (name === 'watchlist') setTimeout(() => { try { fetchWatchlist(); } catch(e){} }, 60);
 }
 
 // ── PORTO ──────────────────────────────────────────────
@@ -7414,6 +7475,132 @@ try {
 } catch(e) {}
 
 window.addEventListener('load', () => setTimeout(() => { fetchAll(); fetchIHSG(); }, 1500));
+
+// ── WATCHLIST ────────────────────────────────────────────
+let wlPrices   = {};   // {yf: {price, prev, chg, chgPct}}
+let wlLoading  = false;
+let wlLastFetch = 0;
+
+async function fetchWlQuote(yf) {
+  const base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(yf);
+  const proxies = [
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(base),
+    'https://corsproxy.io/?url=' + encodeURIComponent(base),
+  ];
+  for (const url of proxies) {
+    try {
+      const r = await tFetch(url);
+      const j = await r.json();
+      const meta = j?.chart?.result?.[0]?.meta;
+      if (!meta) continue;
+      const price = meta.regularMarketPrice;
+      const prev  = meta.previousClose || meta.chartPreviousClose || price;
+      if (!price) continue;
+      return { price, prev, chg: price - prev, chgPct: prev > 0 ? (price - prev) / prev * 100 : 0 };
+    } catch(e) {}
+  }
+  return null;
+}
+
+async function fetchWatchlist(force) {
+  if (wlLoading) return;
+  const now = Date.now();
+  if (!force && now - wlLastFetch < 60000) { renderWatchlist(); return; }
+  wlLoading = true;
+  const statusEl = document.getElementById('wl-status');
+  const btnEl    = document.getElementById('wl-refresh-btn');
+  if (statusEl) statusEl.textContent = '⟳ Memuat harga…';
+  if (btnEl) btnEl.disabled = true;
+
+  // Collect all unique yf tickers
+  const allItems = WL_GROUPS.flatMap(g => g.items);
+  const unique   = [...new Set(allItems.map(x => x.yf))];
+
+  // Fetch all in parallel (small batches of 8 to avoid overload)
+  const BATCH = 8;
+  for (let i = 0; i < unique.length; i += BATCH) {
+    const batch = unique.slice(i, i + BATCH);
+    const results = await Promise.all(batch.map(yf => fetchWlQuote(yf)));
+    batch.forEach((yf, idx) => { if (results[idx]) wlPrices[yf] = results[idx]; });
+  }
+
+  wlLastFetch = Date.now();
+  wlLoading   = false;
+  if (btnEl) btnEl.disabled = false;
+  const ts = new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+  if (statusEl) statusEl.textContent = '🟢 Update ' + ts;
+  renderWatchlist();
+}
+
+function renderWatchlist() {
+  const usdRate = tgUSDIDR || gtUSDIDR || cryptoUSDIDR || 16000;
+  const body = document.getElementById('wl-body');
+  if (!body) return;
+
+  body.innerHTML = WL_GROUPS.map(grp => {
+    const rows = grp.items.map(item => {
+      const q = wlPrices[item.yf];
+      const isUsd = grp.usd;
+      let priceStr = '—', chgStr = '—', pctStr = '—', cls = '';
+      if (q) {
+        const chg    = q.chg, pct = q.chgPct;
+        cls          = chg >= 0 ? 'g' : 'r';
+        const sign   = chg >= 0 ? '+' : '';
+        priceStr     = isUsd
+          ? '$' + q.price.toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 })
+          : 'Rp' + idrRaw(Math.round(q.price));
+        chgStr       = sign + (isUsd
+          ? q.chg.toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 })
+          : idrRaw(Math.round(Math.abs(chg))) * (chg < 0 ? -1 : 1));
+        if (!isUsd) chgStr = (chg >= 0 ? '+' : '') + idrRaw(Math.round(chg));
+        pctStr = sign + pct.toFixed(2) + '%';
+      }
+      const onclick = isUsd
+        ? `openWlChartUsd('${item.yf}','${item.name.replace(/'/g,"\\'")}',0,0)`
+        : `openWlChartIdx('${item.sym}')`;
+      return `<tr>
+        <td>
+          <span class="sym-click" onclick="${onclick}" style="font-weight:700;font-size:13px">${item.sym}</span>
+          <div style="font-size:10px;color:var(--muted);margin-top:1px">${item.name}</div>
+        </td>
+        <td style="text-align:right;font-variant-numeric:tabular-nums;font-size:13px;white-space:nowrap">${priceStr}</td>
+        <td style="text-align:right;font-variant-numeric:tabular-nums;font-size:12px;white-space:nowrap" class="${cls}">${pctStr}</td>
+        <td style="text-align:right;font-variant-numeric:tabular-nums;font-size:12px;white-space:nowrap" class="${cls}">${chgStr}</td>
+      </tr>`;
+    }).join('');
+
+    return `<div class="card" style="margin-bottom:10px;padding:10px 12px">
+      <div style="font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">${grp.name}</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th style="text-align:left;color:var(--muted);font-size:10px;font-weight:600;padding-bottom:4px">Ticker</th>
+            <th style="text-align:right;color:var(--muted);font-size:10px;font-weight:600;padding-bottom:4px">Harga</th>
+            <th style="text-align:right;color:var(--muted);font-size:10px;font-weight:600;padding-bottom:4px">%</th>
+            <th style="text-align:right;color:var(--muted);font-size:10px;font-weight:600;padding-bottom:4px">Δ</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openWlChartIdx(sym) {
+  // Open stock modal, reset buttons to defaults
+  document.querySelectorAll('#modal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('tf-1d')?.classList.add('on');
+  openStockChart(sym);
+}
+
+function openWlChartUsd(yf, name, avgUSD, shares) {
+  // Reset asset modal buttons
+  document.querySelectorAll('#amodal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('atf-1d')?.classList.add('on');
+  document.querySelectorAll('#amodal-type-btns .tf-btn').forEach(b => b.classList.remove('on'));
+  document.querySelector('#amodal-type-btns .tf-btn')?.classList.add('on');
+  openAssetChart(yf, name, avgUSD, shares);
+}
 </script>
 </body>
 </html>
