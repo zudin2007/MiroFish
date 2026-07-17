@@ -8197,8 +8197,16 @@ function deleteKomEntry(groupId, idx) {
 let wlPrices   = {};   // {yf: {price, prev, chg, chgPct}}
 let wlLoading  = false;
 let wlLastFetch = 0;
+let _priceCache = {};  // {yf: {data, timestamp}}
+const PRICE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 async function fetchWlQuote(yf) {
+  // Check cache first
+  const cached = _priceCache[yf];
+  if (cached && Date.now() - cached.timestamp < PRICE_CACHE_TTL) {
+    return cached.data;
+  }
+
   const base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(yf);
   const proxies = [
     'https://api.allorigins.win/raw?url=' + encodeURIComponent(base),
@@ -8213,7 +8221,10 @@ async function fetchWlQuote(yf) {
       const price = meta.regularMarketPrice;
       const prev  = meta.previousClose || meta.chartPreviousClose || price;
       if (!price) continue;
-      return { price, prev, chg: price - prev, chgPct: prev > 0 ? (price - prev) / prev * 100 : 0 };
+      const result = { price, prev, chg: price - prev, chgPct: prev > 0 ? (price - prev) / prev * 100 : 0 };
+      // Cache result
+      _priceCache[yf] = { data: result, timestamp: Date.now() };
+      return result;
     } catch(e) {}
   }
   return null;
