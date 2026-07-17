@@ -256,11 +256,9 @@ window.addEventListener('load', hideLoadingScreen);
     </div>
   </div>
 
-  <!-- Diagnostic Panel -->
-  <div id="diag-panel" style="background:rgba(255,77,77,.08);border:1px solid rgba(255,77,77,.2);border-radius:8px;padding:12px;margin-bottom:12px;font-size:12px;color:var(--sub);display:none">
-    <div style="font-weight:600;margin-bottom:8px;color:var(--red)">🔧 Debug Info:</div>
-    <div id="diag-text" style="font-family:monospace;line-height:1.4;white-space:pre-wrap;word-break:break-all"></div>
-    <button onclick="document.getElementById('diag-panel').style.display='none'" style="background:none;border:none;color:var(--muted);cursor:pointer;margin-top:8px;font-size:12px;text-decoration:underline">Tutup</button>
+  <!-- Diagnostic Panel (hidden by default) -->
+  <div id="diag-panel" style="background:rgba(255,77,77,.08);border:1px solid rgba(255,77,77,.2);border-radius:8px;padding:12px;margin-bottom:12px;font-size:11px;color:var(--sub);display:none;max-height:150px;overflow-y:auto">
+    <div id="diag-text" style="font-family:monospace;line-height:1.3;white-space:pre-wrap;word-break:break-all"></div>
   </div>
 
   <div class="warn" id="cash-warn" style="justify-content:space-between">
@@ -1584,55 +1582,48 @@ async function fetchPrice(sym) {
 
 async function fetchAll() {
   const btn = document.getElementById('btn-upd');
-  btn.textContent = '⟳ Updating…'; btn.disabled = true;
+  const tsEl = document.getElementById('last-ts');
 
+  btn.textContent = '⟳ Updating…';
+  btn.disabled = true;
+  tsEl.textContent = '⟳ Loading...';
+
+  // ALWAYS ensure we show something (even if update fails)
   try {
     if (holdings.length === 0) {
-      document.getElementById('last-ts').textContent = '✗ No data';
-      btn.textContent = '↻ Update Harga';
-      btn.disabled = false;
+      tsEl.textContent = '✗ No holdings';
       return;
     }
 
-    // STEP 1: Show local data immediately (don't wait)
-    renderPorto();
-    document.getElementById('last-ts').textContent = '⟳ Fetching prices...';
+    // Show local data first
+    try { renderPorto(); } catch(e) { console.error('renderPorto error:', e); }
 
-    // STEP 2: Try to fetch new prices (background, with timeout)
-    let success = 0;
+    // Try fetch (max 5 sec per stock)
+    let updated = 0;
     for (const h of holdings) {
       try {
-        const p = await Promise.race([
-          fetchPrice(h.sym),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
-        ]);
-        if (p !== null) {
-          h.price = p;
-          success++;
-        }
-      } catch(e) {
-        // Continue with next stock if one fails
-      }
+        const p = await fetchPrice(h.sym);
+        if (p) { h.price = p; updated++; }
+      } catch(e) {}
     }
 
-    // STEP 3: Re-render with whatever we got
-    renderPorto();
-    savePortoHoldings();
+    // Render final result
+    try { renderPorto(); } catch(e) {}
+    try { savePortoHoldings(); } catch(e) {}
 
-    // Show result
-    const msg = success > 0 ? `✓ ${success} prices updated` : '(using cache)';
-    document.getElementById('last-ts').textContent = msg;
-
+    // Show status
+    tsEl.textContent = updated > 0 ? `✓ ${updated} updated` : '(local)';
     setTimeout(() => {
-      document.getElementById('last-ts').textContent = 'Update: ' + new Date().toLocaleTimeString('id-ID');
-    }, 2000);
+      tsEl.textContent = 'Update: ' + new Date().toLocaleTimeString('id-ID');
+    }, 1500);
 
   } catch(e) {
-    document.getElementById('last-ts').textContent = '✗ ' + e.message;
+    tsEl.textContent = '✗ Error';
+  } finally {
+    // ALWAYS re-enable button
+    btn.textContent = '↻ Update Harga';
+    btn.disabled = false;
   }
-
-  btn.textContent = '↻ Update Harga';
-  btn.disabled = false;
 }
 
 // ── AUTO-POLL ──────────────────────────────────────────
