@@ -400,6 +400,19 @@ select.fi option{background:var(--card)}
 <!-- ══════════════ JURNAL ══════════════ -->
 <div id="tab-jurnal" class="panel">
 
+  <!-- Market strip -->
+  <div class="mkt-globe" style="margin-bottom:12px">
+    <div class="mkt-idx" style="cursor:pointer" onclick="openWlChartUsd('^JKSE','IHSG')">
+      <div class="mkt-idx-l">IHSG</div>
+      <div class="mkt-idx-v" id="jrn-ihsg-val">—</div>
+      <div style="font-size:10px" id="jrn-ihsg-chg">—</div>
+    </div>
+    <div class="mkt-idx">
+      <div class="mkt-idx-l">USD/IDR</div>
+      <div class="mkt-idx-v" id="jrn-usdidr-val">—</div>
+    </div>
+  </div>
+
   <!-- Sub-tab bar -->
   <div class="sub-tab-bar">
     <button class="sub-tab on" onclick="showJurnalSub('idx',this)">IDX</button>
@@ -807,11 +820,59 @@ select.fi option{background:var(--card)}
 
 <!-- ══════════════ WATCHLIST ══════════════ -->
 <div id="tab-watchlist" class="panel">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-    <div style="font-size:12px;color:var(--muted)" id="wl-status">—</div>
-    <button class="tf-btn" onclick="fetchWatchlist(true)" id="wl-refresh-btn">⟳ Refresh</button>
+  <!-- Market overview -->
+  <div class="chips" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:10px" id="wl-market-chips">
+    <div class="chip" style="cursor:pointer" onclick="openWlChartUsd('^JKSE','IHSG')">
+      <div class="chip-l">IHSG</div>
+      <div class="chip-v" id="wl-ihsg">—</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px" id="wl-ihsg-chg">—</div>
+    </div>
+    <div class="chip">
+      <div class="chip-l">USD/IDR</div>
+      <div class="chip-v" id="wl-usdidr">—</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px" id="wl-usdidr-chg">—</div>
+    </div>
+    <div class="chip" style="display:flex;flex-direction:column;justify-content:space-between;gap:6px">
+      <div style="font-size:11px;color:var(--muted)" id="wl-status">—</div>
+      <div style="display:flex;gap:6px">
+        <button class="tf-btn" onclick="openAddWl()" style="flex:1">＋ Tambah</button>
+        <button class="tf-btn" onclick="fetchWatchlist(true)" id="wl-refresh-btn">⟳</button>
+      </div>
+    </div>
   </div>
   <div id="wl-body"></div>
+</div>
+
+<!-- ══ ADD WATCHLIST MODAL ══ -->
+<div class="modal-overlay" id="wl-add-modal" onclick="if(event.target===this)closeAddWl()">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-hdr">
+      <div class="modal-title">Tambah ke Watchlist</div>
+      <button class="modal-close" onclick="closeAddWl()">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <div class="fl" style="margin-bottom:6px">Kategori</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="wl-cat-btns">
+          <button class="tf-btn on" onclick="selectWlCat('idx',this)">🇮🇩 Saham IDX</button>
+          <button class="tf-btn"    onclick="selectWlCat('global',this)">🌐 Saham Global</button>
+          <button class="tf-btn"    onclick="selectWlCat('crypto',this)">₿ Kripto</button>
+          <button class="tf-btn"    onclick="selectWlCat('commodity',this)">🥇 Komoditas</button>
+        </div>
+      </div>
+      <div id="wl-sym-hint" style="font-size:11px;color:var(--muted);line-height:1.5">Contoh IDX: <b>BBCA</b>, <b>GOTO</b> &nbsp;·&nbsp; Global: <b>AAPL</b>, <b>TSLA</b><br>Kripto: <b>BTC-USD</b>, <b>ETH-USD</b> &nbsp;·&nbsp; Komoditas: <b>GC=F</b> (Emas), <b>CL=F</b> (Minyak)</div>
+      <div>
+        <div class="fl" style="margin-bottom:4px">Yahoo Finance Symbol</div>
+        <input class="fi" id="wl-input-sym" placeholder="e.g. BBCA, BTC-USD, GC=F" autocomplete="off" autocapitalize="characters">
+      </div>
+      <div>
+        <div class="fl" style="margin-bottom:4px">Nama Tampilan</div>
+        <input class="fi" id="wl-input-name" placeholder="e.g. Bank BCA, Bitcoin, Gold">
+      </div>
+      <button class="btn btn-o" onclick="submitAddWl()" style="width:100%;padding:10px;font-size:13px;font-weight:700">Tambah</button>
+      <div id="wl-add-err" style="font-size:12px;color:#ff4d4d;min-height:16px;text-align:center"></div>
+    </div>
+  </div>
 </div>
 
 </div><!-- /content -->
@@ -1924,11 +1985,19 @@ async function fetchIHSG() {
         'Update: ' + new Date().toLocaleTimeString('id-ID');
       const closes = (res.indicators?.quote?.[0]?.close || []).filter(v => v != null);
       if (closes.length > 1) drawIHSGMini(closes, chg >= 0);
+      // Update jurnal market strip
+      const jEl = document.getElementById('jrn-ihsg-val');
+      if (jEl) {
+        jEl.textContent = price.toLocaleString('id-ID', { maximumFractionDigits: 2 });
+        const jChg = document.getElementById('jrn-ihsg-chg');
+        if (jChg) { jChg.textContent = (chg>=0?'+':'')+chgPct.toFixed(2)+'%'; jChg.style.color=chg>=0?'var(--green)':'var(--red)'; }
+      }
       break;
     } catch(e) {}
   }
   // Fetch global indices in parallel
-  fetchGlobalIdx('g-usdidr', 'USDIDR%3DX', v => v.toLocaleString('id-ID',{maximumFractionDigits:0}));
+  fetchGlobalIdx('g-usdidr',     'USDIDR%3DX', v => v.toLocaleString('id-ID',{maximumFractionDigits:0}));
+  fetchGlobalIdx('jrn-usdidr-val','USDIDR%3DX', v => v.toLocaleString('id-ID',{maximumFractionDigits:0}));
   fetchGlobalIdx('g-dji',    '%5EDJI',     v => v.toLocaleString('en-US',{maximumFractionDigits:0}));
   fetchGlobalIdx('g-nasdaq', '%5EIXIC',    v => v.toLocaleString('en-US',{maximumFractionDigits:0}));
   fetchGlobalIdx('g-sp500',  '%5EGSPC',    v => v.toLocaleString('en-US',{maximumFractionDigits:0}));
@@ -7512,16 +7581,42 @@ async function fetchWatchlist(force) {
   if (statusEl) statusEl.textContent = '⟳ Memuat harga…';
   if (btnEl) btnEl.disabled = true;
 
-  // Collect all unique yf tickers
-  const allItems = WL_GROUPS.flatMap(g => g.items);
-  const unique   = [...new Set(allItems.map(x => x.yf))];
+  // Collect all unique tickers: market overview + fixed groups + custom
+  const fixedItems  = WL_GROUPS.flatMap(g => g.items);
+  const customItems = loadWlCustom();
+  const allItems    = [...fixedItems, ...customItems];
+  const marketSyms  = ['^JKSE', 'USDIDR=X'];
+  const unique = [...new Set([...marketSyms, ...allItems.map(x => x.yf)])];
 
-  // Fetch all in parallel (small batches of 8 to avoid overload)
   const BATCH = 8;
   for (let i = 0; i < unique.length; i += BATCH) {
     const batch = unique.slice(i, i + BATCH);
     const results = await Promise.all(batch.map(yf => fetchWlQuote(yf)));
     batch.forEach((yf, idx) => { if (results[idx]) wlPrices[yf] = results[idx]; });
+  }
+
+  // Update IHSG chip
+  const qIhsg = wlPrices['^JKSE'];
+  if (qIhsg) {
+    const ihsgEl    = document.getElementById('wl-ihsg');
+    const ihsgChgEl = document.getElementById('wl-ihsg-chg');
+    if (ihsgEl) ihsgEl.textContent = qIhsg.price.toLocaleString('id-ID', { maximumFractionDigits:2 });
+    if (ihsgChgEl) {
+      ihsgChgEl.textContent = (qIhsg.chg>=0?'+':'') + qIhsg.chgPct.toFixed(2) + '%';
+      ihsgChgEl.style.color = qIhsg.chg >= 0 ? 'var(--green)' : 'var(--red)';
+    }
+  }
+
+  // Update USD/IDR chip
+  const qUsd = wlPrices['USDIDR=X'];
+  if (qUsd) {
+    const usdEl    = document.getElementById('wl-usdidr');
+    const usdChgEl = document.getElementById('wl-usdidr-chg');
+    if (usdEl) usdEl.textContent = qUsd.price.toLocaleString('id-ID', { maximumFractionDigits:0 });
+    if (usdChgEl) {
+      usdChgEl.textContent = (qUsd.chg>=0?'+':'') + qUsd.chgPct.toFixed(2) + '%';
+      usdChgEl.style.color = qUsd.chg >= 0 ? 'var(--green)' : 'var(--red)';
+    }
   }
 
   wlLastFetch = Date.now();
@@ -7533,42 +7628,45 @@ async function fetchWatchlist(force) {
 }
 
 function renderWatchlist() {
-  const usdRate = tgUSDIDR || gtUSDIDR || cryptoUSDIDR || 16000;
   const body = document.getElementById('wl-body');
   if (!body) return;
 
-  body.innerHTML = WL_GROUPS.map(grp => {
-    const rows = grp.items.map(item => {
-      const q = wlPrices[item.yf];
-      const isUsd = grp.usd;
-      let priceStr = '—', chgStr = '—', pctStr = '—', cls = '';
-      if (q) {
-        const chg    = q.chg, pct = q.chgPct;
-        cls          = chg >= 0 ? 'g' : 'r';
-        const sign   = chg >= 0 ? '+' : '';
-        priceStr     = isUsd
-          ? '$' + q.price.toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 })
-          : 'Rp' + idrRaw(Math.round(q.price));
-        chgStr       = sign + (isUsd
-          ? q.chg.toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 })
-          : idrRaw(Math.round(Math.abs(chg))) * (chg < 0 ? -1 : 1));
-        if (!isUsd) chgStr = (chg >= 0 ? '+' : '') + idrRaw(Math.round(chg));
-        pctStr = sign + pct.toFixed(2) + '%';
-      }
-      const onclick = isUsd
-        ? `openWlChartUsd('${item.yf}','${item.name.replace(/'/g,"\\'")}')`
-        : `openWlChartIdx('${item.sym}')`;
-      return `<tr onclick="${onclick}" style="cursor:pointer;transition:background .12s" onmouseenter="this.style.background='var(--hover,rgba(255,255,255,.04))'" onmouseleave="this.style.background=''">
-        <td>
-          <div style="font-weight:700;font-size:13px">${item.sym}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:1px">${item.name}</div>
-        </td>
-        <td style="text-align:right;font-variant-numeric:tabular-nums;font-size:13px;white-space:nowrap">${priceStr}</td>
-        <td style="text-align:right;font-variant-numeric:tabular-nums;font-size:12px;white-space:nowrap" class="${cls}">${pctStr}</td>
-        <td style="text-align:right;font-variant-numeric:tabular-nums;font-size:12px;white-space:nowrap" class="${cls}">${chgStr}</td>
-      </tr>`;
-    }).join('');
+  function renderRow(item, isUsd, removable) {
+    const q = wlPrices[item.yf];
+    let priceStr = '—', chgStr = '—', pctStr = '—', cls = '';
+    if (q) {
+      const chg = q.chg, pct = q.chgPct;
+      cls = chg >= 0 ? 'g' : 'r';
+      const sign = chg >= 0 ? '+' : '';
+      priceStr = isUsd
+        ? '$' + q.price.toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 })
+        : 'Rp' + idrRaw(Math.round(q.price));
+      chgStr = isUsd
+        ? sign + q.chg.toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 })
+        : (chg >= 0 ? '+' : '') + idrRaw(Math.round(chg));
+      pctStr = sign + pct.toFixed(2) + '%';
+    }
+    const onclick = isUsd
+      ? `openWlChartUsd('${item.yf}','${item.name.replace(/'/g,"\\'")}')`
+      : `openWlChartIdx('${item.sym}')`;
+    const removeBtn = removable
+      ? `<td style="width:28px;padding-left:4px"><button onclick="event.stopPropagation();removeWlItem('${item.yf.replace(/'/g,"\\'")}');" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;line-height:1;padding:2px 4px" title="Hapus">✕</button></td>`
+      : '';
+    return `<tr onclick="${onclick}" style="cursor:pointer;transition:background .12s" onmouseenter="this.style.background='var(--hover,rgba(255,255,255,.04))'" onmouseleave="this.style.background=''">
+      <td>
+        <div style="font-weight:700;font-size:13px">${item.sym}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:1px">${item.name}</div>
+      </td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums;font-size:13px;white-space:nowrap">${priceStr}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums;font-size:12px;white-space:nowrap" class="${cls}">${pctStr}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums;font-size:12px;white-space:nowrap" class="${cls}">${chgStr}</td>
+      ${removeBtn}
+    </tr>`;
+  }
 
+  function renderGroup(grp, removable) {
+    const rows = grp.items.map(item => renderRow(item, grp.usd, removable)).join('');
+    const extraTh = removable ? '<th style="width:28px"></th>' : '';
     return `<div class="card" style="margin-bottom:10px;padding:10px 12px">
       <div style="font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">${grp.name}</div>
       <div class="tbl-wrap">
@@ -7578,12 +7676,33 @@ function renderWatchlist() {
             <th style="text-align:right;color:var(--muted);font-size:10px;font-weight:600;padding-bottom:4px">Harga</th>
             <th style="text-align:right;color:var(--muted);font-size:10px;font-weight:600;padding-bottom:4px">%</th>
             <th style="text-align:right;color:var(--muted);font-size:10px;font-weight:600;padding-bottom:4px">Δ</th>
+            ${extraTh}
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>
     </div>`;
-  }).join('');
+  }
+
+  const fixedHtml = WL_GROUPS.map(grp => renderGroup(grp, false)).join('');
+
+  const custom = loadWlCustom();
+  let customHtml = '';
+  if (custom.length > 0) {
+    const cats = {
+      idx:       { name:'Saham IDX (Saya)',    usd:false, items:[] },
+      global:    { name:'Saham Global (Saya)', usd:true,  items:[] },
+      crypto:    { name:'Kripto (Saya)',        usd:true,  items:[] },
+      commodity: { name:'Komoditas (Saya)',     usd:true,  items:[] },
+    };
+    custom.forEach(item => { if (cats[item.cat]) cats[item.cat].items.push(item); });
+    customHtml = Object.values(cats)
+      .filter(c => c.items.length > 0)
+      .map(c => renderGroup(c, true))
+      .join('');
+  }
+
+  body.innerHTML = fixedHtml + customHtml;
 }
 
 function openWlChartIdx(sym) {
@@ -7618,6 +7737,87 @@ function openWlChartUsd(yf, name) {
   document.querySelector('#amodal-type-btns .tf-btn').classList.add('on');
   document.getElementById('asset-modal').classList.add('on');
   fetchAssetChart(yf, '1y', '1d');
+}
+
+// ── CUSTOM WATCHLIST MANAGEMENT ──────────────────────────
+let wlCurrentCat = 'idx';
+
+function loadWlCustom() {
+  try { return JSON.parse(localStorage.getItem('wl_custom_v1') || '[]'); } catch(e) { return []; }
+}
+function saveWlCustom(items) {
+  try { localStorage.setItem('wl_custom_v1', JSON.stringify(items)); } catch(e) {}
+}
+
+function openAddWl() {
+  document.getElementById('wl-add-modal').classList.add('on');
+  document.getElementById('wl-input-sym').value  = '';
+  document.getElementById('wl-input-name').value = '';
+  document.getElementById('wl-add-err').textContent = '';
+  wlCurrentCat = 'idx';
+  document.querySelectorAll('#wl-cat-btns .tf-btn').forEach(b => b.classList.remove('on'));
+  document.querySelector('#wl-cat-btns .tf-btn').classList.add('on');
+  updateWlHint();
+  setTimeout(() => document.getElementById('wl-input-sym').focus(), 50);
+}
+function closeAddWl() {
+  document.getElementById('wl-add-modal').classList.remove('on');
+}
+function selectWlCat(cat, btn) {
+  wlCurrentCat = cat;
+  document.querySelectorAll('#wl-cat-btns .tf-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  updateWlHint();
+}
+function updateWlHint() {
+  const hints = {
+    idx:       'Contoh: <b>BBCA</b>, <b>GOTO</b>, <b>TLKM</b> &nbsp;(tanpa .JK)',
+    global:    'Contoh: <b>AAPL</b>, <b>TSLA</b>, <b>GOOGL</b>',
+    crypto:    'Contoh: <b>BTC-USD</b>, <b>ETH-USD</b>, <b>SOL-USD</b>',
+    commodity: 'Contoh: <b>GC=F</b> (Emas), <b>CL=F</b> (Minyak), <b>SI=F</b> (Perak)',
+  };
+  const el = document.getElementById('wl-sym-hint');
+  if (el) el.innerHTML = hints[wlCurrentCat] || '';
+}
+
+async function submitAddWl() {
+  const errEl = document.getElementById('wl-add-err');
+  errEl.textContent = '';
+  let sym  = (document.getElementById('wl-input-sym').value  || '').trim().toUpperCase();
+  const name = (document.getElementById('wl-input-name').value || '').trim();
+  if (!sym)  { errEl.textContent = 'Masukkan simbol terlebih dahulu.'; return; }
+  if (!name) { errEl.textContent = 'Masukkan nama tampilan.'; return; }
+
+  let yf  = sym;
+  const usd = wlCurrentCat !== 'idx';
+  if (wlCurrentCat === 'idx' && !sym.endsWith('.JK')) yf = sym + '.JK';
+
+  const allFixed = WL_GROUPS.flatMap(g => g.items);
+  if (allFixed.find(x => x.yf === yf)) {
+    errEl.textContent = 'Simbol ini sudah ada di watchlist tetap.'; return;
+  }
+  const custom = loadWlCustom();
+  if (custom.find(x => x.yf === yf)) {
+    errEl.textContent = 'Simbol ini sudah ada di watchlist Anda.'; return;
+  }
+
+  // Verify symbol exists
+  errEl.textContent = '⟳ Memverifikasi simbol…';
+  const q = await fetchWlQuote(yf);
+  if (!q) { errEl.textContent = 'Simbol tidak ditemukan di Yahoo Finance.'; return; }
+
+  wlPrices[yf] = q;
+  custom.push({ sym, yf, name, cat: wlCurrentCat, usd });
+  saveWlCustom(custom);
+  closeAddWl();
+  renderWatchlist();
+}
+
+function removeWlItem(yf) {
+  const custom = loadWlCustom().filter(x => x.yf !== yf);
+  saveWlCustom(custom);
+  delete wlPrices[yf];
+  renderWatchlist();
 }
 </script>
 </body>
