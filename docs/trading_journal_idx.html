@@ -9106,11 +9106,36 @@ function checkStorageQuota() {
   return { usage, limit, percent };
 }
 
-// Auto-init Firebase on load (immediately, not delayed)
-window.addEventListener('load', () => {
+// Auto-init Firebase (both on script load and on window load for safety)
+function initAutoFirebase() {
   try {
     console.log('[Auto-init] Initializing Firebase sync');
-    initFirebaseSync();
+    if (typeof firebase !== 'undefined') {
+      initFirebaseSync();
+    } else {
+      console.warn('[Auto-init] Firebase SDK not yet loaded, will retry on window.load');
+    }
+  } catch(e) {
+    console.error('[Auto-init] Firebase init error:', e);
+  }
+}
+
+// Try immediate init (after script loads)
+if (document.readyState === 'loading') {
+  console.log('[Auto-init] DOM still loading, waiting for completion');
+  document.addEventListener('DOMContentLoaded', initAutoFirebase);
+} else {
+  console.log('[Auto-init] DOM ready, initializing now');
+  initAutoFirebase();
+}
+
+// Also try on window load as fallback
+window.addEventListener('load', () => {
+  try {
+    console.log('[Auto-init] Window load event, ensuring Firebase init');
+    if (!_fbApp && typeof firebase !== 'undefined') {
+      initFirebaseSync();
+    }
     // Auto-save backup to localStorage every hour
     setInterval(() => {
       try {
@@ -9130,7 +9155,7 @@ window.addEventListener('load', () => {
       }
     }, 60 * 60 * 1000); // Every hour
   } catch(e) {
-    console.error('Auto-init Firebase error:', e);
+    console.error('[Auto-init] Window load error:', e);
   }
 });
 
