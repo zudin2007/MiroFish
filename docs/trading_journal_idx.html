@@ -1515,28 +1515,36 @@ function renderPorto() {
   }
   renderPortoShortlist();
 
-  // ── Charts ──
-  const chartColors = PALETTE.concat(PALETTE);
-  const bgBorder = '#1a1a2e';
-  const chartData = holdings.map(h => ({
-    sym: h.sym,
-    nilai: h.shares * h.price,
-    pnl: h.shares * h.price - h.shares * h.avg
-  }));
+  // ── Charts (with error handling) ──
+  try {
+    const chartColors = PALETTE.concat(PALETTE);
+    const bgBorder = '#1a1a2e';
+    const chartData = holdings.map(h => ({
+      sym: h.sym,
+      nilai: h.shares * h.price,
+      pnl: h.shares * h.price - h.shares * h.avg
+    }));
 
-  if (ptChAlloc) ptChAlloc.destroy();
-  ptChAlloc = new Chart(document.getElementById('pt-ch-alloc'), {
-    type: 'doughnut',
-    data: {
-      labels: chartData.map(d => d.sym),
-      datasets: [{ data: chartData.map(d => Math.round(d.nilai)), backgroundColor: chartColors, borderWidth: 2, borderColor: bgBorder }]
-    },
-    options: { plugins: { legend: { position: 'bottom', labels: { color: '#a8a8c8', font: { size: 11 }, boxWidth: 12 } },
-      tooltip: { callbacks: { label: ctx => ' ' + idrRaw(ctx.parsed) } } } }
-  });
+    if (ptChAlloc && typeof ptChAlloc.destroy === 'function') ptChAlloc.destroy();
+    if (typeof Chart !== 'undefined') {
+      ptChAlloc = new Chart(document.getElementById('pt-ch-alloc'), {
+        type: 'doughnut',
+        data: {
+          labels: chartData.map(d => d.sym),
+          datasets: [{ data: chartData.map(d => Math.round(d.nilai)), backgroundColor: chartColors, borderWidth: 2, borderColor: bgBorder }]
+        },
+        options: { plugins: { legend: { position: 'bottom', labels: { color: '#a8a8c8', font: { size: 11 }, boxWidth: 12 } },
+          tooltip: { callbacks: { label: ctx => ' ' + idrRaw(ctx.parsed) } } } }
+      });
+    }
+  } catch(chartErr) {
+    console.error('[renderPorto] Chart error:', chartErr.message);
+  }
 
-  if (ptChPnl) ptChPnl.destroy();
-  ptChPnl = new Chart(document.getElementById('pt-ch-pnl'), {
+  try {
+    if (ptChPnl && typeof ptChPnl.destroy === 'function') ptChPnl.destroy();
+    if (typeof Chart !== 'undefined') {
+      ptChPnl = new Chart(document.getElementById('pt-ch-pnl'), {
     type: 'bar',
     data: {
       labels: chartData.map(d => d.sym),
@@ -1550,7 +1558,11 @@ function renderPorto() {
         x: { ticks: { color: '#6868a8', font: { size: 11 } }, grid: { color: 'rgba(45,45,80,.4)' } },
         y: { ticks: { color: '#6868a8', callback: v => idrRaw(v), font: { size: 10 } }, grid: { color: 'rgba(45,45,80,.4)' } }
       } }
-  });
+      });
+    }
+  } catch(chartErr) {
+    console.error('[renderPorto] PnL Chart error:', chartErr.message);
+  }
 }
 
 // Mock prices for testing
