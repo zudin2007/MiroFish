@@ -8499,31 +8499,29 @@ const firebaseConfig = {
 
 let _fbApp = null;
 let _fbDb = null;
-let _fbAuth = null;
-let _fbUserId = null;
 let _fbListeners = [];
 let _syncingToFb = false;
 let _ignoreFbUpdate = false;
+let _fbConnected = false;
 
 function initFirebaseSync() {
   try {
     if (_fbApp) return; // Already initialized
     _fbApp = firebase.initializeApp(firebaseConfig);
     _fbDb = firebase.database(_fbApp);
-    _fbAuth = firebase.auth(_fbApp);
 
-    // Sign in anonymously (semua device share data via shared path di Firebase)
-    _fbAuth.signInAnonymously()
-      .then(cred => {
-        _fbUserId = cred.user.uid;
-        document.getElementById('sync-user-id').textContent = 'Shared UID: ' + _fbUserId.slice(0, 8) + '…';
+    // Test connection ke Firebase
+    const testRef = _fbDb.ref('.info/connected');
+    testRef.on('value', snap => {
+      _fbConnected = snap.val() === true;
+      if (_fbConnected) {
+        document.getElementById('sync-user-id').textContent = 'Shared public data • Semua device sync';
         setupFirebaseListeners();
-        showToast('✓ Terhubung ke Firebase');
-      })
-      .catch(err => {
-        console.error('Firebase auth error:', err);
-        showToast('⚠ Gagal login Firebase: ' + err.message);
-      });
+        if (!_fbListeners.length) {
+          showToast('✓ Terhubung ke Firebase');
+        }
+      }
+    });
   } catch(e) {
     console.error('Firebase init error:', e);
     showToast('⚠ Firebase error: ' + e.message);
@@ -8623,13 +8621,8 @@ function resetFirebaseSync() {
   _fbListeners.forEach(fn => fn());
   _fbListeners = [];
 
-  if (_fbAuth) {
-    _fbAuth.signOut().catch(e => console.error('Sign out error:', e));
-  }
-
-  _fbUserId = null;
+  _fbConnected = false;
   _fbDb = null;
-  _fbAuth = null;
   _fbApp = null;
 
   closeSyncModal();
