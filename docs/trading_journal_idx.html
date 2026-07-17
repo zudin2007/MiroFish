@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>IFBTC PLAYBOOK & JOURNAL</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -912,6 +914,7 @@ select.fi option{background:var(--card)}
       <button class="tf-btn"    id="tf-2y"  onclick="setTF('2y','1wk',this)">2 Tahun</button>
       <button class="tf-btn"    id="tf-5y"  onclick="setTF('5y','1mo',this)">5 Tahun</button>
       <button class="tf-btn"    id="tf-max" onclick="setTF('max','1mo',this)">Maks</button>
+      <button class="tf-btn" id="modal-zoom-reset" onclick="resetChartZoom('modal')" title="Reset zoom" style="margin-left:auto;display:none">⟲ Reset</button>
     </div>
     <div id="modal-status" style="font-size:12px;color:var(--muted);min-height:16px;margin-bottom:6px"></div>
     <canvas id="modal-chart" height="220"></canvas>
@@ -960,6 +963,7 @@ select.fi option{background:var(--card)}
       <button class="tf-btn"    id="atf-2y"  onclick="setAssetTF('2y','1wk',this)">2 Tahun</button>
       <button class="tf-btn"    id="atf-5y"  onclick="setAssetTF('5y','1mo',this)">5 Tahun</button>
       <button class="tf-btn"    id="atf-max" onclick="setAssetTF('max','1mo',this)">Maks</button>
+      <button class="tf-btn" id="amodal-zoom-reset" onclick="resetChartZoom('amodal')" title="Reset zoom" style="margin-left:auto;display:none">⟲ Reset</button>
     </div>
     <div id="amodal-status" style="font-size:12px;color:var(--muted);min-height:16px;margin-bottom:6px"></div>
     <canvas id="amodal-chart" height="220"></canvas>
@@ -2384,6 +2388,17 @@ function closeStockModal() {
   document.getElementById('stock-modal').classList.remove('on');
   if (modalRsiChart)  { modalRsiChart.destroy();  modalRsiChart  = null; }
   if (modalMacdChart) { modalMacdChart.destroy(); modalMacdChart = null; }
+  document.getElementById('modal-zoom-reset').style.display = 'none';
+}
+
+function resetChartZoom(which) {
+  if (which === 'modal') {
+    if (modalChart) modalChart.resetZoom();
+    document.getElementById('modal-zoom-reset').style.display = 'none';
+  } else {
+    if (aModalChart) aModalChart.resetZoom();
+    document.getElementById('amodal-zoom-reset').style.display = 'none';
+  }
 }
 
 function setTF(range, interval, btn) {
@@ -2484,6 +2499,7 @@ function drawModalChart({ valid, fmtT, meta, sym }) {
   }
   const ctx = document.getElementById('modal-chart').getContext('2d');
   if (modalChart) { modalChart.destroy(); modalChart = null; }
+  document.getElementById('modal-zoom-reset').style.display = 'none';
   modalChart = new Chart(ctx, {
     type:'line',
     data:{ labels, datasets:[ priceDs, ...avgSet, ...stDs, ...emaDs, ...fcbDs,
@@ -2511,6 +2527,19 @@ function drawModalChart({ valid, fmtT, meta, sym }) {
               return ' ' + ctx.dataset.label + ': ' + idrRaw(ctx.parsed.y);
             }
           }
+        },
+        zoom:{
+          zoom:{
+            wheel:{ enabled:true, speed:0.08 },
+            pinch:{ enabled:true },
+            mode:'x',
+            onZoomComplete:() => { document.getElementById('modal-zoom-reset').style.display=''; }
+          },
+          pan:{
+            enabled:true, mode:'x',
+            onPanComplete:() => { document.getElementById('modal-zoom-reset').style.display=''; }
+          },
+          limits:{ x:{ minRange:5 } }
         }
       },
       scales:{
@@ -2565,6 +2594,7 @@ function closeAssetModal() {
   document.getElementById('asset-modal').classList.remove('on');
   if (aModalRsiChart)  { aModalRsiChart.destroy();  aModalRsiChart  = null; }
   if (aModalMacdChart) { aModalMacdChart.destroy(); aModalMacdChart = null; }
+  document.getElementById('amodal-zoom-reset').style.display = 'none';
 }
 
 function setAssetTF(range, interval, btn) {
@@ -2663,6 +2693,7 @@ function drawAssetChart({ valid, fmtT, meta, sym }) {
   }
   const ctx = document.getElementById('amodal-chart').getContext('2d');
   if (aModalChart) { aModalChart.destroy(); aModalChart = null; }
+  document.getElementById('amodal-zoom-reset').style.display = 'none';
   aModalChart = new Chart(ctx, {
     type:'line',
     data:{ labels, datasets:[ priceDs, ...avgSet, ...stDs, ...emaDs, ...fcbDs,
@@ -2686,6 +2717,19 @@ function drawAssetChart({ valid, fmtT, meta, sym }) {
             }
             return ' ' + ctx.dataset.label + ': ' + fUSD(ctx.parsed.y);
           }}
+        },
+        zoom:{
+          zoom:{
+            wheel:{ enabled:true, speed:0.08 },
+            pinch:{ enabled:true },
+            mode:'x',
+            onZoomComplete:() => { document.getElementById('amodal-zoom-reset').style.display=''; }
+          },
+          pan:{
+            enabled:true, mode:'x',
+            onPanComplete:() => { document.getElementById('amodal-zoom-reset').style.display=''; }
+          },
+          limits:{ x:{ minRange:5 } }
         }
       },
       scales:{
