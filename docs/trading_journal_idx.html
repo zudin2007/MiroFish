@@ -142,6 +142,7 @@ select.fi option{background:var(--card)}
   <button class="tab" onclick="showTab('gotrade',this)">Gotrade</button>
   <button class="tab" onclick="showTab('crypto',this)">Crypto</button>
   <button class="tab" onclick="showTab('tangem',this)">Tangem</button>
+  <button class="tab" onclick="showTab('watchlist',this)">Watchlist</button>
   <button class="tab" onclick="showTab('jurnal',this)">Jurnal</button>
   <button class="tab" onclick="showTab('analitik',this)">Analitik</button>
   <button class="tab" onclick="showTab('mm',this)">Money Mgmt</button>
@@ -149,7 +150,6 @@ select.fi option{background:var(--card)}
   <button class="tab" onclick="showTab('preturn',this)">P.Return</button>
   <button class="tab" onclick="showTab('gainloss',this)">Gain/Loss</button>
   <button class="tab" onclick="showTab('aktivitas',this)">Aktivitas</button>
-  <button class="tab" onclick="showTab('watchlist',this)">Watchlist</button>
 </div>
 
 <div class="content">
@@ -7587,7 +7587,24 @@ function renderWatchlist() {
 }
 
 function openWlChartIdx(sym) {
-  openStockChart(sym);
+  modalSym = sym;
+  document.getElementById('modal-sym').textContent = sym + '.JK';
+  const h = holdings.find(x => x.sym === sym);
+  if (h) {
+    const pnl = (h.price - h.avg) * h.shares;
+    const pct = h.avg > 0 ? (h.price - h.avg) / h.avg * 100 : 0;
+    const kep = h.shares >= 100
+      ? `${(h.shares/100 % 1 === 0 ? h.shares/100 : (h.shares/100).toFixed(2))} lot`
+      : `${h.shares} lbr`;
+    document.getElementById('modal-posinfo').innerHTML =
+      `${kep} &nbsp;·&nbsp; Avg: ${idrRaw(h.avg)} &nbsp;·&nbsp; Harga: ${idrRaw(h.price)} &nbsp;·&nbsp; P&L: <span class="${pnl>=0?'g':'r'}">${pnl>=0?'+':''}${idrRaw(pnl)} (${pct>=0?'+':''}${pct.toFixed(2)}%)</span>`;
+  } else {
+    document.getElementById('modal-posinfo').textContent = 'Watchlist';
+  }
+  document.querySelectorAll('#modal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('tf-1y').classList.add('on');
+  document.getElementById('stock-modal').classList.add('on');
+  fetchStockChart(sym, '1y', '1d');
 }
 
 function openWlChartUsd(yf, name) {
@@ -7596,11 +7613,11 @@ function openWlChartUsd(yf, name) {
   document.getElementById('amodal-sym').textContent = name;
   document.getElementById('amodal-posinfo').textContent = yf;
   document.querySelectorAll('#amodal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
-  document.getElementById('atf-1d').classList.add('on');
+  document.getElementById('atf-1y').classList.add('on');
   document.querySelectorAll('#amodal-type-btns .tf-btn').forEach(b => b.classList.remove('on'));
   document.querySelector('#amodal-type-btns .tf-btn').classList.add('on');
   document.getElementById('asset-modal').classList.add('on');
-  fetchAssetChart(yf, '1d', '5m');
+  fetchAssetChart(yf, '1y', '1d');
 }
 </script>
 </body>
