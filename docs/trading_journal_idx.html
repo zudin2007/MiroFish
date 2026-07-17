@@ -1519,10 +1519,17 @@ function renderPorto() {
 
 async function fetchPrice(sym) {
   const ticker = sym + '.JK';
+
+  // Try multiple CORS proxies and APIs
   const urls = [
+    // Proxy 1: allorigins.win
     `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+ticker)}`,
+    // Proxy 2: corsproxy.io
     `https://corsproxy.io/?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+ticker)}`,
+    // Proxy 3: api.codetabs.com
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+ticker)}`,
   ];
+
   for (const url of urls) {
     try {
       const r = await tFetch(url);
@@ -1532,11 +1539,16 @@ async function fetchPrice(sym) {
       }
       const j = await r.json();
       const p = j?.chart?.result?.[0]?.meta?.regularMarketPrice;
-      if (p && p > 0) return Math.round(p);
+      if (p && p > 0) {
+        console.log('[fetchPrice]', sym, '✓', Math.round(p));
+        return Math.round(p);
+      }
     } catch(e) {
-      console.error('[fetchPrice]', sym, 'error:', e.message);
+      console.error('[fetchPrice]', sym, 'try failed:', e.message);
     }
   }
+
+  console.warn('[fetchPrice]', sym, 'semua method gagal');
   return null;
 }
 
