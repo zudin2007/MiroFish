@@ -268,6 +268,12 @@ window.addEventListener('load', hideLoadingScreen);
     </span>
     <button type="button" onclick="document.getElementById('cash-warn').style.display='none'" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px;flex-shrink:0" title="Tutup">×</button>
   </div>
+
+  <!-- Debug: Holdings status -->
+  <div id="holdings-debug" style="background:rgba(41,182,246,.1);border:1px solid rgba(41,182,246,.2);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:var(--blue);display:none">
+    <span id="holdings-count">Loading...</span>
+  </div>
+
   <div class="chips">
     <div class="chip"><div class="chip-l">Total Nilai</div><div class="chip-v" id="c-nilai">—</div></div>
     <div class="chip"><div class="chip-l">Total Modal</div><div class="chip-v" id="c-modal">—</div></div>
@@ -7936,6 +7942,17 @@ function updateGrandTotal() {
 try { initWatchlist(); } catch(e) {}
 try { initFinnhub();  } catch(e) { console.error('initFinnhub', e); }
 try { startAutoPoll(); } catch(e) { console.error('startAutoPoll', e); }
+
+// Debug: Show holdings
+try {
+  const holdingsDebug = document.getElementById('holdings-debug');
+  const holdingsCount = document.getElementById('holdings-count');
+  if (holdingsDebug && holdingsCount) {
+    holdingsCount.textContent = `📊 ${holdings.length} holdings loaded`;
+    holdingsDebug.style.display = 'block';
+  }
+} catch(e) {}
+
 try { renderPorto(); } catch(e) { console.error('renderPorto', e); }
 try {
   const _today = new Date().toISOString().split('T')[0];
