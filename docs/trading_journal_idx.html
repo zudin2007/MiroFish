@@ -830,6 +830,7 @@ select.fi option{background:var(--card)}
       <button class="tf-btn" id="modal-ema50-btn" onclick="toggleEMA('modal',50,this)" style="color:#ab47bc">EMA 50</button>
       <button class="tf-btn" id="modal-rsi-btn"   onclick="toggleOsc('modal','rsi',this)"  style="color:#ff9800">RSI</button>
       <button class="tf-btn" id="modal-macd-btn"  onclick="toggleOsc('modal','macd',this)" style="color:#26c6da">MACD</button>
+      <button class="tf-btn" id="modal-fcb-btn"   onclick="toggleFCB('modal',this)"        style="color:#e040fb">FCB</button>
     </div>
     <div class="tf-wrap" id="modal-tf-row">
       <button class="tf-btn on" id="tf-1d"  onclick="setTF('1d','5m',this)">1 Hari</button>
@@ -877,6 +878,7 @@ select.fi option{background:var(--card)}
       <button class="tf-btn" id="amodal-ema50-btn" onclick="toggleEMA('amodal',50,this)" style="color:#ab47bc">EMA 50</button>
       <button class="tf-btn" id="amodal-rsi-btn"   onclick="toggleOsc('amodal','rsi',this)"  style="color:#ff9800">RSI</button>
       <button class="tf-btn" id="amodal-macd-btn"  onclick="toggleOsc('amodal','macd',this)" style="color:#26c6da">MACD</button>
+      <button class="tf-btn" id="amodal-fcb-btn"   onclick="toggleFCB('amodal',this)"        style="color:#e040fb">FCB</button>
     </div>
     <div class="tf-wrap" id="amodal-tf-row">
       <button class="tf-btn on" id="atf-1d"  onclick="setAssetTF('1d','5m',this)">1 Hari</button>
@@ -1970,6 +1972,7 @@ let modalShowEMA20  = false, modalShowEMA50  = false;
 let aModalShowEMA20 = false, aModalShowEMA50 = false;
 let modalShowRSI    = false, aModalShowRSI   = false;
 let modalShowMACD   = false, aModalShowMACD  = false;
+let modalShowFCB    = false, aModalShowFCB   = false;
 let modalRsiChart   = null,  aModalRsiChart  = null;
 let modalMacdChart  = null,  aModalMacdChart = null;
 
@@ -2085,6 +2088,46 @@ function calcMACD(valid, fast, slow, sig) {
     if (macd[i] != null && sigLine[i] != null) hist[i] = macd[i] - sigLine[i];
   }
   return { macd, sigLine, hist };
+}
+
+function calcFCB(valid) {
+  const n = valid.length;
+  const upper = new Array(n).fill(null);
+  const lower = new Array(n).fill(null);
+  let lastUpper = null, lastLower = null;
+  for (let j = 0; j < n; j++) {
+    const i = j - 2;
+    if (i >= 2) {
+      const hi = valid[i].h ?? valid[i].c;
+      const lo = valid[i].l ?? valid[i].c;
+      const isPeak =
+        hi > (valid[i-1].h ?? valid[i-1].c) &&
+        hi > (valid[i-2].h ?? valid[i-2].c) &&
+        hi > (valid[i+1].h ?? valid[i+1].c) &&
+        hi > (valid[i+2].h ?? valid[i+2].c);
+      const isTrough =
+        lo < (valid[i-1].l ?? valid[i-1].c) &&
+        lo < (valid[i-2].l ?? valid[i-2].c) &&
+        lo < (valid[i+1].l ?? valid[i+1].c) &&
+        lo < (valid[i+2].l ?? valid[i+2].c);
+      if (isPeak)   lastUpper = hi;
+      if (isTrough) lastLower = lo;
+    }
+    upper[j] = lastUpper;
+    lower[j] = lastLower;
+  }
+  return { upper, lower };
+}
+
+function toggleFCB(which, btn) {
+  const on = btn.classList.toggle('on');
+  if (which === 'modal') {
+    modalShowFCB = on;
+    if (modalCachedData) drawModalChart(modalCachedData);
+  } else {
+    aModalShowFCB = on;
+    if (aModalCached) drawAssetChart(aModalCached);
+  }
 }
 
 function drawSubCharts(which, { valid, labels }) {
@@ -2301,11 +2344,19 @@ function drawModalChart({ valid, fmtT, meta, sym }) {
     borderWidth:1.2, pointRadius:0, fill:false, tension:0, spanGaps:false, yAxisID:'y' });
   if (modalShowEMA50) emaDs.push({ label:'EMA 50', data:calcEMA(valid,50), borderColor:'#ab47bc',
     borderWidth:1.2, pointRadius:0, fill:false, tension:0, spanGaps:false, yAxisID:'y' });
+  const fcbDs = [];
+  if (modalShowFCB) {
+    const { upper, lower } = calcFCB(valid);
+    fcbDs.push({ label:'FCB Upper', data:upper, borderColor:'#ff4d4d', borderWidth:1.2,
+      pointRadius:0, fill:false, stepped:'after', spanGaps:false, yAxisID:'y' });
+    fcbDs.push({ label:'FCB Lower', data:lower, borderColor:'#00c853', borderWidth:1.2,
+      pointRadius:0, fill:false, stepped:'after', spanGaps:false, yAxisID:'y' });
+  }
   const ctx = document.getElementById('modal-chart').getContext('2d');
   if (modalChart) { modalChart.destroy(); modalChart = null; }
   modalChart = new Chart(ctx, {
     type:'line',
-    data:{ labels, datasets:[ priceDs, ...avgSet, ...stDs, ...emaDs,
+    data:{ labels, datasets:[ priceDs, ...avgSet, ...stDs, ...emaDs, ...fcbDs,
       { label:'Volume', data:vData, type:'bar',
         backgroundColor:color+'50', borderRadius:1, yAxisID:'vol', order:2 }
     ]},
@@ -2472,11 +2523,19 @@ function drawAssetChart({ valid, fmtT, meta, sym }) {
     borderWidth:1.2, pointRadius:0, fill:false, tension:0, spanGaps:false, yAxisID:'y' });
   if (aModalShowEMA50) emaDs.push({ label:'EMA 50', data:calcEMA(valid,50), borderColor:'#ab47bc',
     borderWidth:1.2, pointRadius:0, fill:false, tension:0, spanGaps:false, yAxisID:'y' });
+  const fcbDs = [];
+  if (aModalShowFCB) {
+    const { upper, lower } = calcFCB(valid);
+    fcbDs.push({ label:'FCB Upper', data:upper, borderColor:'#ff4d4d', borderWidth:1.2,
+      pointRadius:0, fill:false, stepped:'after', spanGaps:false, yAxisID:'y' });
+    fcbDs.push({ label:'FCB Lower', data:lower, borderColor:'#00c853', borderWidth:1.2,
+      pointRadius:0, fill:false, stepped:'after', spanGaps:false, yAxisID:'y' });
+  }
   const ctx = document.getElementById('amodal-chart').getContext('2d');
   if (aModalChart) { aModalChart.destroy(); aModalChart = null; }
   aModalChart = new Chart(ctx, {
     type:'line',
-    data:{ labels, datasets:[ priceDs, ...avgSet, ...stDs, ...emaDs,
+    data:{ labels, datasets:[ priceDs, ...avgSet, ...stDs, ...emaDs, ...fcbDs,
       { label:'Volume', data:vData, type:'bar', backgroundColor:color+'50', borderRadius:1, yAxisID:'vol', order:2 }
     ]},
     options:{
