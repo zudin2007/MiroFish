@@ -884,6 +884,36 @@ select.fi option{background:var(--card)}
     </div>
   </div>
 
+  <!-- Confido Trading Idea -->
+  <div class="card" style="margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+      <div>
+        <div style="font-size:13px;font-weight:800;letter-spacing:.02em">Confido &mdash; <span style="color:var(--accent)">Trading Idea 2026</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Watch &amp; Wait &nbsp;·&nbsp; Jika harga menyentuh level, masuk Open Posisi</div>
+      </div>
+      <button class="tf-btn" onclick="refreshKomIdea()" id="kom-idea-refresh-btn">⟳ Refresh</button>
+    </div>
+    <div class="tbl-wrap">
+      <table style="font-size:12px">
+        <thead>
+          <tr style="color:var(--muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em">
+            <th style="text-align:left;padding-bottom:6px;min-width:44px">No</th>
+            <th style="text-align:left;padding-bottom:6px;min-width:70px">Code</th>
+            <th style="text-align:right;padding-bottom:6px;min-width:72px">Buy</th>
+            <th style="text-align:right;padding-bottom:6px;min-width:72px">SL / TS</th>
+            <th style="text-align:right;padding-bottom:6px;min-width:64px">% if SL</th>
+            <th style="text-align:right;padding-bottom:6px;min-width:72px">Harga</th>
+            <th style="text-align:right;padding-bottom:6px;min-width:64px">% G/L</th>
+            <th style="text-align:right;padding-bottom:6px;min-width:86px">Trigger Buy</th>
+            <th style="text-align:right;padding-bottom:6px;min-width:50px">Days</th>
+            <th style="text-align:left;padding-bottom:6px;min-width:100px">Catatan</th>
+          </tr>
+        </thead>
+        <tbody id="kom-idea-body"></tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 
 <!-- ══ ADD WATCHLIST MODAL ══ -->
@@ -1162,7 +1192,7 @@ function showTab(name, btn) {
   if (name === 'gainloss')  setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
   if (name === 'aktivitas') setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
   if (name === 'watchlist')  setTimeout(() => { try { fetchWatchlist();  } catch(e){} }, 60);
-  if (name === 'komunitas')  setTimeout(() => { try { renderKomConfido(); fetchKomPrices(); } catch(e){} }, 60);
+  if (name === 'komunitas')  setTimeout(() => { try { renderKomConfido(); fetchKomPrices(); renderKomIdea(); fetchKomIdeaPrices(); } catch(e){} }, 60);
 }
 
 // ── PORTO ──────────────────────────────────────────────
@@ -7709,6 +7739,73 @@ function refreshKomDays() {
   if (btn) { btn.textContent = '⟳ Memuat…'; btn.disabled = true; }
   fetchKomPrices().finally(() => {
     if (btn) { btn.textContent = '⟳ Update Days'; btn.disabled = false; }
+  });
+}
+
+// ── KOMUNITAS: Trading Idea ──────────────────────────────
+const KOM_IDEA = [
+  { no:1, code:'BACH', buy:610, sl:530, triggerBuy:'2026-07-16', note:'* Jika harga menyentuh level ini, masuk Open Posisi' },
+  { no:2, code:'',     buy:0,   sl:0,   triggerBuy:'2026-07-02', note:'' },
+  { no:3, code:'',     buy:0,   sl:0,   triggerBuy:'2026-06-23', note:'' },
+];
+
+const komIdeaPrices = {};
+
+function renderKomIdea() {
+  const tbody = document.getElementById('kom-idea-body');
+  if (!tbody) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  tbody.innerHTML = KOM_IDEA.map(row => {
+    if (!row.code) {
+      const trig = new Date(row.triggerBuy); trig.setHours(0,0,0,0);
+      const days = Math.floor((today - trig) / 86400000);
+      const trigFmt = trig.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'2-digit'});
+      return `<tr style="opacity:.45">
+        <td style="padding:5px 6px 5px 0;color:var(--muted)">${row.no}</td>
+        <td colspan="6" style="padding:5px 6px;text-align:center;color:var(--muted);font-size:11px">#DIV/0!</td>
+        <td style="padding:5px 6px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap">${trigFmt}</td>
+        <td style="padding:5px 6px;text-align:right;font-variant-numeric:tabular-nums;font-weight:700">${days}</td>
+        <td style="padding:5px 6px;font-size:11px;color:var(--muted)">${row.note}</td>
+      </tr>`;
+    }
+
+    const q     = komIdeaPrices[row.code] || null;
+    const last  = q ? q.price : null;
+    const pctSL = row.buy > 0 ? (row.sl - row.buy) / row.buy * 100 : null;
+    const pctGL = (last != null && row.buy > 0) ? (last - row.buy) / row.buy * 100 : null;
+    const trig  = new Date(row.triggerBuy); trig.setHours(0,0,0,0);
+    const days  = Math.floor((today - trig) / 86400000);
+    const trigFmt = trig.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'2-digit'});
+    const fPct  = v => v != null ? `<span class="${v>=0?'g':'r'}">${v>=0?'+':''}${v.toFixed(2)}%</span>` : '—';
+
+    return `<tr onclick="openWlChartIdx('${row.code}')" style="cursor:pointer;transition:background .12s" onmouseenter="this.style.background='var(--hover,rgba(255,255,255,.04))'" onmouseleave="this.style.background=''">
+      <td style="padding:6px 6px 6px 0;color:var(--muted);font-size:11px">${row.no}</td>
+      <td style="padding:6px 6px;font-weight:700;font-size:13px">${row.code}</td>
+      <td style="padding:6px 6px;text-align:right;font-variant-numeric:tabular-nums">${idrRaw(row.buy)}</td>
+      <td style="padding:6px 6px;text-align:right;font-variant-numeric:tabular-nums">${idrRaw(row.sl)}</td>
+      <td style="padding:6px 6px;text-align:right">${fPct(pctSL)}</td>
+      <td style="padding:6px 6px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600">${last != null ? idrRaw(Math.round(last)) : '—'}</td>
+      <td style="padding:6px 6px;text-align:right">${fPct(pctGL)}</td>
+      <td style="padding:6px 6px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap">${trigFmt}</td>
+      <td style="padding:6px 6px;text-align:right;font-variant-numeric:tabular-nums;font-weight:700">${days}</td>
+      <td style="padding:6px 6px;font-size:11px;color:var(--muted)">${row.note}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function fetchKomIdeaPrices() {
+  const syms = [...new Set(KOM_IDEA.filter(r => r.code).map(r => r.code))];
+  const results = await Promise.all(syms.map(s => fetchWlQuote(s + '.JK')));
+  syms.forEach((s, i) => { if (results[i]) komIdeaPrices[s] = results[i]; });
+  renderKomIdea();
+}
+
+function refreshKomIdea() {
+  const btn = document.getElementById('kom-idea-refresh-btn');
+  if (btn) { btn.textContent = '⟳ Memuat…'; btn.disabled = true; }
+  fetchKomIdeaPrices().finally(() => {
+    if (btn) { btn.textContent = '⟳ Refresh'; btn.disabled = false; }
   });
 }
 
