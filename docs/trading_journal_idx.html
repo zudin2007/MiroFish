@@ -136,7 +136,10 @@ select.fi option{background:var(--card)}
     <div class="hdr-name">IFBTC PLAYBOOK & JOURNAL</div>
     <div class="hdr-sub">108220 · IZZUDDIN EDI SISWANTO · Mirae Asset / Neo HOTS</div>
   </div>
-  <div class="hdr-ts" id="last-ts">—</div>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0">
+    <button onclick="openSyncModal()" id="sync-hdr-btn" title="Sinkronisasi data lintas perangkat" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--muted);display:flex;align-items:center;gap:5px;transition:border-color .15s" onmouseenter="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseleave="this.style.borderColor='';this.style.color=''">☁ Sync</button>
+    <div class="hdr-ts" id="last-ts" style="margin-left:0">—</div>
+  </div>
 </div>
 
 <div class="tabbar">
@@ -1030,6 +1033,55 @@ select.fi option{background:var(--card)}
       </div>
       <button class="btn btn-o" onclick="submitAddWl()" style="width:100%;padding:10px;font-size:13px;font-weight:700">Tambah</button>
       <div id="wl-add-err" style="font-size:12px;color:#ff4d4d;min-height:16px;text-align:center"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DATA SYNC MODAL ══ -->
+<div class="modal-overlay" id="sync-modal" onclick="if(event.target===this)closeSyncModal()" style="display:none">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-hdr">
+      <div class="modal-title">☁ Sinkronisasi Data</div>
+      <button class="modal-close" onclick="closeSyncModal()">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <!-- Setup Section -->
+      <div id="sync-setup-section">
+        <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px">
+          Sinkronkan data trading Anda ke GitHub Gist. Data akan tersimpan aman dan bisa diakses dari perangkat apa pun. Token hanya disimpan di memory sesi ini (tidak permanen).
+        </div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;font-size:11px;color:var(--muted);line-height:1.6">
+          <div style="font-weight:700;margin-bottom:6px">Setup:</div>
+          <div style="margin-bottom:8px">1. Buka <a href="https://github.com/settings/tokens" target="_blank" style="color:var(--accent);text-decoration:underline">github.com/settings/tokens</a></div>
+          <div style="margin-bottom:8px">2. Klik "Generate new token (classic)"</div>
+          <div style="margin-bottom:8px">3. Centang <code style="background:rgba(255,255,255,.1);padding:2px 6px;border-radius:3px">gist</code> scope</div>
+          <div>4. Copy token dan paste di bawah</div>
+        </div>
+        <div style="margin-bottom:10px">
+          <div class="fl" style="margin-bottom:4px">Personal Access Token (PAT)</div>
+          <input class="fi" id="sync-pat-input" type="password" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off" style="font-family:monospace;font-size:12px">
+        </div>
+        <button class="btn btn-o" onclick="testAndSaveToken()" style="width:100%;padding:10px;font-size:13px;font-weight:700">Simpan & Verifikasi</button>
+        <div id="sync-setup-err" style="font-size:12px;color:#ff4d4d;min-height:16px;text-align:center;margin-top:8px"></div>
+      </div>
+
+      <!-- Sync Section (hidden until token saved) -->
+      <div id="sync-active-section" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div>
+            <div style="font-size:12px;font-weight:600">Gist ID</div>
+            <div id="sync-gist-id" style="font-family:monospace;font-size:11px;color:var(--muted);margin-top:2px">—</div>
+          </div>
+          <button class="tf-btn" onclick="resetSyncToken()" style="font-size:11px">Logout</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button class="btn btn-o" onclick="uploadToGist()" style="padding:10px;font-size:13px;font-weight:700" id="sync-upload-btn">📤 Upload</button>
+          <button class="btn btn-o" onclick="downloadFromGist()" style="padding:10px;font-size:13px;font-weight:700" id="sync-download-btn">📥 Download</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:12px">
+          <div id="sync-status" style="text-align:center;min-height:20px"></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -8426,6 +8478,171 @@ function removeWlItem(yf) {
   saveWlCustom(custom);
   delete wlPrices[yf];
   renderWatchlist();
+}
+
+// ── DATA SYNC (GitHub Gist) ────────────────────────────────
+const SYNC_KEYS = [
+  'porto_holdings_v1', 'idx_trades_v3', 'idx_cash_v2', 'jurnal_sub', 'gt_trades_v1', 'cr_trades_v1',
+  'idx_cash_hist_v1', 'tangem_v1', 'finnhub_key', 'wl_custom_v1', 'kom_custom_v1', 'idx_active_tab'
+];
+
+let _syncToken = '';
+let _syncGistId = '';
+let _syncGistName = '';
+
+function loadSyncMeta() {
+  try { return JSON.parse(localStorage.getItem('_sync_gist_meta') || '{}'); } catch(e) { return {}; }
+}
+function saveSyncMeta(gistId, gistName) {
+  try { localStorage.setItem('_sync_gist_meta', JSON.stringify({ gistId, gistName })); } catch(e) {}
+}
+function clearSyncToken() {
+  _syncToken = '';
+  _syncGistId = '';
+  _syncGistName = '';
+}
+
+function openSyncModal() {
+  document.getElementById('sync-modal').style.display = 'flex';
+  const meta = loadSyncMeta();
+  if (_syncToken && meta.gistId) {
+    document.getElementById('sync-setup-section').style.display = 'none';
+    document.getElementById('sync-active-section').style.display = '';
+    document.getElementById('sync-gist-id').textContent = meta.gistId;
+  } else {
+    document.getElementById('sync-setup-section').style.display = '';
+    document.getElementById('sync-active-section').style.display = 'none';
+  }
+  document.getElementById('sync-status').textContent = '';
+  document.getElementById('sync-setup-err').textContent = '';
+  document.getElementById('sync-pat-input').value = '';
+}
+function closeSyncModal() {
+  clearSyncToken();
+  document.getElementById('sync-modal').style.display = 'none';
+}
+
+async function testAndSaveToken() {
+  const pat = document.getElementById('sync-pat-input').value.trim();
+  const errEl = document.getElementById('sync-setup-err');
+  errEl.textContent = '';
+  if (!pat) { errEl.textContent = 'Masukkan token terlebih dahulu.'; return; }
+  if (!pat.startsWith('ghp_')) { errEl.textContent = 'Token tidak valid (harus mulai dengan ghp_).'; return; }
+
+  errEl.textContent = '⟳ Verifikasi token…';
+  try {
+    const r = await fetch('https://api.github.com/user', { headers: { Authorization: 'token ' + pat } });
+    if (!r.ok) { errEl.textContent = 'Token tidak valid atau expired.'; return; }
+
+    const user = await r.json();
+    const gistName = 'TradingJournal_' + Date.now();
+
+    // Create gist
+    const createRes = await fetch('https://api.github.com/gists', {
+      method: 'POST',
+      headers: { Authorization: 'token ' + pat, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        description: 'Trading Journal Data Sync',
+        public: false,
+        files: { [gistName + '.json']: { content: '{}' } }
+      })
+    });
+    if (!createRes.ok) throw new Error('Gagal membuat gist');
+    const gist = await createRes.json();
+
+    // Store only in memory (tidak di localStorage untuk keamanan)
+    _syncToken = pat;
+    _syncGistId = gist.id;
+    _syncGistName = gistName;
+
+    // Simpan hanya metadata gist (bukan token)
+    saveSyncMeta(gist.id, gistName);
+
+    errEl.textContent = '';
+    openSyncModal();
+    showToast('✓ Token terverifikasi! Siap untuk sync.');
+  } catch(e) {
+    errEl.textContent = 'Error: ' + (e.message || 'Gagal verifikasi');
+  }
+}
+
+function resetSyncToken() {
+  if (!confirm('Logout dari sinkronisasi? Token hanya disimpan di memory sesi ini.')) return;
+  localStorage.removeItem('_sync_gist_meta');
+  clearSyncToken();
+  openSyncModal();
+  showToast('Metadata gist dihapus.');
+}
+
+async function uploadToGist() {
+  if (!_syncToken || !_syncGistId) { showToast('⚠ Token tidak ditemukan. Setup terlebih dahulu.'); return; }
+
+  const statusEl = document.getElementById('sync-status');
+  const btn = document.getElementById('sync-upload-btn');
+  statusEl.textContent = '⟳ Upload…'; btn.disabled = true;
+
+  try {
+    const data = {};
+    SYNC_KEYS.forEach(k => {
+      const v = localStorage.getItem(k);
+      if (v !== null) data[k] = v;
+    });
+    data._uploadedAt = new Date().toISOString();
+
+    const r = await fetch('https://api.github.com/gists/' + _syncGistId, {
+      method: 'PATCH',
+      headers: { Authorization: 'token ' + _syncToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        files: {
+          [_syncGistName + '.json']: { content: JSON.stringify(data, null, 2) }
+        }
+      })
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    statusEl.textContent = '✓ Upload berhasil!';
+    showToast('✓ Data terupload ke Gist');
+  } catch(e) {
+    statusEl.textContent = '✗ Gagal: ' + e.message;
+    showToast('⚠ Upload gagal');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function downloadFromGist() {
+  if (!_syncToken || !_syncGistId) { showToast('⚠ Token tidak ditemukan. Setup terlebih dahulu.'); return; }
+
+  const statusEl = document.getElementById('sync-status');
+  const btn = document.getElementById('sync-download-btn');
+  statusEl.textContent = '⟳ Download…'; btn.disabled = true;
+
+  try {
+    const r = await fetch('https://api.github.com/gists/' + _syncGistId, {
+      headers: { Authorization: 'token ' + _syncToken }
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const gist = await r.json();
+    const file = Object.values(gist.files)[0];
+    if (!file || !file.content) throw new Error('Gist kosong');
+
+    const data = JSON.parse(file.content);
+    let count = 0;
+    SYNC_KEYS.forEach(k => {
+      if (k in data) {
+        localStorage.setItem(k, data[k]);
+        count++;
+      }
+    });
+
+    statusEl.textContent = '✓ Download berhasil! (' + count + ' item)';
+    showToast('✓ Data diunduh, halaman akan reload…');
+    setTimeout(() => location.reload(), 1500);
+  } catch(e) {
+    statusEl.textContent = '✗ Gagal: ' + e.message;
+    showToast('⚠ Download gagal');
+  } finally {
+    btn.disabled = false;
+  }
 }
 </script>
 </body>
