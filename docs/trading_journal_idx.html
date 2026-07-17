@@ -256,6 +256,13 @@ window.addEventListener('load', hideLoadingScreen);
     </div>
   </div>
 
+  <!-- Diagnostic Panel -->
+  <div id="diag-panel" style="background:rgba(255,77,77,.08);border:1px solid rgba(255,77,77,.2);border-radius:8px;padding:12px;margin-bottom:12px;font-size:12px;color:var(--sub);display:none">
+    <div style="font-weight:600;margin-bottom:8px;color:var(--red)">🔧 Debug Info:</div>
+    <div id="diag-text" style="font-family:monospace;line-height:1.4;white-space:pre-wrap;word-break:break-all"></div>
+    <button onclick="document.getElementById('diag-panel').style.display='none'" style="background:none;border:none;color:var(--muted);cursor:pointer;margin-top:8px;font-size:12px;text-decoration:underline">Tutup</button>
+  </div>
+
   <div class="warn" id="cash-warn" style="justify-content:space-between">
     <span style="display:flex;align-items:center;gap:8px">
       <span>⚠</span>
@@ -1325,6 +1332,19 @@ function saveTrades(a) { localStorage.setItem('idx_trades_v3', JSON.stringify(a)
 function loadCash()    { return parseFloat(localStorage.getItem('idx_cash_v2') || SEED_CASH); }
 function saveCash(v)   { localStorage.setItem('idx_cash_v2', String(v)); }
 
+// ── DIAGNOSTIC HELPERS ────────────────────────────────────────────
+let diagLogs = [];
+function showDiag(msg) {
+  diagLogs.push(msg);
+  const panel = document.getElementById('diag-panel');
+  const text = document.getElementById('diag-text');
+  if (panel && text) {
+    text.textContent = diagLogs.slice(-20).join('\n');
+    panel.style.display = 'block';
+  }
+  console.log('[DIAG]', msg);
+}
+
 // ── HELPERS ────────────────────────────────────────────
 const idrRaw = n => Math.round(n).toLocaleString('id-ID');
 const idr    = n => 'Rp ' + idrRaw(n);
@@ -1519,44 +1539,53 @@ function renderPorto() {
 
 async function fetchPrice(sym) {
   const ticker = sym + '.JK';
+  showDiag(`[${sym}] Fetching from Yahoo Finance...`);
 
   // Try multiple CORS proxies and APIs
   const urls = [
-    // Proxy 1: allorigins.win
-    `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+ticker)}`,
-    // Proxy 2: corsproxy.io
-    `https://corsproxy.io/?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+ticker)}`,
-    // Proxy 3: api.codetabs.com
-    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+ticker)}`,
+    { name: 'allorigins', url: `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+ticker)}` },
+    { name: 'corsproxy', url: `https://corsproxy.io/?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+ticker)}` },
+    { name: 'codetabs', url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+ticker)}` },
   ];
 
-  for (const url of urls) {
+  for (const {name, url} of urls) {
     try {
+      showDiag(`[${sym}] Trying ${name}...`);
       const r = await tFetch(url);
       if (!r.ok) {
-        console.warn('[fetchPrice]', sym, 'HTTP', r.status);
+        showDiag(`[${sym}] ${name} HTTP ${r.status}`);
         continue;
       }
       const j = await r.json();
       const p = j?.chart?.result?.[0]?.meta?.regularMarketPrice;
       if (p && p > 0) {
-        console.log('[fetchPrice]', sym, '✓', Math.round(p));
+        showDiag(`[${sym}] ✓ ${name} → Rp${Math.round(p).toLocaleString('id-ID')}`);
         return Math.round(p);
       }
     } catch(e) {
-      console.error('[fetchPrice]', sym, 'try failed:', e.message);
+      showDiag(`[${sym}] ${name} ERROR: ${e.message.substring(0,50)}`);
     }
   }
 
-  console.warn('[fetchPrice]', sym, 'semua method gagal');
+  showDiag(`[${sym}] ✗ ALL PROXIES FAILED`);
   return null;
 }
 
 async function fetchAll() {
   const btn = document.getElementById('btn-upd');
   btn.textContent = '⟳ Mengambil…'; btn.disabled = true;
+  diagLogs = [];
+  showDiag(`Starting update (${holdings.length} stocks)...`);
 
   try {
+    if (holdings.length === 0) {
+      showDiag('ERROR: No holdings data found!');
+      document.getElementById('last-ts').textContent = '✗ Tidak ada data saham';
+      btn.textContent = '↻ Update Harga';
+      btn.disabled = false;
+      return;
+    }
+
     let success = 0, fail = 0;
     for (const h of holdings) {
       const p = await fetchPrice(h.sym);
@@ -1569,11 +1598,12 @@ async function fetchAll() {
     }
 
     renderPorto();
+    showDiag(`Selesai: ${success}/${holdings.length} berhasil`);
 
     // Show result message
     const msg = success > 0 ?
-      `✓ Berhasil: ${success}/${holdings.length}` :
-      '✗ Gagal fetch (cek koneksi internet)';
+      `✓ ${success}/${holdings.length}` :
+      '✗ Gagal (cek WiFi)';
     document.getElementById('last-ts').textContent = msg;
 
     setTimeout(() => {
@@ -1582,8 +1612,8 @@ async function fetchAll() {
     }, 3000);
 
   } catch(e) {
-    console.error('[fetchAll] error:', e);
-    document.getElementById('last-ts').textContent = '✗ Error: ' + e.message;
+    showDiag(`FATAL ERROR: ${e.message}`);
+    document.getElementById('last-ts').textContent = '✗ ' + e.message;
   }
 
   btn.textContent = '↻ Update Harga'; btn.disabled = false;
