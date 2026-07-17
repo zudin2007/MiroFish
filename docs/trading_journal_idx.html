@@ -159,6 +159,28 @@ select.fi option{background:var(--card)}
 <!-- ══════════════ PORTO ══════════════ -->
 <div id="tab-porto" class="panel on">
 
+  <!-- Grand Total chip -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;flex-wrap:wrap;gap:12px">
+    <div style="flex:1;min-width:160px">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px">Grand Total Semua Portofolio</div>
+      <div style="font-size:22px;font-weight:800;font-variant-numeric:tabular-nums" id="grand-total">—</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:7px 12px;min-width:90px">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:2px">IDX Porto</div>
+        <div style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums" id="grand-porto">—</div>
+      </div>
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:7px 12px;min-width:90px">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Gotrade</div>
+        <div style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums" id="grand-gotrade">—</div>
+      </div>
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:7px 12px;min-width:90px">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Crypto</div>
+        <div style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums" id="grand-crypto">—</div>
+      </div>
+    </div>
+  </div>
+
   <!-- IHSG Live Panel -->
   <div class="mkt-panel">
     <div class="mkt-panel-title">IHSG &amp; Pasar Global</div>
@@ -185,28 +207,6 @@ select.fi option{background:var(--card)}
       <div class="mkt-idx" style="cursor:pointer" onclick="openWlChartUsd('BTC-USD','BTC/USD')"        onmouseenter="this.style.opacity='.75'" onmouseleave="this.style.opacity=''"><div class="mkt-idx-l">BTC/USD</div><div class="mkt-idx-v" id="g-btc">—</div></div>
       <div class="mkt-idx" style="cursor:pointer" onclick="openWlChartUsd('ETH-USD','ETH/USD')"        onmouseenter="this.style.opacity='.75'" onmouseleave="this.style.opacity=''"><div class="mkt-idx-l">ETH/USD</div><div class="mkt-idx-v" id="g-eth">—</div></div>
       <div class="mkt-idx" style="cursor:pointer" onclick="openWlChartUsd('GC=F','Gold (XAU/USD)')"   onmouseenter="this.style.opacity='.75'" onmouseleave="this.style.opacity=''"><div class="mkt-idx-l">XAU/USD</div><div class="mkt-idx-v" id="g-xau">—</div></div>
-    </div>
-  </div>
-
-  <!-- Grand Total chip -->
-  <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;flex-wrap:wrap;gap:12px">
-    <div style="flex:1;min-width:160px">
-      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px">Grand Total Semua Portofolio</div>
-      <div style="font-size:22px;font-weight:800;font-variant-numeric:tabular-nums" id="grand-total">—</div>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <div style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:7px 12px;min-width:90px">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:2px">IDX Porto</div>
-        <div style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums" id="grand-porto">—</div>
-      </div>
-      <div style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:7px 12px;min-width:90px">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Gotrade</div>
-        <div style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums" id="grand-gotrade">—</div>
-      </div>
-      <div style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:7px 12px;min-width:90px">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Crypto</div>
-        <div style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums" id="grand-crypto">—</div>
-      </div>
     </div>
   </div>
 
