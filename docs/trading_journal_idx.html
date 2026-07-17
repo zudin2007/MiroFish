@@ -2132,27 +2132,42 @@ function quickTopup(amount) {
 function loadCashHistory() {
   try { return JSON.parse(localStorage.getItem('idx_cash_hist_v1') || '[]'); } catch(e) { return []; }
 }
-function saveCashHistory(a) { localStorage.setItem('idx_cash_hist_v1', JSON.stringify(a)); }
+function saveCashHistory(a) {
+  console.log('[saveCashHistory] Saving', a.length, 'entries to localStorage');
+  localStorage.setItem('idx_cash_hist_v1', JSON.stringify(a));
+  console.log('[saveCashHistory] ✓ Saved');
+}
 function addCashLog(type, amount, balanceAfter) {
+  console.log('[addCashLog] Adding entry:', type, amount, balanceAfter);
   const hist = loadCashHistory();
+  console.log('[addCashLog] Loaded', hist.length, 'entries');
   hist.unshift({ id: Date.now(), ts: new Date().toLocaleString('id-ID'), type, amount, balanceAfter });
   if (hist.length > 200) hist.length = 200;
+  console.log('[addCashLog] Now have', hist.length, 'entries');
   saveCashHistory(hist);
+  console.log('[addCashLog] ✓ Cash log added');
 }
 function renderCashHistory() {
   const hist = loadCashHistory();
   const body = document.getElementById('cash-hist-body');
-  if (!body) return; // Element not ready yet
+  console.log('[renderCashHistory] Called. Found', hist.length, 'entries. Body element exists:', !!body);
+  if (!body) {
+    console.log('[renderCashHistory] cash-hist-body element not found, returning early');
+    return; // Element not ready yet
+  }
   if (!hist.length) {
+    console.log('[renderCashHistory] No history, showing empty message');
     body.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:22px;font-style:italic">Belum ada riwayat deposit/penarikan.</td></tr>`;
     return;
   }
+  console.log('[renderCashHistory] Rendering', hist.length, 'entries');
   body.innerHTML = hist.map(h => `<tr>
     <td style="font-size:12px;white-space:nowrap">${h.ts}</td>
     <td><span class="badge ${h.type==='Deposit'?'bw':'bl'}">${h.type}</span></td>
     <td class="${h.type==='Deposit'?'g':'r'}" style="text-align:right">${h.type==='Deposit'?'+':'−'}${idr(h.amount)}</td>
     <td style="text-align:right">${idr(h.balanceAfter)}</td>
   </tr>`).join('');
+  console.log('[renderCashHistory] ✓ Rendered successfully');
 }
 function clearCashHistory() {
   if (!confirm('Hapus semua riwayat deposit/penarikan?')) return;
@@ -8539,21 +8554,34 @@ function setupFirebaseListeners() {
   SYNC_KEYS.forEach(key => {
     const ref = sharedDataRef.child(key);
     const listener = ref.on('value', snapshot => {
-      if (_ignoreFbUpdate) return; // Skip jika kita yang update
+      if (_ignoreFbUpdate) {
+        console.log('[Firebase Listen] Skipping update (self-triggered) for key:', key);
+        return;
+      }
       const val = snapshot.val();
+      console.log('[Firebase Listen] Received update for key:', key, 'value length:', val?.toString?.().length);
       if (val !== null && val !== undefined) {
         try {
           localStorage.setItem(key, val);
+          console.log('[Firebase Listen] ✓ Updated localStorage for key:', key);
           // Render ulang sesuai tipe data yang berubah
-          if (key === 'porto_holdings_v1') { try { renderPorto(); } catch(e){} }
-          if (key === 'idx_trades_v3') { try { renderPorto(); renderJournal(); } catch(e){} }
-          if (key === 'gt_trades_v1') { try { renderGotrade(); } catch(e){} }
-          if (key === 'cr_trades_v1') { try { renderCrypto(); } catch(e){} }
-          if (key === 'wl_custom_v1') { try { renderWatchlist(); } catch(e){} }
-          if (key === 'kom_custom_v1') { try { renderKomCustom(); } catch(e){} }
-          if (key === 'idx_cash_v2' || key === 'idx_cash_hist_v1') { try { renderAccount(); renderPorto(); } catch(e){} }
+          if (key === 'porto_holdings_v1') { try { console.log('[Render] renderPorto'); renderPorto(); } catch(e){ console.error('[Render Error] renderPorto:', e); } }
+          if (key === 'idx_trades_v3') { try { console.log('[Render] renderPorto + renderJournal'); renderPorto(); renderJournal(); } catch(e){ console.error('[Render Error] idx_trades_v3:', e); } }
+          if (key === 'gt_trades_v1') { try { console.log('[Render] renderGotrade'); renderGotrade(); } catch(e){ console.error('[Render Error] renderGotrade:', e); } }
+          if (key === 'cr_trades_v1') { try { console.log('[Render] renderCrypto'); renderCrypto(); } catch(e){ console.error('[Render Error] renderCrypto:', e); } }
+          if (key === 'wl_custom_v1') { try { console.log('[Render] renderWatchlist'); renderWatchlist(); } catch(e){ console.error('[Render Error] renderWatchlist:', e); } }
+          if (key === 'kom_custom_v1') { try { console.log('[Render] renderKomCustom'); renderKomCustom(); } catch(e){ console.error('[Render Error] renderKomCustom:', e); } }
+          if (key === 'idx_cash_v2' || key === 'idx_cash_hist_v1') {
+            try {
+              console.log('[Render] renderAccount + renderPorto for cash key:', key);
+              renderAccount();
+              renderPorto();
+            } catch(e){
+              console.error('[Render Error] Cash render:', e);
+            }
+          }
         } catch(e) {
-          console.error('Firebase update error for key ' + key, e);
+          console.error('[Firebase Listen] Error updating key ' + key, e);
         }
       }
     });
@@ -8564,22 +8592,40 @@ function setupFirebaseListeners() {
 }
 
 function pullAllCachedDataFromFirebase() {
-  if (!_fbDb) return;
+  if (!_fbDb) {
+    console.log('[Pull Cached] Firebase DB not ready');
+    return;
+  }
+  console.log('[Pull Cached] Fetching all cached data from Firebase...');
   const sharedDataRef = _fbDb.ref('shared/data');
   sharedDataRef.once('value', snapshot => {
     const data = snapshot.val() || {};
+    console.log('[Pull Cached] Got data from Firebase:', Object.keys(data));
     _ignoreFbUpdate = true;
     SYNC_KEYS.forEach(key => {
       if (data[key] !== null && data[key] !== undefined) {
         try {
           localStorage.setItem(key, data[key]);
-        } catch(e) { console.error('Failed to restore ' + key, e); }
+          console.log('[Pull Cached] Restored key:', key, 'length:', data[key]?.toString?.().length);
+        } catch(e) {
+          console.error('[Pull Cached] Failed to restore ' + key, e);
+        }
       }
     });
     // Wait a tick before allowing FB updates again
-    setTimeout(() => { _ignoreFbUpdate = false; }, 50);
+    setTimeout(() => {
+      _ignoreFbUpdate = false;
+      console.log('[Pull Cached] Re-enabled Firebase updates');
+    }, 50);
     // Render UI with restored data
-    try { renderAccount(); renderPorto(); } catch(e) {}
+    try {
+      console.log('[Pull Cached] Rendering UI...');
+      renderAccount();
+      renderPorto();
+      console.log('[Pull Cached] ✓ UI rendered');
+    } catch(e) {
+      console.error('[Pull Cached] Error rendering:', e);
+    }
   });
 }
 
@@ -8590,9 +8636,17 @@ localStorage.setItem = function(key, value) {
   // Auto push ke Firebase (async, non-blocking) ke shared path
   if (SYNC_KEYS.includes(key) && _fbDb) {
     _ignoreFbUpdate = true;
+    console.log('[Firebase Sync] Pushing key:', key, 'value length:', value?.length);
     _fbDb.ref('shared/data/' + key).set(value)
-      .catch(err => console.error('Firebase sync error:', err))
-      .finally(() => { _ignoreFbUpdate = false; });
+      .then(() => {
+        console.log('[Firebase Sync] ✓ Successfully pushed:', key);
+      })
+      .catch(err => {
+        console.error('[Firebase Sync] ✗ Error pushing', key, ':', err);
+      })
+      .finally(() => {
+        _ignoreFbUpdate = false;
+      });
   }
 };
 
