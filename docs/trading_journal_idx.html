@@ -2123,10 +2123,13 @@ function updateSyncStatusDisplay() {
   if (!statusEl) return;
   const hist = loadCashHistory();
   const cashData = localStorage.getItem('idx_cash_hist_v1');
+  const storage = checkStorageQuota();
+  const storageColor = storage.percent > 80 ? 'rgba(255,77,77' : 'rgba(255,255,255';
   statusEl.innerHTML = `
-    <div style="font-size:11px;color:var(--muted);margin-top:8px;padding:8px;background:rgba(255,255,255,.03);border-radius:6px;border:1px solid var(--border)">
+    <div style="font-size:11px;color:var(--muted);margin-top:8px;padding:8px;background:${storageColor},.03);border-radius:6px;border:1px solid var(--border)">
       <div>Firebase: ${_fbConnected ? '🟢 Connected' : '🔴 Disconnected'}</div>
       <div>Cash History: ${hist.length} entries</div>
+      <div>Storage: ${formatBytes(storage.usage)} (${storage.percent}%)</div>
       <div style="font-size:10px;margin-top:4px;color:var(--sub)">Last: ${new Date().toLocaleTimeString('id-ID')}</div>
     </div>
   `;
@@ -8545,6 +8548,8 @@ let _fbConnected = false;
 let _syncQueue = []; // Queue for failed syncs with retry logic
 let _keyTimestamps = {}; // Track update timestamps for conflict resolution
 let _syncRetryCount = {}; // Track retry attempts per key
+let _syncDebounceTimers = {}; // Debounce timers per key to prevent Firebase hammering
+const SYNC_DEBOUNCE_MS = 500; // Wait 500ms before syncing after rapid changes
 
 function initFirebaseSync() {
   try {
@@ -8768,7 +8773,17 @@ localStorage.setItem = function(key, value) {
   _originalSetItem.call(this, key, value);
   // Auto push ke Firebase (async, non-blocking) ke shared path
   if (SYNC_KEYS.includes(key) && _fbDb) {
-    pushToFirebaseWithRetry(key, value);
+    // Debounce rapid changes to prevent Firebase hammering
+    if (_syncDebounceTimers[key]) {
+      console.log('[Firebase Debounce] Rescheduling key:', key);
+      clearTimeout(_syncDebounceTimers[key]);
+    }
+    console.log('[Firebase Debounce] Scheduling key:', key, 'in', SYNC_DEBOUNCE_MS, 'ms');
+    _syncDebounceTimers[key] = setTimeout(() => {
+      console.log('[Firebase Debounce] Timer fired for key:', key);
+      pushToFirebaseWithRetry(key, value);
+      delete _syncDebounceTimers[key];
+    }, SYNC_DEBOUNCE_MS);
   }
 };
 
@@ -8967,6 +8982,36 @@ function reportSyncIssue(message) {
     </div>`;
     setTimeout(() => { issueEl.innerHTML = ''; }, 8000);
   }
+}
+
+function getStorageUsage() {
+  let total = 0;
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    const value = localStorage.getItem(key);
+    total += key.length + value.length;
+  }
+  return total;
+}
+
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i) * 10) / 10 + ' ' + sizes[i];
+}
+
+function checkStorageQuota() {
+  const usage = getStorageUsage();
+  const limit = 5_000_000; // ~5MB typical localStorage limit
+  const percent = Math.round(usage / limit * 100);
+  console.log('[Storage] Using', formatBytes(usage), '/', formatBytes(limit), '(', percent, '%)');
+  if (percent > 80) {
+    console.warn('[Storage] ⚠ Storage quota at', percent, '%');
+    reportSyncIssue('Storage quota at ' + percent + '%');
+  }
+  return { usage, limit, percent };
 }
 
 // Auto-init Firebase on load (immediately, not delayed)
