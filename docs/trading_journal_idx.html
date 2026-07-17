@@ -854,6 +854,12 @@ select.fi option{background:var(--card)}
 <!-- ══════════════ KOMUNITAS ══════════════ -->
 <div id="tab-komunitas" class="panel">
 
+  <!-- header row -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em">Komunitas</div>
+    <button class="tf-btn" onclick="openKomGroupModal()" style="font-weight:700">＋ Tambah Komunitas</button>
+  </div>
+
   <!-- Confido group -->
   <div class="card" style="margin-bottom:12px">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
@@ -914,6 +920,86 @@ select.fi option{background:var(--card)}
     </div>
   </div>
 
+  <!-- custom community groups rendered here -->
+  <div id="kom-custom-body"></div>
+
+</div>
+
+<!-- ══ ADD KOMUNITAS GROUP MODAL ══ -->
+<div class="modal-overlay" id="kom-group-modal" onclick="if(event.target===this)closeKomGroupModal()" style="display:none">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-hdr">
+      <div class="modal-title">Tambah Komunitas Baru</div>
+      <button class="modal-close" onclick="closeKomGroupModal()">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <div class="fl" style="margin-bottom:4px">Nama Komunitas</div>
+        <input class="fi" id="kg-name" placeholder="e.g. Confido, BRT Trader" autocomplete="off">
+      </div>
+      <div>
+        <div class="fl" style="margin-bottom:4px">Subtitle / Deskripsi</div>
+        <input class="fi" id="kg-subtitle" placeholder="e.g. Open Posisi 2026 · Supertrend" autocomplete="off">
+      </div>
+      <div>
+        <div class="fl" style="margin-bottom:6px">Tipe Tabel</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <button class="tf-btn on" id="kg-type-op" onclick="selectKgType('open_posisi',this)">📊 Open Posisi</button>
+          <button class="tf-btn"    id="kg-type-ti" onclick="selectKgType('trading_idea',this)">💡 Trading Idea</button>
+        </div>
+      </div>
+      <button class="btn btn-o" onclick="submitAddKomGroup()" style="width:100%;padding:10px;font-size:13px;font-weight:700">Buat Komunitas</button>
+      <div id="kg-err" style="font-size:12px;color:#ff4d4d;min-height:16px;text-align:center"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADD KOMUNITAS ENTRY MODAL ══ -->
+<div class="modal-overlay" id="kom-entry-modal" onclick="if(event.target===this)closeKomEntryModal()" style="display:none">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-hdr">
+      <div class="modal-title" id="ke-modal-title">Tambah Entri</div>
+      <button class="modal-close" onclick="closeKomEntryModal()">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <div class="fl" style="margin-bottom:6px">Jenis Aset</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <button class="tf-btn on" id="ke-idx-btn" onclick="selectKeAsset('idx',this)">🇮🇩 IDX (Saham)</button>
+          <button class="tf-btn"    id="ke-gbl-btn" onclick="selectKeAsset('global',this)">🌐 Global / Kripto</button>
+        </div>
+      </div>
+      <div id="ke-sym-hint" style="font-size:11px;color:var(--muted);line-height:1.5">Masukkan kode saham IDX tanpa .JK (e.g. BBCA, GOTO)</div>
+      <div>
+        <div class="fl" style="margin-bottom:4px">Kode / Symbol</div>
+        <input class="fi" id="ke-code" placeholder="e.g. BBCA, BTC-USD, GC=F" autocomplete="off" autocapitalize="characters">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <div class="fl" style="margin-bottom:4px">Harga Buy</div>
+          <input class="fi" id="ke-buy" type="number" min="0" placeholder="0">
+        </div>
+        <div>
+          <div class="fl" style="margin-bottom:4px">SL / TS</div>
+          <input class="fi" id="ke-sl" type="number" min="0" placeholder="0">
+        </div>
+      </div>
+      <div>
+        <div class="fl" style="margin-bottom:4px">Tanggal Trigger Buy</div>
+        <input class="fi" id="ke-trig" type="date">
+      </div>
+      <div id="ke-kat-row">
+        <div class="fl" style="margin-bottom:4px">Kategori (Kat.)</div>
+        <input class="fi" id="ke-kat" placeholder="e.g. ST, BO, Cup">
+      </div>
+      <div id="ke-note-row" style="display:none">
+        <div class="fl" style="margin-bottom:4px">Catatan</div>
+        <input class="fi" id="ke-note" placeholder="e.g. * Jika harga menyentuh level ini...">
+      </div>
+      <button class="btn btn-o" id="ke-submit-btn" onclick="submitAddKomEntry()" style="width:100%;padding:10px;font-size:13px;font-weight:700">Tambah</button>
+      <div id="ke-err" style="font-size:12px;color:#ff4d4d;min-height:16px;text-align:center"></div>
+    </div>
+  </div>
 </div>
 
 <!-- ══ ADD WATCHLIST MODAL ══ -->
@@ -1192,7 +1278,7 @@ function showTab(name, btn) {
   if (name === 'gainloss')  setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
   if (name === 'aktivitas') setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
   if (name === 'watchlist')  setTimeout(() => { try { fetchWatchlist();  } catch(e){} }, 60);
-  if (name === 'komunitas')  setTimeout(() => { try { renderKomConfido(); fetchKomPrices(); renderKomIdea(); fetchKomIdeaPrices(); } catch(e){} }, 60);
+  if (name === 'komunitas')  setTimeout(() => { try { renderKomConfido(); fetchKomPrices(); renderKomIdea(); fetchKomIdeaPrices(); renderKomCustom(); fetchKomCustomPrices(); } catch(e){} }, 60);
 }
 
 // ── PORTO ──────────────────────────────────────────────
@@ -7807,6 +7893,264 @@ function refreshKomIdea() {
   fetchKomIdeaPrices().finally(() => {
     if (btn) { btn.textContent = '⟳ Refresh'; btn.disabled = false; }
   });
+}
+
+// ── KOMUNITAS: Custom Groups ──────────────────────────────
+const komCustomPrices = {};
+let _komEntryGroupId = null;
+let _komGroupType = 'open_posisi';
+let _komAssetType = 'idx';
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function loadKomCustom() {
+  try { return JSON.parse(localStorage.getItem('kom_custom_v1') || '[]'); } catch(e) { return []; }
+}
+function saveKomCustom(data) {
+  try { localStorage.setItem('kom_custom_v1', JSON.stringify(data)); } catch(e) {}
+}
+
+function renderKomCustom() {
+  const wrap = document.getElementById('kom-custom-body');
+  if (!wrap) return;
+  const groups = loadKomCustom();
+  if (!groups.length) { wrap.innerHTML = ''; return; }
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  wrap.innerHTML = groups.map(grp => {
+    const isIdea = grp.type === 'trading_idea';
+
+    const rows = (grp.entries || []).map((row, idx) => {
+      if (!row.code) {
+        return `<tr style="opacity:.45">
+          <td style="padding:5px 6px 5px 0;color:var(--muted)">${idx+1}</td>
+          <td style="padding:5px 6px">—</td>
+          <td colspan="9" style="padding:5px 6px;text-align:center;color:var(--muted);font-size:11px">#DIV/0!</td>
+        </tr>`;
+      }
+      const cacheKey = row.isIDX ? row.code : row.code + '__gbl';
+      const q = komCustomPrices[cacheKey] || null;
+      const last = q ? q.price : null;
+      const pctSL = row.buy > 0 ? (row.sl - row.buy) / row.buy * 100 : null;
+      const pctGL = (last != null && row.buy > 0) ? (last - row.buy) / row.buy * 100 : null;
+      const trigDate = new Date(row.triggerBuy); trigDate.setHours(0,0,0,0);
+      const days = Math.floor((today - trigDate) / 86400000);
+      const fIdr = v => v != null ? idrRaw(Math.round(v)) : '—';
+      const fPct = v => v != null ? `<span class="${v>=0?'g':'r'}">${v>=0?'+':''}${v.toFixed(2)}%</span>` : '—';
+      const trigFmt = trigDate.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'2-digit'});
+      const onclickFn = row.isIDX ? `openWlChartIdx('${row.code}')` : `openWlChartUsd('${escHtml(row.code)}','${escHtml(row.code)}')`;
+      const lastCell = isIdea
+        ? `<td style="padding:6px 6px;font-size:11px;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(row.note||'')}">${escHtml(row.note||'')}</td>`
+        : `<td style="padding:6px 6px;text-align:center"><span style="font-size:10px;font-weight:700;background:var(--accent);color:#fff;border-radius:4px;padding:1px 5px">${escHtml(row.kat||'—')}</span></td>`;
+      return `<tr onclick="${onclickFn}" style="cursor:pointer;transition:background .12s" onmouseenter="this.style.background='var(--hover,rgba(255,255,255,.04))'" onmouseleave="this.style.background=''">
+        <td style="padding:6px 6px 6px 0;color:var(--muted);font-size:11px">${idx+1}</td>
+        <td style="padding:6px 6px;font-weight:700;font-size:13px">${escHtml(row.code)}</td>
+        <td style="padding:6px 6px;text-align:right;font-variant-numeric:tabular-nums">${fIdr(row.buy)}</td>
+        <td style="padding:6px 6px;text-align:right;font-variant-numeric:tabular-nums">${fIdr(row.sl)}</td>
+        <td style="padding:6px 6px;text-align:right">${fPct(pctSL)}</td>
+        <td style="padding:6px 6px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600">${last != null ? idrRaw(Math.round(last)) : '—'}</td>
+        <td style="padding:6px 6px;text-align:right">${fPct(pctGL)}</td>
+        <td style="padding:6px 6px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap">${trigFmt}</td>
+        <td style="padding:6px 6px;text-align:right;font-variant-numeric:tabular-nums;font-weight:700">${days}</td>
+        ${lastCell}
+        <td style="padding:6px 4px;text-align:center"><button onclick="event.stopPropagation();deleteKomEntry('${escHtml(grp.id)}',${idx})" style="background:none;border:none;color:var(--red,#ff4d4d);font-size:14px;cursor:pointer;padding:2px 4px;line-height:1;opacity:.7" title="Hapus baris">✕</button></td>
+      </tr>`;
+    }).join('');
+
+    const lastColHdr = isIdea
+      ? `<th style="text-align:left;padding-bottom:6px;min-width:100px">Catatan</th>`
+      : `<th style="text-align:center;padding-bottom:6px;min-width:50px">Kat.</th>`;
+
+    return `<div class="card" style="margin-bottom:12px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+        <div>
+          <div style="font-size:13px;font-weight:800;letter-spacing:.02em">${escHtml(grp.name)}</div>
+          ${grp.subtitle ? `<div style="font-size:11px;color:var(--muted);margin-top:2px">${escHtml(grp.subtitle)}</div>` : ''}
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+          <button class="tf-btn" onclick="openKomEntryModal('${escHtml(grp.id)}')">＋ Entri</button>
+          <button class="tf-btn" onclick="fetchKomCustomGroupPrices('${escHtml(grp.id)}')">⟳</button>
+          <button class="tf-btn" onclick="deleteKomGroup('${escHtml(grp.id)}')" style="color:var(--red,#ff4d4d);font-size:15px;padding:4px 8px" title="Hapus komunitas">🗑</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table style="font-size:12px">
+          <thead>
+            <tr style="color:var(--muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em">
+              <th style="text-align:left;padding-bottom:6px;min-width:44px">No</th>
+              <th style="text-align:left;padding-bottom:6px;min-width:70px">Code</th>
+              <th style="text-align:right;padding-bottom:6px;min-width:72px">Buy</th>
+              <th style="text-align:right;padding-bottom:6px;min-width:72px">SL / TS</th>
+              <th style="text-align:right;padding-bottom:6px;min-width:64px">% if SL</th>
+              <th style="text-align:right;padding-bottom:6px;min-width:72px">Harga</th>
+              <th style="text-align:right;padding-bottom:6px;min-width:64px">% G/L</th>
+              <th style="text-align:right;padding-bottom:6px;min-width:86px">Trigger Buy</th>
+              <th style="text-align:right;padding-bottom:6px;min-width:50px">Days</th>
+              ${lastColHdr}
+              <th style="min-width:28px"></th>
+            </tr>
+          </thead>
+          <tbody>${rows || '<tr><td colspan="11" style="padding:16px 0;text-align:center;color:var(--muted);font-size:12px">Belum ada entri. Klik ＋ Entri untuk menambah.</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function fetchKomCustomPrices() {
+  const groups = loadKomCustom();
+  const allEntries = groups.flatMap(g => g.entries || []).filter(e => e.code);
+  if (!allEntries.length) return;
+  await Promise.all(allEntries.map(e => {
+    const yf = e.isIDX ? e.code + '.JK' : e.code;
+    const cacheKey = e.isIDX ? e.code : e.code + '__gbl';
+    return fetchWlQuote(yf).then(q => { if (q) komCustomPrices[cacheKey] = q; });
+  }));
+  renderKomCustom();
+}
+
+async function fetchKomCustomGroupPrices(groupId) {
+  const groups = loadKomCustom();
+  const grp = groups.find(g => g.id === groupId);
+  if (!grp) return;
+  const entries = (grp.entries || []).filter(e => e.code);
+  if (!entries.length) return;
+  await Promise.all(entries.map(e => {
+    const yf = e.isIDX ? e.code + '.JK' : e.code;
+    const cacheKey = e.isIDX ? e.code : e.code + '__gbl';
+    return fetchWlQuote(yf).then(q => { if (q) komCustomPrices[cacheKey] = q; });
+  }));
+  renderKomCustom();
+}
+
+// ── Group modal ──────────────────────────────────────────
+function openKomGroupModal() {
+  _komGroupType = 'open_posisi';
+  document.getElementById('kg-name').value = '';
+  document.getElementById('kg-subtitle').value = '';
+  document.getElementById('kg-err').textContent = '';
+  document.getElementById('kg-type-op').classList.add('on');
+  document.getElementById('kg-type-ti').classList.remove('on');
+  document.getElementById('kom-group-modal').style.display = 'flex';
+}
+function closeKomGroupModal() {
+  document.getElementById('kom-group-modal').style.display = 'none';
+}
+function selectKgType(type, btn) {
+  _komGroupType = type;
+  document.getElementById('kg-type-op').classList.toggle('on', type === 'open_posisi');
+  document.getElementById('kg-type-ti').classList.toggle('on', type === 'trading_idea');
+}
+function submitAddKomGroup() {
+  const name = document.getElementById('kg-name').value.trim();
+  const subtitle = document.getElementById('kg-subtitle').value.trim();
+  const errEl = document.getElementById('kg-err');
+  if (!name) { errEl.textContent = 'Nama komunitas tidak boleh kosong.'; return; }
+  errEl.textContent = '';
+  const data = loadKomCustom();
+  data.push({ id: 'grp_' + Date.now(), name, subtitle, type: _komGroupType, entries: [] });
+  saveKomCustom(data);
+  closeKomGroupModal();
+  renderKomCustom();
+  showToast('✓ Komunitas berhasil ditambahkan!');
+}
+function deleteKomGroup(id) {
+  if (!confirm('Hapus komunitas ini dan semua entrinya?')) return;
+  saveKomCustom(loadKomCustom().filter(g => g.id !== id));
+  renderKomCustom();
+  showToast('Komunitas dihapus.');
+}
+
+// ── Entry modal ──────────────────────────────────────────
+function openKomEntryModal(groupId) {
+  const groups = loadKomCustom();
+  const grp = groups.find(g => g.id === groupId);
+  if (!grp) return;
+  _komEntryGroupId = groupId;
+  _komAssetType = 'idx';
+  const isIdea = grp.type === 'trading_idea';
+  document.getElementById('ke-modal-title').textContent = 'Tambah Entri — ' + grp.name;
+  document.getElementById('ke-code').value = '';
+  document.getElementById('ke-buy').value = '';
+  document.getElementById('ke-sl').value = '';
+  document.getElementById('ke-trig').value = new Date().toISOString().slice(0,10);
+  document.getElementById('ke-kat').value = '';
+  document.getElementById('ke-note').value = '';
+  document.getElementById('ke-err').textContent = '';
+  document.getElementById('ke-idx-btn').classList.add('on');
+  document.getElementById('ke-gbl-btn').classList.remove('on');
+  document.getElementById('ke-sym-hint').textContent = 'Masukkan kode saham IDX tanpa .JK (e.g. BBCA, GOTO)';
+  document.getElementById('ke-kat-row').style.display = isIdea ? 'none' : '';
+  document.getElementById('ke-note-row').style.display = isIdea ? '' : 'none';
+  document.getElementById('ke-submit-btn').textContent = 'Tambah';
+  document.getElementById('ke-submit-btn').disabled = false;
+  document.getElementById('kom-entry-modal').style.display = 'flex';
+}
+function closeKomEntryModal() {
+  document.getElementById('kom-entry-modal').style.display = 'none';
+  _komEntryGroupId = null;
+}
+function selectKeAsset(type, btn) {
+  _komAssetType = type;
+  document.getElementById('ke-idx-btn').classList.toggle('on', type === 'idx');
+  document.getElementById('ke-gbl-btn').classList.toggle('on', type === 'global');
+  document.getElementById('ke-sym-hint').textContent = type === 'idx'
+    ? 'Masukkan kode saham IDX tanpa .JK (e.g. BBCA, GOTO)'
+    : 'Masukkan Yahoo Finance symbol (e.g. AAPL, BTC-USD, GC=F)';
+}
+async function submitAddKomEntry() {
+  const errEl = document.getElementById('ke-err');
+  const submitBtn = document.getElementById('ke-submit-btn');
+  const codeRaw = document.getElementById('ke-code').value.trim().toUpperCase();
+  const buy  = parseFloat(document.getElementById('ke-buy').value) || 0;
+  const sl   = parseFloat(document.getElementById('ke-sl').value) || 0;
+  const trig = document.getElementById('ke-trig').value;
+  const isIDX = _komAssetType === 'idx';
+  const yf = isIDX ? codeRaw + '.JK' : codeRaw;
+  errEl.textContent = '';
+
+  if (!codeRaw) { errEl.textContent = 'Kode / symbol tidak boleh kosong.'; return; }
+
+  submitBtn.textContent = 'Memverifikasi…'; submitBtn.disabled = true;
+  let q = null;
+  try {
+    q = await fetchWlQuote(yf);
+  } finally {
+    submitBtn.textContent = 'Tambah'; submitBtn.disabled = false;
+  }
+  if (!q) { errEl.textContent = 'Symbol tidak ditemukan. Cek kembali kode / symbol-nya.'; return; }
+
+  const cacheKey = isIDX ? codeRaw : codeRaw + '__gbl';
+  komCustomPrices[cacheKey] = q;
+
+  const groups = loadKomCustom();
+  const grp = groups.find(g => g.id === _komEntryGroupId);
+  if (!grp) { errEl.textContent = 'Grup tidak ditemukan.'; return; }
+
+  const isIdea = grp.type === 'trading_idea';
+  grp.entries.push({
+    code: codeRaw,
+    isIDX,
+    buy,
+    sl,
+    triggerBuy: trig || new Date().toISOString().slice(0,10),
+    kat: isIdea ? '' : (document.getElementById('ke-kat').value.trim() || 'ST'),
+    note: isIdea ? (document.getElementById('ke-note').value.trim()) : '',
+  });
+  saveKomCustom(groups);
+  closeKomEntryModal();
+  renderKomCustom();
+  showToast('✓ Entri berhasil ditambahkan!');
+}
+function deleteKomEntry(groupId, idx) {
+  const groups = loadKomCustom();
+  const grp = groups.find(g => g.id === groupId);
+  if (!grp) return;
+  grp.entries.splice(idx, 1);
+  saveKomCustom(groups);
+  renderKomCustom();
+  showToast('Entri dihapus.');
 }
 
 // ── WATCHLIST ────────────────────────────────────────────
