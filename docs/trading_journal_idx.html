@@ -658,6 +658,7 @@ select.fi option{background:var(--card)}
       <div style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;margin:8px 0" id="cash-big">—</div>
       <div style="font-size:12px;color:var(--muted)">T+2 settlement. Negatif = wajib top-up.</div>
       <div id="sync-status-display"></div>
+      <div id="sync-queue-display"></div>
     </div>
     <div class="card">
       <div class="card-title">Portfolio Value</div>
@@ -8534,8 +8535,11 @@ let _fbApp = null;
 let _fbDb = null;
 let _fbListeners = [];
 let _syncingToFb = false;
-let _ignoreFbUpdate = false;
+let _ignoreFbUpdateKeys = new Set(); // Track individual keys being synced
 let _fbConnected = false;
+let _syncQueue = []; // Queue for failed syncs with retry logic
+let _keyTimestamps = {}; // Track update timestamps for conflict resolution
+let _syncRetryCount = {}; // Track retry attempts per key
 
 function initFirebaseSync() {
   try {
@@ -8573,6 +8577,11 @@ function initFirebaseSync() {
           console.log('[Firebase Init] ✓ Setup', _fbListeners.length, 'listeners');
           showToast('✓ Terhubung ke Firebase');
         }
+        // Process sync queue when connection is restored
+        if (_syncQueue.length > 0) {
+          console.log('[Firebase Init] Processing', _syncQueue.length, 'queued items');
+          processSyncQueue();
+        }
       } else if (connectionAttempts > 1) {
         console.warn('[Firebase Init] Firebase not connected after', connectionAttempts, 'attempts');
       }
@@ -8593,7 +8602,7 @@ function setupFirebaseListeners() {
   SYNC_KEYS.forEach(key => {
     const ref = sharedDataRef.child(key);
     const listener = ref.on('value', snapshot => {
-      if (_ignoreFbUpdate) {
+      if (_ignoreFbUpdateKeys.has(key)) {
         console.log('[Firebase Listen] Skipping update (self-triggered) for key:', key);
         return;
       }
@@ -8603,6 +8612,8 @@ function setupFirebaseListeners() {
         try {
           // Firebase might return objects instead of strings, need to stringify
           const value = typeof val === 'string' ? val : JSON.stringify(val);
+          const timestamp = new Date().toISOString();
+          _keyTimestamps[key] = timestamp;
           localStorage.setItem(key, value);
           console.log('[Firebase Listen] ✓ Updated localStorage for key:', key);
           // Reload global state from localStorage before rendering
@@ -8684,12 +8695,15 @@ function pullAllCachedDataFromFirebase() {
   sharedDataRef.once('value', snapshot => {
     const data = snapshot.val() || {};
     console.log('[Pull Cached] Got data from Firebase:', Object.keys(data));
-    _ignoreFbUpdate = true;
+    // Mark all keys as being updated locally to prevent listener loop
+    SYNC_KEYS.forEach(k => _ignoreFbUpdateKeys.add(k));
     SYNC_KEYS.forEach(key => {
       if (data[key] !== null && data[key] !== undefined) {
         try {
           // Firebase returns objects, but localStorage needs strings
           const value = typeof data[key] === 'string' ? data[key] : JSON.stringify(data[key]);
+          const timestamp = new Date().toISOString();
+          _keyTimestamps[key] = timestamp;
           localStorage.setItem(key, value);
           console.log('[Pull Cached] Restored key:', key, 'length:', value?.length);
         } catch(e) {
@@ -8709,11 +8723,11 @@ function pullAllCachedDataFromFirebase() {
       console.error('[Pull Cached] Error reloading globals:', e);
     }
 
-    // Wait a tick before allowing FB updates again
-    setTimeout(() => {
-      _ignoreFbUpdate = false;
+    // Clear ignore set immediately after UI renders
+    setImmediate(() => {
+      _ignoreFbUpdateKeys.clear();
       console.log('[Pull Cached] Re-enabled Firebase updates');
-    }, 50);
+    });
 
     // Render UI with restored data
     try {
@@ -8733,20 +8747,49 @@ localStorage.setItem = function(key, value) {
   _originalSetItem.call(this, key, value);
   // Auto push ke Firebase (async, non-blocking) ke shared path
   if (SYNC_KEYS.includes(key) && _fbDb) {
-    _ignoreFbUpdate = true;
-    console.log('[Firebase Sync] Pushing key:', key, 'value length:', value?.length);
-    _fbDb.ref('shared/data/' + key).set(value)
-      .then(() => {
-        console.log('[Firebase Sync] ✓ Successfully pushed:', key);
-      })
-      .catch(err => {
-        console.error('[Firebase Sync] ✗ Error pushing', key, ':', err);
-      })
-      .finally(() => {
-        _ignoreFbUpdate = false;
-      });
+    pushToFirebaseWithRetry(key, value);
   }
 };
+
+function pushToFirebaseWithRetry(key, value, attempt = 0) {
+  if (!_fbDb) {
+    console.log('[Firebase Sync] Firebase not connected, queueing key:', key);
+    _syncQueue.push({ key, value, timestamp: Date.now() });
+    updateSyncQueueDisplay();
+    return;
+  }
+
+  _ignoreFbUpdateKeys.add(key);
+  const timestamp = new Date().toISOString();
+  _keyTimestamps[key] = timestamp;
+
+  console.log('[Firebase Sync] Pushing key:', key, 'value length:', value?.length, 'attempt:', attempt + 1);
+  _fbDb.ref('shared/data/' + key).set(value)
+    .then(() => {
+      console.log('[Firebase Sync] ✓ Successfully pushed:', key);
+      _ignoreFbUpdateKeys.delete(key);
+      _syncRetryCount[key] = 0;
+      // Remove from queue if present
+      _syncQueue = _syncQueue.filter(item => item.key !== key);
+      updateSyncQueueDisplay();
+    })
+    .catch(err => {
+      _ignoreFbUpdateKeys.delete(key);
+      console.error('[Firebase Sync] ✗ Error pushing', key, ':', err, 'attempt:', attempt + 1);
+      const retries = _syncRetryCount[key] || 0;
+      const maxRetries = 5;
+      if (retries < maxRetries) {
+        _syncRetryCount[key] = retries + 1;
+        const delay = Math.min(1000 * Math.pow(2, retries), 30000); // exponential backoff, max 30s
+        console.log('[Firebase Sync] Retrying', key, 'in', delay, 'ms (attempt', retries + 2, '/', maxRetries + 1, ')');
+        setTimeout(() => pushToFirebaseWithRetry(key, value, retries + 1), delay);
+      } else {
+        console.error('[Firebase Sync] Max retries exceeded for', key);
+        _syncQueue.push({ key, value, timestamp: Date.now(), failed: true });
+        updateSyncQueueDisplay();
+      }
+    });
+}
 
 function openSyncModal() {
   document.getElementById('sync-modal').style.display = 'flex';
@@ -8807,11 +8850,41 @@ function resetFirebaseSync() {
   showToast('Disconnected dari Firebase');
 }
 
-// Auto-init Firebase on load
+function processSyncQueue() {
+  if (_syncQueue.length === 0) return;
+  console.log('[Sync Queue] Processing', _syncQueue.length, 'queued items');
+  const itemsToProcess = [..._syncQueue];
+  _syncQueue = _syncQueue.filter(item => item.failed); // Keep only failed items
+  itemsToProcess.forEach(item => {
+    if (!item.failed) {
+      console.log('[Sync Queue] Retrying:', item.key);
+      pushToFirebaseWithRetry(item.key, item.value);
+    }
+  });
+}
+
+function updateSyncQueueDisplay() {
+  const statusEl = document.getElementById('sync-queue-display');
+  if (!statusEl) return;
+  const queueCount = _syncQueue.length;
+  const failedCount = _syncQueue.filter(q => q.failed).length;
+  if (queueCount > 0) {
+    statusEl.innerHTML = `<div style="font-size:11px;color:var(--muted);margin-top:8px;padding:8px;background:rgba(255,165,0,.1);border:1px solid rgba(255,165,0,.3);border-radius:6px">
+      ⏳ Sync Queue: ${queueCount} item${queueCount > 1 ? 's' : ''} ${failedCount > 0 ? '(' + failedCount + ' failed)' : ''}
+    </div>`;
+  } else {
+    statusEl.innerHTML = '';
+  }
+}
+
+// Auto-init Firebase on load (immediately, not delayed)
 window.addEventListener('load', () => {
-  setTimeout(() => {
-    try { initFirebaseSync(); } catch(e) { console.error('Auto-init Firebase error:', e); }
-  }, 2000);
+  try {
+    console.log('[Auto-init] Initializing Firebase sync');
+    initFirebaseSync();
+  } catch(e) {
+    console.error('Auto-init Firebase error:', e);
+  }
 });
 </script>
 </body>
