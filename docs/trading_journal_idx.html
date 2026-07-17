@@ -5761,6 +5761,7 @@ let cryptoPrices = {};
 let crChAlloc = null, crChPnl = null;
 let cryptoUSDIDR = 16000;
 let cryptoSort = 'value';
+let tgUSDIDR = 16000;
 let grandPortoNilai = 0;
 let grandGotNilai = 0;
 let grandCryptoNilai = 0;
@@ -6524,6 +6525,8 @@ async function fetchTangem() {
   yfSyms.forEach((s, i) => { if (yfRes[i]) yfMap[s] = yfRes[i].price; });
 
   tgHoldings.forEach(h => {
+    // Simpan harga lama sebelum ditimpa
+    if (h.priceIDR) h.prevPriceIDR = h.priceIDR;
     if (h.stable) {
       h.priceIDR = usdIdr;
       h.valIDR   = h.amt * usdIdr;
@@ -6531,6 +6534,8 @@ async function fetchTangem() {
       h.priceIDR = h.usd ? yfMap[h.yf] * usdIdr : yfMap[h.yf];
       h.valIDR   = h.amt * h.priceIDR;
     }
+    // Jika fetch gagal, kembalikan ke harga lama
+    if (!h.priceIDR && h.prevPriceIDR) h.priceIDR = h.prevPriceIDR;
   });
   saveTangemHoldings(tgHoldings);
   renderTangem();
@@ -6630,6 +6635,7 @@ const FH_SYM = {
   'LINK-USD':'BINANCE:LINKUSDT','LTC-USD':'BINANCE:LTCUSDT',
   'AVAX-USD':'BINANCE:AVAXUSDT','UNI-USD':'BINANCE:UNIUSDT',
   'DOT-USD':'BINANCE:DOTUSDT',  'GC%3DF':'OANDA:XAU_USD',
+  'POL-USD':'BINANCE:POLUSDT',
 };
 // Reverse map
 const FH_SYM_REV = Object.fromEntries(Object.entries(FH_SYM).map(([k,v])=>[v,k]));
@@ -6670,10 +6676,11 @@ function fhWsConnect() {
   fhWs.onopen = () => {
     fhSetStatus('<span style="color:#4caf50">● Live</span>');
     fhLog('WebSocket terhubung — harga real-time aktif');
-    // Subscribe to all GT + CR symbols
+    // Subscribe to all GT + CR + Tangem symbols
     const syms = [
       ...gtHoldings.map(h => toFhSym(h.t)),
       ...crHoldings.map(h => toFhSym(h.t)),
+      ...tgHoldings.filter(h => h.yf && !h.stable).map(h => toFhSym(h.yf)),
     ].filter((v, i, a) => a.indexOf(v) === i);
     syms.forEach(s => fhWs.send(JSON.stringify({ type: 'subscribe', symbol: s })));
   };
@@ -6687,13 +6694,24 @@ function fhWsConnect() {
       msg.data.forEach(d => {
         if (!latest[d.s] || d.t > latest[d.s].t) latest[d.s] = d;
       });
-      let gtDirty = false, crDirty = false;
+      let gtDirty = false, crDirty = false, tgDirty = false;
       Object.values(latest).forEach(({ s, p }) => {
         const ticker = fromFhSym(s);
         const prev = fhPrevClose[ticker] ?? p;
         const q = { price: p, prev };
         if (gtHoldings.find(h => h.t === ticker)) { gtPrices[ticker] = q; gtDirty = true; }
         if (crHoldings.find(h => h.t === ticker)) { cryptoPrices[ticker] = q; crDirty = true; }
+        // Tangem: update priceIDR/valIDR directly
+        tgHoldings.forEach(h => {
+          if (!h.yf || h.stable) return;
+          if (h.yf === ticker) {
+            h.prevPriceIDR = h.priceIDR;
+            const usdRate = tgUSDIDR || gtUSDIDR || cryptoUSDIDR || 16000;
+            h.priceIDR = h.usd ? p * usdRate : p;
+            h.valIDR   = h.amt * h.priceIDR;
+            tgDirty = true;
+          }
+        });
       });
       const now = new Date().toLocaleTimeString('id-ID');
       if (gtDirty) {
@@ -6705,6 +6723,14 @@ function fhWsConnect() {
         const ts = document.getElementById('cr-ts');
         if (ts) ts.textContent = '🟢 Live · ' + now;
         if (document.getElementById('tab-crypto')?.classList.contains('on')) renderCrypto();
+      }
+      if (tgDirty) {
+        const usdRate = tgUSDIDR || gtUSDIDR || cryptoUSDIDR || 16000;
+        tgHoldings.forEach(h => { if (h.stable) { h.priceIDR = usdRate; h.valIDR = h.amt * usdRate; } });
+        saveTangemHoldings(tgHoldings);
+        const ts = document.getElementById('tg-ts');
+        if (ts) ts.textContent = '🟢 Live · ' + now;
+        if (document.getElementById('tab-tangem')?.classList.contains('on')) renderTangem();
       }
     } catch(e) {}
   };
@@ -6727,28 +6753,47 @@ async function initFinnhub() {
   fhSetStatus('<span style="color:#ff9500">● Mengambil harga awal…</span>');
   fhLog('Mengambil harga awal via REST…');
 
-  // Fetch initial quotes (price + prev close) from Finnhub REST
+  // Fetch initial quotes (price + prev close) from Finnhub REST + USD/IDR in parallel
   const allTickers = [
     ...gtHoldings.map(h => h.t),
     ...crHoldings.map(h => h.t),
+    ...tgHoldings.filter(h => h.yf && !h.stable).map(h => h.yf),
   ].filter((v, i, a) => a.indexOf(v) === i);
 
-  const quotes = await Promise.all(allTickers.map(t => fhFetchQuote(t)));
+  const [quotes, usdRes] = await Promise.all([
+    Promise.all(allTickers.map(t => fhFetchQuote(t))),
+    fetchGtQuote('USDIDR%3DX'),
+  ]);
+  if (usdRes?.price) { gtUSDIDR = usdRes.price; cryptoUSDIDR = usdRes.price; tgUSDIDR = usdRes.price; }
+  const usdRate = tgUSDIDR || 16000;
+
   allTickers.forEach((ticker, i) => {
     const q = quotes[i];
     if (!q) return;
     fhPrevClose[ticker] = q.prev;
     if (gtHoldings.find(h => h.t === ticker)) gtPrices[ticker] = q;
     if (crHoldings.find(h => h.t === ticker)) cryptoPrices[ticker] = q;
+    // Tangem: update priceIDR/valIDR directly
+    tgHoldings.forEach(h => {
+      if (h.yf === ticker && !h.stable) {
+        h.prevPriceIDR = h.priceIDR;
+        h.priceIDR = h.usd ? q.price * usdRate : q.price;
+        h.valIDR   = h.amt * h.priceIDR;
+      }
+    });
   });
-
-  // USD/IDR still from Yahoo (free, reliable)
-  const usdRes = await fetchGtQuote('USDIDR%3DX');
-  if (usdRes?.price) { gtUSDIDR = usdRes.price; cryptoUSDIDR = usdRes.price; }
+  // Stablecoins use current USD/IDR rate
+  tgHoldings.forEach(h => {
+    if (h.stable) { h.prevPriceIDR = h.priceIDR; h.priceIDR = usdRate; h.valIDR = h.amt * usdRate; }
+  });
+  saveTangemHoldings(tgHoldings);
 
   // Render with initial data
   if (Object.keys(gtPrices).length)    renderGotrade();
   if (Object.keys(cryptoPrices).length) renderCrypto();
+  const tgTs = document.getElementById('tg-ts');
+  if (tgTs) tgTs.textContent = '🟢 Live · ' + new Date().toLocaleTimeString('id-ID');
+  if (document.getElementById('tab-tangem')?.classList.contains('on')) renderTangem();
 
   fhLog('Harga awal berhasil — membuka WebSocket…');
   fhWsConnect();
