@@ -825,7 +825,9 @@ select.fi option{background:var(--card)}
         <button class="tf-btn"    onclick="setChartType('candle',this)">Candle</button>
       </div>
       <span style="width:1px;height:18px;background:var(--border);flex-shrink:0"></span>
-      <button class="tf-btn" id="modal-st-btn" onclick="toggleST('modal',this)">Supertrend</button>
+      <button class="tf-btn" id="modal-st-btn"    onclick="toggleST('modal',this)">Supertrend</button>
+      <button class="tf-btn" id="modal-ema20-btn" onclick="toggleEMA('modal',20,this)" style="color:#29b6f6">EMA 20</button>
+      <button class="tf-btn" id="modal-ema50-btn" onclick="toggleEMA('modal',50,this)" style="color:#ab47bc">EMA 50</button>
     </div>
     <div class="tf-wrap" id="modal-tf-row">
       <button class="tf-btn on" id="tf-1d"  onclick="setTF('1d','5m',this)">1 Hari</button>
@@ -860,7 +862,9 @@ select.fi option{background:var(--card)}
         <button class="tf-btn"    onclick="setAssetChartType('candle',this)">Candle</button>
       </div>
       <span style="width:1px;height:18px;background:var(--border);flex-shrink:0"></span>
-      <button class="tf-btn" id="amodal-st-btn" onclick="toggleST('amodal',this)">Supertrend</button>
+      <button class="tf-btn" id="amodal-st-btn"    onclick="toggleST('amodal',this)">Supertrend</button>
+      <button class="tf-btn" id="amodal-ema20-btn" onclick="toggleEMA('amodal',20,this)" style="color:#29b6f6">EMA 20</button>
+      <button class="tf-btn" id="amodal-ema50-btn" onclick="toggleEMA('amodal',50,this)" style="color:#ab47bc">EMA 50</button>
     </div>
     <div class="tf-wrap" id="amodal-tf-row">
       <button class="tf-btn on" id="atf-1d"  onclick="setAssetTF('1d','5m',this)">1 Hari</button>
@@ -1942,6 +1946,8 @@ let aModalChartType = 'line';
 let aModalCached    = null;
 let modalShowST     = false;
 let aModalShowST    = false;
+let modalShowEMA20  = false, modalShowEMA50  = false;
+let aModalShowEMA20 = false, aModalShowEMA50 = false;
 
 function calcSupertrend(valid, period, mult) {
   period = period || 10; mult = mult || 3;
@@ -1975,10 +1981,32 @@ function calcSupertrend(valid, period, mult) {
   return { st, dir };
 }
 
+function calcEMA(valid, period) {
+  const n = valid.length, ema = new Array(n).fill(null);
+  if (n < period) return ema;
+  const k = 2 / (period + 1);
+  let s = 0;
+  for (let i = 0; i < period; i++) s += valid[i].c;
+  ema[period-1] = s / period;
+  for (let i = period; i < n; i++) ema[i] = valid[i].c * k + ema[i-1] * (1 - k);
+  return ema;
+}
+
 function toggleST(which, btn) {
   const on = btn.classList.toggle('on');
   if (which === 'modal') { modalShowST = on; if (modalCachedData) drawModalChart(modalCachedData); }
   else                   { aModalShowST = on; if (aModalCached)    drawAssetChart(aModalCached);   }
+}
+
+function toggleEMA(which, period, btn) {
+  const on = btn.classList.toggle('on');
+  if (which === 'modal') {
+    if (period === 20) modalShowEMA20 = on; else modalShowEMA50 = on;
+    if (modalCachedData) drawModalChart(modalCachedData);
+  } else {
+    if (period === 20) aModalShowEMA20 = on; else aModalShowEMA50 = on;
+    if (aModalCached) drawAssetChart(aModalCached);
+  }
 }
 
 function openStockChart(sym) {
@@ -2089,11 +2117,16 @@ function drawModalChart({ valid, fmtT, meta, sym }) {
       segment:{ borderColor: ctx => dir[ctx.p0DataIndex]===1 ? '#00c853' : '#ff4d4d' }
     }];
   }
+  const emaDs = [];
+  if (modalShowEMA20) emaDs.push({ label:'EMA 20', data:calcEMA(valid,20), borderColor:'#29b6f6',
+    borderWidth:1.2, pointRadius:0, fill:false, tension:0, spanGaps:false, yAxisID:'y' });
+  if (modalShowEMA50) emaDs.push({ label:'EMA 50', data:calcEMA(valid,50), borderColor:'#ab47bc',
+    borderWidth:1.2, pointRadius:0, fill:false, tension:0, spanGaps:false, yAxisID:'y' });
   const ctx = document.getElementById('modal-chart').getContext('2d');
   if (modalChart) { modalChart.destroy(); modalChart = null; }
   modalChart = new Chart(ctx, {
     type:'line',
-    data:{ labels, datasets:[ priceDs, ...avgSet, ...stDs,
+    data:{ labels, datasets:[ priceDs, ...avgSet, ...stDs, ...emaDs,
       { label:'Volume', data:vData, type:'bar',
         backgroundColor:color+'50', borderRadius:1, yAxisID:'vol', order:2 }
     ]},
@@ -2252,11 +2285,16 @@ function drawAssetChart({ valid, fmtT, meta, sym }) {
       segment:{ borderColor: ctx => dir[ctx.p0DataIndex]===1 ? '#00c853' : '#ff4d4d' }
     }];
   }
+  const emaDs = [];
+  if (aModalShowEMA20) emaDs.push({ label:'EMA 20', data:calcEMA(valid,20), borderColor:'#29b6f6',
+    borderWidth:1.2, pointRadius:0, fill:false, tension:0, spanGaps:false, yAxisID:'y' });
+  if (aModalShowEMA50) emaDs.push({ label:'EMA 50', data:calcEMA(valid,50), borderColor:'#ab47bc',
+    borderWidth:1.2, pointRadius:0, fill:false, tension:0, spanGaps:false, yAxisID:'y' });
   const ctx = document.getElementById('amodal-chart').getContext('2d');
   if (aModalChart) { aModalChart.destroy(); aModalChart = null; }
   aModalChart = new Chart(ctx, {
     type:'line',
-    data:{ labels, datasets:[ priceDs, ...avgSet, ...stDs,
+    data:{ labels, datasets:[ priceDs, ...avgSet, ...stDs, ...emaDs,
       { label:'Volume', data:vData, type:'bar', backgroundColor:color+'50', borderRadius:1, yAxisID:'vol', order:2 }
     ]},
     options:{
