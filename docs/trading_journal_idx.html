@@ -828,6 +828,8 @@ select.fi option{background:var(--card)}
       <button class="tf-btn" id="modal-st-btn"    onclick="toggleST('modal',this)">Supertrend</button>
       <button class="tf-btn" id="modal-ema20-btn" onclick="toggleEMA('modal',20,this)" style="color:#29b6f6">EMA 20</button>
       <button class="tf-btn" id="modal-ema50-btn" onclick="toggleEMA('modal',50,this)" style="color:#ab47bc">EMA 50</button>
+      <button class="tf-btn" id="modal-rsi-btn"   onclick="toggleOsc('modal','rsi',this)"  style="color:#ff9800">RSI</button>
+      <button class="tf-btn" id="modal-macd-btn"  onclick="toggleOsc('modal','macd',this)" style="color:#26c6da">MACD</button>
     </div>
     <div class="tf-wrap" id="modal-tf-row">
       <button class="tf-btn on" id="tf-1d"  onclick="setTF('1d','5m',this)">1 Hari</button>
@@ -841,6 +843,14 @@ select.fi option{background:var(--card)}
     </div>
     <div id="modal-status" style="font-size:12px;color:var(--muted);min-height:16px;margin-bottom:6px"></div>
     <canvas id="modal-chart" height="220"></canvas>
+    <div id="modal-rsi-wrap" style="display:none;margin-top:6px">
+      <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">RSI (14)</div>
+      <canvas id="modal-rsi-chart" height="70"></canvas>
+    </div>
+    <div id="modal-macd-wrap" style="display:none;margin-top:6px">
+      <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">MACD (12,26,9)</div>
+      <canvas id="modal-macd-chart" height="70"></canvas>
+    </div>
     <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px" id="modal-stats"></div>
   </div>
 </div>
@@ -865,6 +875,8 @@ select.fi option{background:var(--card)}
       <button class="tf-btn" id="amodal-st-btn"    onclick="toggleST('amodal',this)">Supertrend</button>
       <button class="tf-btn" id="amodal-ema20-btn" onclick="toggleEMA('amodal',20,this)" style="color:#29b6f6">EMA 20</button>
       <button class="tf-btn" id="amodal-ema50-btn" onclick="toggleEMA('amodal',50,this)" style="color:#ab47bc">EMA 50</button>
+      <button class="tf-btn" id="amodal-rsi-btn"   onclick="toggleOsc('amodal','rsi',this)"  style="color:#ff9800">RSI</button>
+      <button class="tf-btn" id="amodal-macd-btn"  onclick="toggleOsc('amodal','macd',this)" style="color:#26c6da">MACD</button>
     </div>
     <div class="tf-wrap" id="amodal-tf-row">
       <button class="tf-btn on" id="atf-1d"  onclick="setAssetTF('1d','5m',this)">1 Hari</button>
@@ -878,6 +890,14 @@ select.fi option{background:var(--card)}
     </div>
     <div id="amodal-status" style="font-size:12px;color:var(--muted);min-height:16px;margin-bottom:6px"></div>
     <canvas id="amodal-chart" height="220"></canvas>
+    <div id="amodal-rsi-wrap" style="display:none;margin-top:6px">
+      <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">RSI (14)</div>
+      <canvas id="amodal-rsi-chart" height="70"></canvas>
+    </div>
+    <div id="amodal-macd-wrap" style="display:none;margin-top:6px">
+      <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">MACD (12,26,9)</div>
+      <canvas id="amodal-macd-chart" height="70"></canvas>
+    </div>
     <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px" id="amodal-stats"></div>
   </div>
 </div>
@@ -1948,6 +1968,10 @@ let modalShowST     = false;
 let aModalShowST    = false;
 let modalShowEMA20  = false, modalShowEMA50  = false;
 let aModalShowEMA20 = false, aModalShowEMA50 = false;
+let modalShowRSI    = false, aModalShowRSI   = false;
+let modalShowMACD   = false, aModalShowMACD  = false;
+let modalRsiChart   = null,  aModalRsiChart  = null;
+let modalMacdChart  = null,  aModalMacdChart = null;
 
 function calcSupertrend(valid, period, mult) {
   period = period || 10; mult = mult || 3;
@@ -2009,6 +2033,159 @@ function toggleEMA(which, period, btn) {
   }
 }
 
+function _emaArr(src, period) {
+  const n = src.length, out = new Array(n).fill(null);
+  if (n < period) return out;
+  const k = 2 / (period + 1);
+  let s = 0;
+  for (let i = 0; i < period; i++) s += (src[i] ?? 0);
+  out[period-1] = s / period;
+  for (let i = period; i < n; i++) {
+    if (src[i] == null || out[i-1] == null) continue;
+    out[i] = src[i] * k + out[i-1] * (1 - k);
+  }
+  return out;
+}
+
+function calcRSI(valid, period) {
+  period = period || 14;
+  const n = valid.length, rsi = new Array(n).fill(null);
+  if (n <= period) return rsi;
+  let gains = 0, losses = 0;
+  for (let i = 1; i <= period; i++) {
+    const d = valid[i].c - valid[i-1].c;
+    if (d > 0) gains += d; else losses -= d;
+  }
+  let avgG = gains / period, avgL = losses / period;
+  rsi[period] = avgG + avgL === 0 ? 50 : 100 - 100 / (1 + avgG / (avgL || 1e-10));
+  for (let i = period + 1; i < n; i++) {
+    const d = valid[i].c - valid[i-1].c;
+    avgG = (avgG * (period-1) + Math.max(d, 0)) / period;
+    avgL = (avgL * (period-1) + Math.max(-d, 0)) / period;
+    rsi[i] = avgG + avgL === 0 ? 50 : 100 - 100 / (1 + avgG / (avgL || 1e-10));
+  }
+  return rsi;
+}
+
+function calcMACD(valid, fast, slow, sig) {
+  fast = fast || 12; slow = slow || 26; sig = sig || 9;
+  const n = valid.length;
+  const closes = valid.map(d => d.c);
+  const emaFast = _emaArr(closes, fast);
+  const emaSlow = _emaArr(closes, slow);
+  const macd = new Array(n).fill(null);
+  for (let i = slow - 1; i < n; i++) {
+    if (emaFast[i] != null && emaSlow[i] != null) macd[i] = emaFast[i] - emaSlow[i];
+  }
+  const macdSeed = macd.slice(slow - 1);
+  const sigArr   = _emaArr(macdSeed, sig);
+  const sigLine  = new Array(slow - 1).fill(null).concat(sigArr);
+  const hist = new Array(n).fill(null);
+  for (let i = 0; i < n; i++) {
+    if (macd[i] != null && sigLine[i] != null) hist[i] = macd[i] - sigLine[i];
+  }
+  return { macd, sigLine, hist };
+}
+
+function drawSubCharts(which, { valid, labels }) {
+  const pre      = which === 'modal' ? 'modal' : 'amodal';
+  const showRSI  = which === 'modal' ? modalShowRSI  : aModalShowRSI;
+  const showMACD = which === 'modal' ? modalShowMACD : aModalShowMACD;
+
+  // RSI
+  const rsiWrap = document.getElementById(pre + '-rsi-wrap');
+  if (which === 'modal') { if (modalRsiChart)  { modalRsiChart.destroy();  modalRsiChart  = null; } }
+  else                   { if (aModalRsiChart) { aModalRsiChart.destroy(); aModalRsiChart = null; } }
+  rsiWrap.style.display = showRSI ? '' : 'none';
+  if (showRSI) {
+    const rsiVals = calcRSI(valid);
+    const n = rsiVals.length;
+    const rsiCtx = document.getElementById(pre + '-rsi-chart').getContext('2d');
+    const rsiChart = new Chart(rsiCtx, {
+      type: 'line',
+      data: { labels, datasets: [
+        { label:'RSI', data:rsiVals, borderColor:'#ff9800', borderWidth:1.5,
+          pointRadius:0, fill:false, tension:0, spanGaps:false },
+        { label:'_ob', data:new Array(n).fill(70), borderColor:'rgba(255,77,77,0.4)',
+          borderDash:[3,3], borderWidth:1, pointRadius:0, fill:false },
+        { label:'_os', data:new Array(n).fill(30), borderColor:'rgba(0,200,83,0.4)',
+          borderDash:[3,3], borderWidth:1, pointRadius:0, fill:false },
+      ]},
+      options: {
+        plugins: {
+          legend: { display:false },
+          tooltip: { mode:'index', intersect:false,
+            filter: item => item.dataset.label === 'RSI',
+            callbacks: { label: c => ' RSI: ' + (c.parsed.y != null ? c.parsed.y.toFixed(2) : '—') }
+          }
+        },
+        scales: {
+          x: { ticks:{ color:'#6868a8', maxTicksLimit:7, maxRotation:0, font:{size:9} } },
+          y: { position:'right', min:0, max:100,
+               ticks:{ color:'#6868a8', font:{size:9}, maxTicksLimit:5 } }
+        },
+        interaction: { mode:'index', intersect:false }
+      }
+    });
+    if (which === 'modal') modalRsiChart = rsiChart; else aModalRsiChart = rsiChart;
+  }
+
+  // MACD
+  const macdWrap = document.getElementById(pre + '-macd-wrap');
+  if (which === 'modal') { if (modalMacdChart)  { modalMacdChart.destroy();  modalMacdChart  = null; } }
+  else                   { if (aModalMacdChart) { aModalMacdChart.destroy(); aModalMacdChart = null; } }
+  macdWrap.style.display = showMACD ? '' : 'none';
+  if (showMACD) {
+    const { macd, sigLine, hist } = calcMACD(valid);
+    const histColors = hist.map(v => v == null ? 'transparent' : v >= 0 ? 'rgba(0,200,83,0.7)' : 'rgba(255,77,77,0.7)');
+    const macdCtx = document.getElementById(pre + '-macd-chart').getContext('2d');
+    const macdChart = new Chart(macdCtx, {
+      type: 'bar',
+      data: { labels, datasets: [
+        { label:'Hist', data:hist, backgroundColor:histColors, borderWidth:0, order:2 },
+        { label:'MACD',   data:macd,    borderColor:'#26c6da', borderWidth:1.5,
+          pointRadius:0, fill:false, tension:0, spanGaps:false, type:'line', order:1 },
+        { label:'Signal', data:sigLine, borderColor:'#ff4d4d', borderWidth:1.2,
+          pointRadius:0, fill:false, tension:0, spanGaps:false, type:'line', order:1 },
+      ]},
+      options: {
+        plugins: {
+          legend: { display:false },
+          tooltip: { mode:'index', intersect:false,
+            callbacks: { label: c => {
+              if (c.parsed.y == null) return '';
+              return ' ' + c.dataset.label + ': ' + c.parsed.y.toFixed(4);
+            }}
+          }
+        },
+        scales: {
+          x: { ticks:{ color:'#6868a8', maxTicksLimit:7, maxRotation:0, font:{size:9} } },
+          y: { position:'right', ticks:{ color:'#6868a8', font:{size:9}, maxTicksLimit:4 } }
+        },
+        interaction: { mode:'index', intersect:false }
+      }
+    });
+    if (which === 'modal') modalMacdChart = macdChart; else aModalMacdChart = macdChart;
+  }
+}
+
+function toggleOsc(which, type, btn) {
+  const on = btn.classList.toggle('on');
+  if (which === 'modal') {
+    if (type === 'rsi') modalShowRSI = on; else modalShowMACD = on;
+    if (modalCachedData) {
+      const { valid, fmtT } = modalCachedData;
+      drawSubCharts('modal', { valid, labels: valid.map(d => fmtT(d.t)) });
+    }
+  } else {
+    if (type === 'rsi') aModalShowRSI = on; else aModalShowMACD = on;
+    if (aModalCached) {
+      const { valid, fmtT } = aModalCached;
+      drawSubCharts('amodal', { valid, labels: valid.map(d => fmtT(d.t)) });
+    }
+  }
+}
+
 function openStockChart(sym) {
   modalSym = sym;
   document.getElementById('modal-sym').textContent = sym + '.JK';
@@ -2032,6 +2209,8 @@ function openStockChart(sym) {
 
 function closeStockModal() {
   document.getElementById('stock-modal').classList.remove('on');
+  if (modalRsiChart)  { modalRsiChart.destroy();  modalRsiChart  = null; }
+  if (modalMacdChart) { modalMacdChart.destroy(); modalMacdChart = null; }
 }
 
 function setTF(range, interval, btn) {
@@ -2175,6 +2354,7 @@ function drawModalChart({ valid, fmtT, meta, sym }) {
     <div class="sb"><div class="sb-l">Terendah</div><div class="sb-v">${idrRaw(lo)}</div></div>
     ${meta.regularMarketVolume?`<div class="sb"><div class="sb-l">Volume</div><div class="sb-v">${(meta.regularMarketVolume/1e6).toFixed(1)}M</div></div>`:''}
   `;
+  drawSubCharts('modal', { valid, labels });
 }
 
 // ── ASSET CHART MODAL (Gotrade / Crypto — USD) ──────────
@@ -2202,6 +2382,8 @@ function openAssetChart(sym, displayName, avgUSD, sharesAmt) {
 
 function closeAssetModal() {
   document.getElementById('asset-modal').classList.remove('on');
+  if (aModalRsiChart)  { aModalRsiChart.destroy();  aModalRsiChart  = null; }
+  if (aModalMacdChart) { aModalMacdChart.destroy(); aModalMacdChart = null; }
 }
 
 function setAssetTF(range, interval, btn) {
@@ -2337,6 +2519,7 @@ function drawAssetChart({ valid, fmtT, meta, sym }) {
     <div class="sb"><div class="sb-l">Terendah</div><div class="sb-v">${fUSD(lo)}</div></div>
     ${vol ? `<div class="sb"><div class="sb-l">Volume</div><div class="sb-v">${vol>=1e6?(vol/1e6).toFixed(1)+'M':vol.toLocaleString()}</div></div>` : ''}
   `;
+  drawSubCharts('amodal', { valid, labels });
 }
 // ── END ASSET CHART MODAL ────────────────────────────────
 
