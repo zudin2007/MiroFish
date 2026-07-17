@@ -8512,18 +8512,11 @@ function initFirebaseSync() {
     _fbDb = firebase.database(_fbApp);
     _fbAuth = firebase.auth(_fbApp);
 
-    // Use shared UID across all devices (stored in localStorage)
-    let sharedUid = localStorage.getItem('_fb_shared_uid');
-    if (!sharedUid) {
-      sharedUid = 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
-      localStorage.setItem('_fb_shared_uid', sharedUid);
-    }
-    _fbUserId = sharedUid;
-
-    // Sign in anonymously (UID doesn't matter for our path)
+    // Sign in anonymously (semua device share data via shared path di Firebase)
     _fbAuth.signInAnonymously()
       .then(cred => {
-        document.getElementById('sync-user-id').textContent = 'User: ' + _fbUserId.slice(0, 8) + '…';
+        _fbUserId = cred.user.uid;
+        document.getElementById('sync-user-id').textContent = 'Shared UID: ' + _fbUserId.slice(0, 8) + '…';
         setupFirebaseListeners();
         showToast('✓ Terhubung ke Firebase');
       })
@@ -8538,13 +8531,14 @@ function initFirebaseSync() {
 }
 
 function setupFirebaseListeners() {
-  if (!_fbDb || !_fbUserId) return;
+  if (!_fbDb) return;
 
-  const userDataRef = _fbDb.ref('users/' + _fbUserId + '/data');
+  // Use shared path for all users (tidak per-user)
+  const sharedDataRef = _fbDb.ref('shared/data');
 
   // Listen untuk perubahan dari Firebase
   SYNC_KEYS.forEach(key => {
-    const ref = userDataRef.child(key);
+    const ref = sharedDataRef.child(key);
     const listener = ref.on('value', snapshot => {
       if (_ignoreFbUpdate) return; // Skip jika kita yang update
       const val = snapshot.val();
@@ -8569,10 +8563,10 @@ function setupFirebaseListeners() {
 const _originalSetItem = localStorage.setItem;
 localStorage.setItem = function(key, value) {
   _originalSetItem.call(this, key, value);
-  // Auto push ke Firebase (async, non-blocking)
-  if (SYNC_KEYS.includes(key) && _fbDb && _fbUserId) {
+  // Auto push ke Firebase (async, non-blocking) ke shared path
+  if (SYNC_KEYS.includes(key) && _fbDb) {
     _ignoreFbUpdate = true;
-    _fbDb.ref('users/' + _fbUserId + '/data/' + key).set(value)
+    _fbDb.ref('shared/data/' + key).set(value)
       .catch(err => console.error('Firebase sync error:', err))
       .finally(() => { _ignoreFbUpdate = false; });
   }
@@ -8591,7 +8585,7 @@ function closeSyncModal() {
 }
 
 async function manualSyncToFirebase() {
-  if (!_fbDb || !_fbUserId) { showToast('⚠ Tidak terhubung ke Firebase'); return; }
+  if (!_fbDb) { showToast('⚠ Tidak terhubung ke Firebase'); return; }
 
   const statusEl = document.getElementById('sync-status');
   const btn = event.target;
@@ -8599,9 +8593,9 @@ async function manualSyncToFirebase() {
 
   try {
     _syncingToFb = true;
-    const userDataRef = _fbDb.ref('users/' + _fbUserId + '/data');
+    const sharedDataRef = _fbDb.ref('shared/data');
 
-    // Push semua SYNC_KEYS ke Firebase
+    // Push semua SYNC_KEYS ke Firebase ke shared path
     const updates = {};
     SYNC_KEYS.forEach(k => {
       const v = localStorage.getItem(k);
@@ -8609,7 +8603,7 @@ async function manualSyncToFirebase() {
     });
     updates._lastSync = new Date().toISOString();
 
-    await userDataRef.update(updates);
+    await sharedDataRef.update(updates);
     statusEl.textContent = '✓ Sync berhasil!';
     showToast('✓ Data tersinkronisasi ke Firebase');
   } catch(e) {
