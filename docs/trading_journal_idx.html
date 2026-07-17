@@ -8598,10 +8598,12 @@ function setupFirebaseListeners() {
         return;
       }
       const val = snapshot.val();
-      console.log('[Firebase Listen] Received update for key:', key, 'value length:', val?.toString?.().length);
+      console.log('[Firebase Listen] Received update for key:', key, 'value type:', typeof val);
       if (val !== null && val !== undefined) {
         try {
-          localStorage.setItem(key, val);
+          // Firebase might return objects instead of strings, need to stringify
+          const value = typeof val === 'string' ? val : JSON.stringify(val);
+          localStorage.setItem(key, value);
           console.log('[Firebase Listen] ✓ Updated localStorage for key:', key);
           // Reload global state from localStorage before rendering
           if (key === 'porto_holdings_v1') {
@@ -8686,8 +8688,10 @@ function pullAllCachedDataFromFirebase() {
     SYNC_KEYS.forEach(key => {
       if (data[key] !== null && data[key] !== undefined) {
         try {
-          localStorage.setItem(key, data[key]);
-          console.log('[Pull Cached] Restored key:', key, 'length:', data[key]?.toString?.().length);
+          // Firebase returns objects, but localStorage needs strings
+          const value = typeof data[key] === 'string' ? data[key] : JSON.stringify(data[key]);
+          localStorage.setItem(key, value);
+          console.log('[Pull Cached] Restored key:', key, 'length:', value?.length);
         } catch(e) {
           console.error('[Pull Cached] Failed to restore ' + key, e);
         }
@@ -8700,6 +8704,7 @@ function pullAllCachedDataFromFirebase() {
       holdings = loadPortoHoldings();
       tgHoldings = loadTangemHoldings();
       console.log('[Pull Cached] ✓ Global variables reloaded');
+      console.log('[Pull Cached] Loaded holdings:', holdings.length, 'items, Tangem:', tgHoldings.length, 'items');
     } catch(e) {
       console.error('[Pull Cached] Error reloading globals:', e);
     }
