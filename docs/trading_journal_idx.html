@@ -162,7 +162,7 @@ select.fi option{background:var(--card)}
   <!-- IHSG Live Panel -->
   <div class="mkt-panel">
     <div class="mkt-panel-title">IHSG &amp; Pasar Global</div>
-    <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
+    <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;cursor:pointer;border-radius:8px;padding:6px;margin:-6px;transition:background .15s" onclick="openWlChartUsd('^JKSE','IHSG')" title="Klik untuk buka chart IHSG" onmouseenter="this.style.background='var(--hover,rgba(255,255,255,.05))'" onmouseleave="this.style.background=''">
       <div style="flex:1;min-width:180px">
         <div class="mkt-main">
           <div class="mkt-val" id="ihsg-val">—</div>
@@ -170,16 +170,16 @@ select.fi option{background:var(--card)}
         </div>
         <div style="font-size:11px;color:var(--muted);margin-top:3px" id="ihsg-ts">Belum diupdate</div>
       </div>
-      <div style="flex:1;min-width:140px;max-width:260px;align-self:center"><canvas id="ihsg-mini" height="50"></canvas></div>
+      <div style="flex:1;min-width:140px;max-width:260px;align-self:center;pointer-events:none"><canvas id="ihsg-mini" height="50"></canvas></div>
     </div>
     <div class="mkt-globe" id="global-mkts">
-      <div class="mkt-idx"><div class="mkt-idx-l">USD/IDR</div><div class="mkt-idx-v" id="g-usdidr">—</div></div>
-      <div class="mkt-idx"><div class="mkt-idx-l">Dow Jones</div><div class="mkt-idx-v" id="g-dji">—</div></div>
-      <div class="mkt-idx"><div class="mkt-idx-l">NASDAQ</div><div class="mkt-idx-v" id="g-nasdaq">—</div></div>
-      <div class="mkt-idx"><div class="mkt-idx-l">S&amp;P 500</div><div class="mkt-idx-v" id="g-sp500">—</div></div>
-      <div class="mkt-idx"><div class="mkt-idx-l">BTC/USD</div><div class="mkt-idx-v" id="g-btc">—</div></div>
-      <div class="mkt-idx"><div class="mkt-idx-l">ETH/USD</div><div class="mkt-idx-v" id="g-eth">—</div></div>
-      <div class="mkt-idx"><div class="mkt-idx-l">XAU/USD</div><div class="mkt-idx-v" id="g-xau">—</div></div>
+      <div class="mkt-idx" style="cursor:pointer" onclick="openWlChartUsd('USDIDR=X','USD/IDR')"   onmouseenter="this.style.opacity='.75'" onmouseleave="this.style.opacity=''"><div class="mkt-idx-l">USD/IDR</div><div class="mkt-idx-v" id="g-usdidr">—</div></div>
+      <div class="mkt-idx" style="cursor:pointer" onclick="openWlChartUsd('^DJI','Dow Jones')"      onmouseenter="this.style.opacity='.75'" onmouseleave="this.style.opacity=''"><div class="mkt-idx-l">Dow Jones</div><div class="mkt-idx-v" id="g-dji">—</div></div>
+      <div class="mkt-idx" style="cursor:pointer" onclick="openWlChartUsd('^IXIC','NASDAQ')"        onmouseenter="this.style.opacity='.75'" onmouseleave="this.style.opacity=''"><div class="mkt-idx-l">NASDAQ</div><div class="mkt-idx-v" id="g-nasdaq">—</div></div>
+      <div class="mkt-idx" style="cursor:pointer" onclick="openWlChartUsd('^GSPC','S&amp;P 500')"  onmouseenter="this.style.opacity='.75'" onmouseleave="this.style.opacity=''"><div class="mkt-idx-l">S&amp;P 500</div><div class="mkt-idx-v" id="g-sp500">—</div></div>
+      <div class="mkt-idx" style="cursor:pointer" onclick="openWlChartUsd('BTC-USD','BTC/USD')"    onmouseenter="this.style.opacity='.75'" onmouseleave="this.style.opacity=''"><div class="mkt-idx-l">BTC/USD</div><div class="mkt-idx-v" id="g-btc">—</div></div>
+      <div class="mkt-idx" style="cursor:pointer" onclick="openWlChartUsd('ETH-USD','ETH/USD')"    onmouseenter="this.style.opacity='.75'" onmouseleave="this.style.opacity=''"><div class="mkt-idx-l">ETH/USD</div><div class="mkt-idx-v" id="g-eth">—</div></div>
+      <div class="mkt-idx" style="cursor:pointer" onclick="openWlChartUsd('GC=F','XAU/USD (Gold')" onmouseenter="this.style.opacity='.75'" onmouseleave="this.style.opacity=''"><div class="mkt-idx-l">XAU/USD</div><div class="mkt-idx-v" id="g-xau">—</div></div>
     </div>
   </div>
 
