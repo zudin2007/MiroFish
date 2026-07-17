@@ -8512,10 +8512,17 @@ function initFirebaseSync() {
     _fbDb = firebase.database(_fbApp);
     _fbAuth = firebase.auth(_fbApp);
 
-    // Sign in anonymously
+    // Use shared UID across all devices (stored in localStorage)
+    let sharedUid = localStorage.getItem('_fb_shared_uid');
+    if (!sharedUid) {
+      sharedUid = 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
+      localStorage.setItem('_fb_shared_uid', sharedUid);
+    }
+    _fbUserId = sharedUid;
+
+    // Sign in anonymously (UID doesn't matter for our path)
     _fbAuth.signInAnonymously()
       .then(cred => {
-        _fbUserId = cred.user.uid;
         document.getElementById('sync-user-id').textContent = 'User: ' + _fbUserId.slice(0, 8) + '…';
         setupFirebaseListeners();
         showToast('✓ Terhubung ke Firebase');
