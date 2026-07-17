@@ -1073,6 +1073,10 @@ select.fi option{background:var(--card)}
           <button class="btn btn-o" onclick="reprocessSyncQueue()" style="padding:10px;font-size:13px;font-weight:700">↻ Retry Queue</button>
           <button class="btn btn-o" onclick="resetFirebaseSync()" style="padding:10px;font-size:13px;font-weight:700">Disconnect</button>
         </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <button class="btn btn-o" onclick="exportDataBackup()" style="padding:10px;font-size:13px;font-weight:700">⬇️ Export</button>
+          <button class="btn btn-o" onclick="importDataBackup()" style="padding:10px;font-size:13px;font-weight:700">⬆️ Import</button>
+        </div>
         <div style="font-size:11px;color:var(--muted);margin-top:12px">
           <div id="sync-status" style="text-align:center;min-height:20px"></div>
         </div>
@@ -8924,6 +8928,94 @@ function resetFirebaseSync() {
   showToast('Disconnected dari Firebase');
 }
 
+function exportDataBackup() {
+  try {
+    const backup = {};
+    SYNC_KEYS.forEach(key => {
+      const value = localStorage.getItem(key);
+      if (value) backup[key] = value;
+    });
+
+    const exportData = {
+      timestamp: new Date().toISOString(),
+      app: 'IFBTC Journal',
+      data: backup,
+      version: 1
+    };
+
+    const json = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `trading-journal-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    console.log('[Export] Successfully exported', Object.keys(backup).length, 'keys');
+    showToast('✓ Data exported successfully');
+  } catch(e) {
+    console.error('[Export] Error:', e);
+    showToast('⚠ Export failed: ' + e.message);
+  }
+}
+
+function importDataBackup() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = async (e) => {
+    try {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const text = await file.text();
+      const backup = JSON.parse(text);
+
+      if (!backup.data || typeof backup.data !== 'object') {
+        throw new Error('Invalid backup format');
+      }
+
+      const statusEl = document.getElementById('sync-status');
+      statusEl.textContent = '⬆ Importing...';
+
+      let imported = 0;
+      Object.entries(backup.data).forEach(([key, value]) => {
+        if (SYNC_KEYS.includes(key) && typeof value === 'string') {
+          localStorage.setItem(key, value);
+          imported++;
+        }
+      });
+
+      // Reload all global variables from imported localStorage
+      try {
+        holdings = loadPortoHoldings();
+        tgHoldings = loadTangemHoldings();
+        renderAccount();
+        renderPorto();
+      } catch(e) {
+        console.error('[Import] Error reloading UI:', e);
+      }
+
+      console.log('[Import] Successfully imported', imported, 'keys');
+      statusEl.textContent = '✓ Imported ' + imported + ' keys!';
+      showToast('✓ Data imported successfully (' + imported + ' items)');
+      setTimeout(() => { statusEl.textContent = ''; }, 3000);
+
+      // Auto-push to Firebase if connected
+      if (_fbDb) {
+        console.log('[Import] Auto-pushing to Firebase');
+        manualSyncToFirebase();
+      }
+    } catch(e) {
+      console.error('[Import] Error:', e);
+      showToast('⚠ Import failed: ' + e.message);
+      document.getElementById('sync-status').textContent = '✗ Import failed';
+    }
+  };
+  input.click();
+}
+
 function processSyncQueue() {
   if (_syncQueue.length === 0) return;
   console.log('[Sync Queue] Processing', _syncQueue.length, 'queued items');
@@ -9019,8 +9111,35 @@ window.addEventListener('load', () => {
   try {
     console.log('[Auto-init] Initializing Firebase sync');
     initFirebaseSync();
+    // Auto-save backup to localStorage every hour
+    setInterval(() => {
+      try {
+        const backup = {};
+        SYNC_KEYS.forEach(key => {
+          const value = localStorage.getItem(key);
+          if (value) backup[key] = value;
+        });
+        const backupData = {
+          timestamp: new Date().toISOString(),
+          data: backup
+        };
+        sessionStorage.setItem('_auto_backup_' + Date.now(), JSON.stringify(backupData));
+        console.log('[Auto-backup] Saved to sessionStorage');
+      } catch(e) {
+        console.error('[Auto-backup] Error:', e);
+      }
+    }, 60 * 60 * 1000); // Every hour
   } catch(e) {
     console.error('Auto-init Firebase error:', e);
+  }
+});
+
+// Warn user if they have unsaved changes in sync queue
+window.addEventListener('beforeunload', (e) => {
+  if (_syncQueue.length > 0 || Object.keys(_syncDebounceTimers).length > 0) {
+    const msg = 'Ada data yang belum tersinkronisasi ke Firebase. Yakin akan keluar?';
+    e.returnValue = msg;
+    return msg;
   }
 });
 </script>
