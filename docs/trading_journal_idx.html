@@ -8603,13 +8603,55 @@ function setupFirebaseListeners() {
         try {
           localStorage.setItem(key, val);
           console.log('[Firebase Listen] ✓ Updated localStorage for key:', key);
-          // Render ulang sesuai tipe data yang berubah
-          if (key === 'porto_holdings_v1') { try { console.log('[Render] renderPorto'); renderPorto(); } catch(e){ console.error('[Render Error] renderPorto:', e); } }
-          if (key === 'idx_trades_v3') { try { console.log('[Render] renderPorto + renderJournal'); renderPorto(); renderJournal(); } catch(e){ console.error('[Render Error] idx_trades_v3:', e); } }
-          if (key === 'gt_trades_v1') { try { console.log('[Render] renderGotrade'); renderGotrade(); } catch(e){ console.error('[Render Error] renderGotrade:', e); } }
-          if (key === 'cr_trades_v1') { try { console.log('[Render] renderCrypto'); renderCrypto(); } catch(e){ console.error('[Render Error] renderCrypto:', e); } }
-          if (key === 'wl_custom_v1') { try { console.log('[Render] renderWatchlist'); renderWatchlist(); } catch(e){ console.error('[Render Error] renderWatchlist:', e); } }
-          if (key === 'kom_custom_v1') { try { console.log('[Render] renderKomCustom'); renderKomCustom(); } catch(e){ console.error('[Render Error] renderKomCustom:', e); } }
+          // Reload global state from localStorage before rendering
+          if (key === 'porto_holdings_v1') {
+            try {
+              console.log('[Reload] Reloading holdings from localStorage');
+              holdings = loadPortoHoldings();
+              console.log('[Render] renderPorto');
+              renderPorto();
+            } catch(e){ console.error('[Render Error] renderPorto:', e); }
+          }
+          if (key === 'idx_trades_v3') {
+            try {
+              console.log('[Reload] Reloading trades from localStorage');
+              console.log('[Render] renderPorto + renderJournal');
+              renderPorto();
+              renderJournal();
+            } catch(e){ console.error('[Render Error] idx_trades_v3:', e); }
+          }
+          if (key === 'gt_trades_v1') {
+            try {
+              console.log('[Render] renderGotrade');
+              renderGotrade();
+            } catch(e){ console.error('[Render Error] renderGotrade:', e); }
+          }
+          if (key === 'cr_trades_v1') {
+            try {
+              console.log('[Render] renderCrypto');
+              renderCrypto();
+            } catch(e){ console.error('[Render Error] renderCrypto:', e); }
+          }
+          if (key === 'wl_custom_v1') {
+            try {
+              console.log('[Render] renderWatchlist');
+              renderWatchlist();
+            } catch(e){ console.error('[Render Error] renderWatchlist:', e); }
+          }
+          if (key === 'kom_custom_v1') {
+            try {
+              console.log('[Render] renderKomCustom');
+              renderKomCustom();
+            } catch(e){ console.error('[Render Error] renderKomCustom:', e); }
+          }
+          if (key === 'tangem_v1') {
+            try {
+              console.log('[Reload] Reloading Tangem holdings');
+              tgHoldings = loadTangemHoldings();
+              console.log('[Render] renderTangem');
+              renderTangem();
+            } catch(e){ console.error('[Render Error] renderTangem:', e); }
+          }
           if (key === 'idx_cash_v2' || key === 'idx_cash_hist_v1') {
             try {
               console.log('[Render] renderAccount + renderPorto for cash key:', key);
@@ -8651,11 +8693,23 @@ function pullAllCachedDataFromFirebase() {
         }
       }
     });
+
+    // Reload all global variables from restored localStorage
+    try {
+      console.log('[Pull Cached] Reloading global variables...');
+      holdings = loadPortoHoldings();
+      tgHoldings = loadTangemHoldings();
+      console.log('[Pull Cached] ✓ Global variables reloaded');
+    } catch(e) {
+      console.error('[Pull Cached] Error reloading globals:', e);
+    }
+
     // Wait a tick before allowing FB updates again
     setTimeout(() => {
       _ignoreFbUpdate = false;
       console.log('[Pull Cached] Re-enabled Firebase updates');
     }, 50);
+
     // Render UI with restored data
     try {
       console.log('[Pull Cached] Rendering UI...');
