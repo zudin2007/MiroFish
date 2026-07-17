@@ -132,6 +132,45 @@ select.fi option{background:var(--card)}
 </style>
 </head>
 <body>
+<!-- Diagnostic: Page is loading -->
+<div id="page-loading" style="position:fixed;top:0;left:0;right:0;bottom:0;background:#0f0f1a;display:flex;align-items:center;justify-content:center;z-index:9999;font-family:monospace;color:#e8e8ff">
+  <div style="text-align:center">
+    <div style="font-size:24px;margin-bottom:16px">⏳ Loading...</div>
+    <div id="load-status" style="font-size:12px;color:#a8a8c8">Initializing application</div>
+  </div>
+</div>
+<script>
+// Hide loading screen when page is ready
+function hideLoadingScreen() {
+  const loader = document.getElementById('page-loading');
+  if (loader) {
+    loader.style.display = 'none';
+  }
+}
+
+// Check if page is ready
+function checkPageReady() {
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    console.log('[Diagnostic] Page ready');
+    setTimeout(hideLoadingScreen, 500);
+  }
+}
+
+// Listen for ready state changes
+document.addEventListener('readystatechange', () => {
+  const statusEl = document.getElementById('load-status');
+  if (statusEl) {
+    statusEl.textContent = 'Ready state: ' + document.readyState;
+  }
+  checkPageReady();
+});
+
+// Try immediately
+checkPageReady();
+
+// Hide on window load
+window.addEventListener('load', hideLoadingScreen);
+</script>
 
 <div class="hdr">
   <div class="hdr-logo">TJ</div>
