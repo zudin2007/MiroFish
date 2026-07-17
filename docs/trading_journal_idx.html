@@ -145,6 +145,7 @@ select.fi option{background:var(--card)}
   <button class="tab" onclick="showTab('crypto',this)">Crypto</button>
   <button class="tab" onclick="showTab('tangem',this)">Tangem</button>
   <button class="tab" onclick="showTab('watchlist',this)">Watchlist</button>
+  <button class="tab" onclick="showTab('komunitas',this)">Komunitas</button>
   <button class="tab" onclick="showTab('jurnal',this)">Jurnal</button>
   <button class="tab" onclick="showTab('analitik',this)">Analitik</button>
   <button class="tab" onclick="showTab('mm',this)">Money Mgmt</button>
@@ -850,6 +851,41 @@ select.fi option{background:var(--card)}
   <div id="wl-body"></div>
 </div>
 
+<!-- ══════════════ KOMUNITAS ══════════════ -->
+<div id="tab-komunitas" class="panel">
+
+  <!-- Confido group -->
+  <div class="card" style="margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+      <div>
+        <div style="font-size:13px;font-weight:800;letter-spacing:.02em">Confido &mdash; <span style="color:var(--accent)">control finance</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Open Posisi 2026 &nbsp;·&nbsp; Supertrend</div>
+      </div>
+      <button class="tf-btn" onclick="refreshKomDays()" id="kom-refresh-btn">⟳ Update Days</button>
+    </div>
+    <div class="tbl-wrap">
+      <table id="kom-confido-tbl" style="font-size:12px">
+        <thead>
+          <tr style="color:var(--muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em">
+            <th style="text-align:left;padding-bottom:6px;min-width:44px">No</th>
+            <th style="text-align:left;padding-bottom:6px;min-width:70px">Code</th>
+            <th style="text-align:right;padding-bottom:6px;min-width:72px">Buy</th>
+            <th style="text-align:right;padding-bottom:6px;min-width:72px">SL / TS</th>
+            <th style="text-align:right;padding-bottom:6px;min-width:64px">% if SL</th>
+            <th style="text-align:right;padding-bottom:6px;min-width:72px">Harga</th>
+            <th style="text-align:right;padding-bottom:6px;min-width:64px">% G/L</th>
+            <th style="text-align:right;padding-bottom:6px;min-width:86px">Trigger Buy</th>
+            <th style="text-align:right;padding-bottom:6px;min-width:50px">Days</th>
+            <th style="text-align:center;padding-bottom:6px;min-width:50px">Kat.</th>
+          </tr>
+        </thead>
+        <tbody id="kom-confido-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
 <!-- ══ ADD WATCHLIST MODAL ══ -->
 <div class="modal-overlay" id="wl-add-modal" onclick="if(event.target===this)closeAddWl()">
   <div class="modal-box" style="max-width:400px">
@@ -1125,7 +1161,8 @@ function showTab(name, btn) {
   if (name === 'tangem')    setTimeout(() => { try { renderTangem();   } catch(e){} }, 60);
   if (name === 'gainloss')  setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
   if (name === 'aktivitas') setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
-  if (name === 'watchlist') setTimeout(() => { try { fetchWatchlist(); } catch(e){} }, 60);
+  if (name === 'watchlist')  setTimeout(() => { try { fetchWatchlist();  } catch(e){} }, 60);
+  if (name === 'komunitas')  setTimeout(() => { try { renderKomConfido(); fetchKomPrices(); } catch(e){} }, 60);
 }
 
 // ── PORTO ──────────────────────────────────────────────
@@ -7598,6 +7635,82 @@ try {
 } catch(e) {}
 
 window.addEventListener('load', () => setTimeout(() => { fetchAll(); fetchIHSG(); }, 1500));
+
+// ── KOMUNITAS ────────────────────────────────────────────
+const KOM_CONFIDO = [
+  { no:1, code:'BSML', buy:482,    sl:478,    triggerBuy:'2026-06-23', kat:'ST' },
+  { no:2, code:'MKAP', buy:1270,   sl:1130,   triggerBuy:'2026-06-26', kat:'ST' },
+  { no:3, code:'',     buy:0,      sl:0,      triggerBuy:'2026-05-14', kat:'ST' },
+  { no:4, code:'ADES', buy:27050,  sl:31750,  triggerBuy:'2026-06-22', kat:'ST' },
+  { no:5, code:'GULA', buy:575,    sl:545,    triggerBuy:'2026-06-10', kat:'ST' },
+  { no:6, code:'MARK', buy:985,    sl:945,    triggerBuy:'2026-07-02', kat:'ST' },
+  { no:7, code:'CASA', buy:1905,   sl:1695,   triggerBuy:'2026-06-24', kat:'ST' },
+  { no:8, code:'NEST', buy:610,    sl:545,    triggerBuy:'2026-07-07', kat:'ST' },
+];
+
+const komPrices = {};
+
+function renderKomConfido() {
+  const tbody = document.getElementById('kom-confido-body');
+  if (!tbody) return;
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  tbody.innerHTML = KOM_CONFIDO.map(row => {
+    if (!row.code) {
+      return `<tr style="opacity:.45">
+        <td style="padding:5px 6px 5px 0;color:var(--muted)">${row.no}</td>
+        <td style="padding:5px 6px">—</td>
+        <td colspan="8" style="padding:5px 6px;text-align:center;color:var(--muted);font-size:11px">#DIV/0!</td>
+      </tr>`;
+    }
+
+    const q        = komPrices[row.code] || null;
+    const last     = q ? q.price : null;
+    const pctSL    = row.buy > 0 ? (row.sl - row.buy) / row.buy * 100 : null;
+    const pctGL    = (last != null && row.buy > 0) ? (last - row.buy) / row.buy * 100 : null;
+
+    const trigDate = new Date(row.triggerBuy);
+    trigDate.setHours(0,0,0,0);
+    const days     = Math.floor((today - trigDate) / 86400000);
+
+    const fIdr = v => v != null ? idrRaw(Math.round(v)) : '—';
+    const fPct = v => v != null ? `<span class="${v>=0?'g':'r'}">${v>=0?'+':''}${v.toFixed(2)}%</span>` : '—';
+    const trigFmt = trigDate.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'2-digit'});
+
+    return `<tr onclick="openWlChartIdx('${row.code}')" style="cursor:pointer;transition:background .12s" onmouseenter="this.style.background='var(--hover,rgba(255,255,255,.04))'" onmouseleave="this.style.background=''">
+      <td style="padding:6px 6px 6px 0;color:var(--muted);font-size:11px">${row.no}</td>
+      <td style="padding:6px 6px;font-weight:700;font-size:13px">${row.code}</td>
+      <td style="padding:6px 6px;text-align:right;font-variant-numeric:tabular-nums">${fIdr(row.buy)}</td>
+      <td style="padding:6px 6px;text-align:right;font-variant-numeric:tabular-nums">${fIdr(row.sl)}</td>
+      <td style="padding:6px 6px;text-align:right">${fPct(pctSL)}</td>
+      <td style="padding:6px 6px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600">${last != null ? idrRaw(Math.round(last)) : '—'}</td>
+      <td style="padding:6px 6px;text-align:right">${fPct(pctGL)}</td>
+      <td style="padding:6px 6px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap">${trigFmt}</td>
+      <td style="padding:6px 6px;text-align:right;font-variant-numeric:tabular-nums;font-weight:700">${days}</td>
+      <td style="padding:6px 6px;text-align:center"><span style="font-size:10px;font-weight:700;background:var(--accent);color:#fff;border-radius:4px;padding:1px 5px">${row.kat}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+async function fetchKomPrices() {
+  const syms = [...new Set(KOM_CONFIDO.filter(r => r.code).map(r => r.code))];
+  const BATCH = 8;
+  for (let i = 0; i < syms.length; i += BATCH) {
+    const batch = syms.slice(i, i + BATCH);
+    const results = await Promise.all(batch.map(s => fetchWlQuote(s + '.JK')));
+    batch.forEach((s, idx) => { if (results[idx]) komPrices[s] = results[idx]; });
+  }
+  renderKomConfido();
+}
+
+function refreshKomDays() {
+  const btn = document.getElementById('kom-refresh-btn');
+  if (btn) { btn.textContent = '⟳ Memuat…'; btn.disabled = true; }
+  fetchKomPrices().finally(() => {
+    if (btn) { btn.textContent = '⟳ Update Days'; btn.disabled = false; }
+  });
+}
 
 // ── WATCHLIST ────────────────────────────────────────────
 let wlPrices   = {};   // {yf: {price, prev, chg, chgPct}}
