@@ -7,6 +7,9 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1037,46 +1040,31 @@ select.fi option{background:var(--card)}
   </div>
 </div>
 
-<!-- ══ DATA SYNC MODAL ══ -->
+<!-- ══ DATA SYNC MODAL (Firebase) ══ -->
 <div class="modal-overlay" id="sync-modal" onclick="if(event.target===this)closeSyncModal()" style="display:none">
   <div class="modal-box" style="max-width:480px">
     <div class="modal-hdr">
-      <div class="modal-title">☁ Sinkronisasi Data</div>
+      <div class="modal-title">☁ Sinkronisasi Data Real-time</div>
       <button class="modal-close" onclick="closeSyncModal()">✕</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:14px">
-      <!-- Setup Section -->
-      <div id="sync-setup-section">
-        <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px">
-          Sinkronkan data trading Anda ke GitHub Gist. Data akan tersimpan aman dan bisa diakses dari perangkat apa pun. Token hanya disimpan di memory sesi ini (tidak permanen).
-        </div>
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;font-size:11px;color:var(--muted);line-height:1.6">
-          <div style="font-weight:700;margin-bottom:6px">Setup:</div>
-          <div style="margin-bottom:8px">1. Buka <a href="https://github.com/settings/tokens" target="_blank" style="color:var(--accent);text-decoration:underline">github.com/settings/tokens</a></div>
-          <div style="margin-bottom:8px">2. Klik "Generate new token (classic)"</div>
-          <div style="margin-bottom:8px">3. Centang <code style="background:rgba(255,255,255,.1);padding:2px 6px;border-radius:3px">gist</code> scope</div>
-          <div>4. Copy token dan paste di bawah</div>
-        </div>
-        <div style="margin-bottom:10px">
-          <div class="fl" style="margin-bottom:4px">Personal Access Token (PAT)</div>
-          <input class="fi" id="sync-pat-input" type="password" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off" style="font-family:monospace;font-size:12px">
-        </div>
-        <button class="btn btn-o" onclick="testAndSaveToken()" style="width:100%;padding:10px;font-size:13px;font-weight:700">Simpan & Verifikasi</button>
-        <div id="sync-setup-err" style="font-size:12px;color:#ff4d4d;min-height:16px;text-align:center;margin-top:8px"></div>
-      </div>
-
-      <!-- Sync Section (hidden until token saved) -->
-      <div id="sync-active-section" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <!-- Connecting/Active State -->
+      <div id="sync-active-section">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--green)">
+          <div style="font-size:20px">🟢</div>
           <div>
-            <div style="font-size:12px;font-weight:600">Gist ID</div>
-            <div id="sync-gist-id" style="font-family:monospace;font-size:11px;color:var(--muted);margin-top:2px">—</div>
+            <div style="font-size:13px;font-weight:700;color:var(--green)">Terhubung ke Firebase</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px" id="sync-user-id">User: —</div>
           </div>
-          <button class="tf-btn" onclick="resetSyncToken()" style="font-size:11px">Logout</button>
+        </div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px">
+          ✓ Data auto-sync real-time ke semua perangkat<br>
+          ✓ Tidak perlu klik upload/download<br>
+          ✓ Perubahan otomatis terupdate dalam hitungan detik
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button class="btn btn-o" onclick="uploadToGist()" style="padding:10px;font-size:13px;font-weight:700" id="sync-upload-btn">📤 Upload</button>
-          <button class="btn btn-o" onclick="downloadFromGist()" style="padding:10px;font-size:13px;font-weight:700" id="sync-download-btn">📥 Download</button>
+          <button class="btn btn-o" onclick="manualSyncToFirebase()" style="padding:10px;font-size:13px;font-weight:700">🔄 Sync Sekarang</button>
+          <button class="btn btn-o" onclick="resetFirebaseSync()" style="padding:10px;font-size:13px;font-weight:700">Disconnect</button>
         </div>
         <div style="font-size:11px;color:var(--muted);margin-top:12px">
           <div id="sync-status" style="text-align:center;min-height:20px"></div>
@@ -8480,170 +8468,168 @@ function removeWlItem(yf) {
   renderWatchlist();
 }
 
-// ── DATA SYNC (GitHub Gist) ────────────────────────────────
+// ── DATA SYNC (Firebase Realtime) ────────────────────────────────
 const SYNC_KEYS = [
   'porto_holdings_v1', 'idx_trades_v3', 'idx_cash_v2', 'jurnal_sub', 'gt_trades_v1', 'cr_trades_v1',
   'idx_cash_hist_v1', 'tangem_v1', 'finnhub_key', 'wl_custom_v1', 'kom_custom_v1', 'idx_active_tab'
 ];
 
-let _syncToken = '';
-let _syncGistId = '';
-let _syncGistName = '';
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyBfhfh-lEiE4XdPuQZAigd5Kqa0-1fxzhA",
+  authDomain: "tradingjournal-dabac.firebaseapp.com",
+  databaseURL: "https://tradingjournal-dabac-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "tradingjournal-dabac",
+  storageBucket: "tradingjournal-dabac.firebasestorage.app",
+  messagingSenderId: "774210460820",
+  appId: "1:774210460820:web:3179d37e31c4d25588e881",
+  measurementId: "G-DMLK1C2Y6V"
+};
 
-function loadSyncMeta() {
-  try { return JSON.parse(localStorage.getItem('_sync_gist_meta') || '{}'); } catch(e) { return {}; }
+let _fbApp = null;
+let _fbDb = null;
+let _fbAuth = null;
+let _fbUserId = null;
+let _fbListeners = [];
+let _syncingToFb = false;
+let _ignoreFbUpdate = false;
+
+function initFirebaseSync() {
+  try {
+    if (_fbApp) return; // Already initialized
+    _fbApp = firebase.initializeApp(firebaseConfig);
+    _fbDb = firebase.database(_fbApp);
+    _fbAuth = firebase.auth(_fbApp);
+
+    // Sign in anonymously
+    _fbAuth.signInAnonymously()
+      .then(cred => {
+        _fbUserId = cred.user.uid;
+        document.getElementById('sync-user-id').textContent = 'User: ' + _fbUserId.slice(0, 8) + '…';
+        setupFirebaseListeners();
+        showToast('✓ Terhubung ke Firebase');
+      })
+      .catch(err => {
+        console.error('Firebase auth error:', err);
+        showToast('⚠ Gagal login Firebase: ' + err.message);
+      });
+  } catch(e) {
+    console.error('Firebase init error:', e);
+    showToast('⚠ Firebase error: ' + e.message);
+  }
 }
-function saveSyncMeta(gistId, gistName) {
-  try { localStorage.setItem('_sync_gist_meta', JSON.stringify({ gistId, gistName })); } catch(e) {}
+
+function setupFirebaseListeners() {
+  if (!_fbDb || !_fbUserId) return;
+
+  const userDataRef = _fbDb.ref('users/' + _fbUserId + '/data');
+
+  // Listen untuk perubahan dari Firebase
+  SYNC_KEYS.forEach(key => {
+    const ref = userDataRef.child(key);
+    const listener = ref.on('value', snapshot => {
+      if (_ignoreFbUpdate) return; // Skip jika kita yang update
+      const val = snapshot.val();
+      if (val !== null && val !== undefined) {
+        try {
+          localStorage.setItem(key, val);
+          // Render ulang sesuai tipe data yang berubah
+          if (key === 'porto_holdings_v1') { try { renderPorto(); } catch(e){} }
+          if (key === 'idx_trades_v3') { try { renderPorto(); renderJournal(); } catch(e){} }
+          if (key === 'gt_trades_v1') { try { renderGotrade(); } catch(e){} }
+          if (key === 'cr_trades_v1') { try { renderCrypto(); } catch(e){} }
+          if (key === 'wl_custom_v1') { try { renderWatchlist(); } catch(e){} }
+          if (key === 'kom_custom_v1') { try { renderKomCustom(); } catch(e){} }
+        } catch(e) {}
+      }
+    });
+    _fbListeners.push(() => ref.off('value', listener));
+  });
 }
-function clearSyncToken() {
-  _syncToken = '';
-  _syncGistId = '';
-  _syncGistName = '';
-}
+
+// Override localStorage.setItem untuk auto-sync ke Firebase
+const _originalSetItem = localStorage.setItem;
+localStorage.setItem = function(key, value) {
+  _originalSetItem.call(this, key, value);
+  // Auto push ke Firebase (async, non-blocking)
+  if (SYNC_KEYS.includes(key) && _fbDb && _fbUserId) {
+    _ignoreFbUpdate = true;
+    _fbDb.ref('users/' + _fbUserId + '/data/' + key).set(value)
+      .catch(err => console.error('Firebase sync error:', err))
+      .finally(() => { _ignoreFbUpdate = false; });
+  }
+};
 
 function openSyncModal() {
   document.getElementById('sync-modal').style.display = 'flex';
-  const meta = loadSyncMeta();
-  if (_syncToken && meta.gistId) {
-    document.getElementById('sync-setup-section').style.display = 'none';
-    document.getElementById('sync-active-section').style.display = '';
-    document.getElementById('sync-gist-id').textContent = meta.gistId;
-  } else {
-    document.getElementById('sync-setup-section').style.display = '';
-    document.getElementById('sync-active-section').style.display = 'none';
+  if (!_fbUserId) {
+    initFirebaseSync();
   }
   document.getElementById('sync-status').textContent = '';
-  document.getElementById('sync-setup-err').textContent = '';
-  document.getElementById('sync-pat-input').value = '';
 }
+
 function closeSyncModal() {
-  clearSyncToken();
   document.getElementById('sync-modal').style.display = 'none';
 }
 
-async function testAndSaveToken() {
-  const pat = document.getElementById('sync-pat-input').value.trim();
-  const errEl = document.getElementById('sync-setup-err');
-  errEl.textContent = '';
-  if (!pat) { errEl.textContent = 'Masukkan token terlebih dahulu.'; return; }
-  if (!pat.startsWith('ghp_')) { errEl.textContent = 'Token tidak valid (harus mulai dengan ghp_).'; return; }
-
-  errEl.textContent = '⟳ Verifikasi token…';
-  try {
-    const r = await fetch('https://api.github.com/user', { headers: { Authorization: 'token ' + pat } });
-    if (!r.ok) { errEl.textContent = 'Token tidak valid atau expired.'; return; }
-
-    const user = await r.json();
-    const gistName = 'TradingJournal_' + Date.now();
-
-    // Create gist
-    const createRes = await fetch('https://api.github.com/gists', {
-      method: 'POST',
-      headers: { Authorization: 'token ' + pat, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        description: 'Trading Journal Data Sync',
-        public: false,
-        files: { [gistName + '.json']: { content: '{}' } }
-      })
-    });
-    if (!createRes.ok) throw new Error('Gagal membuat gist');
-    const gist = await createRes.json();
-
-    // Store only in memory (tidak di localStorage untuk keamanan)
-    _syncToken = pat;
-    _syncGistId = gist.id;
-    _syncGistName = gistName;
-
-    // Simpan hanya metadata gist (bukan token)
-    saveSyncMeta(gist.id, gistName);
-
-    errEl.textContent = '';
-    openSyncModal();
-    showToast('✓ Token terverifikasi! Siap untuk sync.');
-  } catch(e) {
-    errEl.textContent = 'Error: ' + (e.message || 'Gagal verifikasi');
-  }
-}
-
-function resetSyncToken() {
-  if (!confirm('Logout dari sinkronisasi? Token hanya disimpan di memory sesi ini.')) return;
-  localStorage.removeItem('_sync_gist_meta');
-  clearSyncToken();
-  openSyncModal();
-  showToast('Metadata gist dihapus.');
-}
-
-async function uploadToGist() {
-  if (!_syncToken || !_syncGistId) { showToast('⚠ Token tidak ditemukan. Setup terlebih dahulu.'); return; }
+async function manualSyncToFirebase() {
+  if (!_fbDb || !_fbUserId) { showToast('⚠ Tidak terhubung ke Firebase'); return; }
 
   const statusEl = document.getElementById('sync-status');
-  const btn = document.getElementById('sync-upload-btn');
-  statusEl.textContent = '⟳ Upload…'; btn.disabled = true;
+  const btn = event.target;
+  statusEl.textContent = '⟳ Sync…'; btn.disabled = true;
 
   try {
-    const data = {};
+    _syncingToFb = true;
+    const userDataRef = _fbDb.ref('users/' + _fbUserId + '/data');
+
+    // Push semua SYNC_KEYS ke Firebase
+    const updates = {};
     SYNC_KEYS.forEach(k => {
       const v = localStorage.getItem(k);
-      if (v !== null) data[k] = v;
+      if (v !== null) updates[k] = v;
     });
-    data._uploadedAt = new Date().toISOString();
+    updates._lastSync = new Date().toISOString();
 
-    const r = await fetch('https://api.github.com/gists/' + _syncGistId, {
-      method: 'PATCH',
-      headers: { Authorization: 'token ' + _syncToken, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        files: {
-          [_syncGistName + '.json']: { content: JSON.stringify(data, null, 2) }
-        }
-      })
-    });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    statusEl.textContent = '✓ Upload berhasil!';
-    showToast('✓ Data terupload ke Gist');
+    await userDataRef.update(updates);
+    statusEl.textContent = '✓ Sync berhasil!';
+    showToast('✓ Data tersinkronisasi ke Firebase');
   } catch(e) {
     statusEl.textContent = '✗ Gagal: ' + e.message;
-    showToast('⚠ Upload gagal');
+    showToast('⚠ Sync gagal');
+    console.error('Sync error:', e);
   } finally {
+    _syncingToFb = false;
     btn.disabled = false;
   }
 }
 
-async function downloadFromGist() {
-  if (!_syncToken || !_syncGistId) { showToast('⚠ Token tidak ditemukan. Setup terlebih dahulu.'); return; }
+function resetFirebaseSync() {
+  if (!confirm('Disconnect dari Firebase? Data tetap tersimpan di Firebase.')) return;
 
-  const statusEl = document.getElementById('sync-status');
-  const btn = document.getElementById('sync-download-btn');
-  statusEl.textContent = '⟳ Download…'; btn.disabled = true;
+  // Clear listeners
+  _fbListeners.forEach(fn => fn());
+  _fbListeners = [];
 
-  try {
-    const r = await fetch('https://api.github.com/gists/' + _syncGistId, {
-      headers: { Authorization: 'token ' + _syncToken }
-    });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const gist = await r.json();
-    const file = Object.values(gist.files)[0];
-    if (!file || !file.content) throw new Error('Gist kosong');
-
-    const data = JSON.parse(file.content);
-    let count = 0;
-    SYNC_KEYS.forEach(k => {
-      if (k in data) {
-        localStorage.setItem(k, data[k]);
-        count++;
-      }
-    });
-
-    statusEl.textContent = '✓ Download berhasil! (' + count + ' item)';
-    showToast('✓ Data diunduh, halaman akan reload…');
-    setTimeout(() => location.reload(), 1500);
-  } catch(e) {
-    statusEl.textContent = '✗ Gagal: ' + e.message;
-    showToast('⚠ Download gagal');
-  } finally {
-    btn.disabled = false;
+  if (_fbAuth) {
+    _fbAuth.signOut().catch(e => console.error('Sign out error:', e));
   }
+
+  _fbUserId = null;
+  _fbDb = null;
+  _fbAuth = null;
+  _fbApp = null;
+
+  closeSyncModal();
+  showToast('Disconnected dari Firebase');
 }
+
+// Auto-init Firebase on load
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    try { initFirebaseSync(); } catch(e) { console.error('Auto-init Firebase error:', e); }
+  }, 2000);
+});
 </script>
 </body>
 </html>
