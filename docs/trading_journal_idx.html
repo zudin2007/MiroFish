@@ -1526,10 +1526,16 @@ async function fetchPrice(sym) {
   for (const url of urls) {
     try {
       const r = await tFetch(url);
+      if (!r.ok) {
+        console.warn('[fetchPrice]', sym, 'HTTP', r.status);
+        continue;
+      }
       const j = await r.json();
       const p = j?.chart?.result?.[0]?.meta?.regularMarketPrice;
       if (p && p > 0) return Math.round(p);
-    } catch(e) {}
+    } catch(e) {
+      console.error('[fetchPrice]', sym, 'error:', e.message);
+    }
   }
   return null;
 }
@@ -1537,13 +1543,37 @@ async function fetchPrice(sym) {
 async function fetchAll() {
   const btn = document.getElementById('btn-upd');
   btn.textContent = '⟳ Mengambil…'; btn.disabled = true;
-  for (const h of holdings) {
-    const p = await fetchPrice(h.sym);
-    if (p !== null) h.price = p;
+
+  try {
+    let success = 0, fail = 0;
+    for (const h of holdings) {
+      const p = await fetchPrice(h.sym);
+      if (p !== null) {
+        h.price = p;
+        success++;
+      } else {
+        fail++;
+      }
+    }
+
+    renderPorto();
+
+    // Show result message
+    const msg = success > 0 ?
+      `✓ Berhasil: ${success}/${holdings.length}` :
+      '✗ Gagal fetch (cek koneksi internet)';
+    document.getElementById('last-ts').textContent = msg;
+
+    setTimeout(() => {
+      document.getElementById('last-ts').textContent =
+        'Update: ' + new Date().toLocaleTimeString('id-ID');
+    }, 3000);
+
+  } catch(e) {
+    console.error('[fetchAll] error:', e);
+    document.getElementById('last-ts').textContent = '✗ Error: ' + e.message;
   }
-  renderPorto();
-  document.getElementById('last-ts').textContent =
-    'Update: ' + new Date().toLocaleTimeString('id-ID');
+
   btn.textContent = '↻ Update Harga'; btn.disabled = false;
 }
 
