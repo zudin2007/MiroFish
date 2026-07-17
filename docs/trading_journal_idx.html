@@ -6484,6 +6484,8 @@ let crHoldings = rebuildCrHoldings();
 // yf = Yahoo Finance ticker for live price (null = tidak tersedia)
 // stable = true → harga ≈ 1 USD (USDC, FDUSD, MUSD)
 const TANGEM_SEED = [
+  { name:'Bitcoin',             sym:'BTC',     yf:'BTC-USD', usd:true,  stable:false, amt:0,           priceIDR:0,           valIDR:0         },
+  { name:'Solana',              sym:'SOL',     yf:'SOL-USD', usd:true,  stable:false, amt:0,           priceIDR:0,           valIDR:0         },
   { name:'Arm Holdings (Ondo)', sym:'ARMON',   yf:'ARM',     usd:true,  stable:false, amt:0.07865495,  priceIDR:4644305.17,  valIDR:365297.59 },
   { name:'Oracle (Ondo)',       sym:'ORCLON',  yf:'ORCL',    usd:true,  stable:false, amt:0.06577526,  priceIDR:2253757.97,  valIDR:148241.52 },
   { name:'BNB Smart Chain',     sym:'BNB',     yf:'BNB-USD', usd:true,  stable:false, amt:0.00551588,  priceIDR:10290302.46, valIDR:56760.10  },
@@ -6502,8 +6504,14 @@ const TANGEM_SEED = [
 ];
 
 function loadTangemHoldings() {
-  try { const s = localStorage.getItem('tangem_v1'); return s ? JSON.parse(s) : JSON.parse(JSON.stringify(TANGEM_SEED)); }
-  catch(e) { return JSON.parse(JSON.stringify(TANGEM_SEED)); }
+  try {
+    const s = localStorage.getItem('tangem_v1');
+    if (!s) return JSON.parse(JSON.stringify(TANGEM_SEED));
+    const stored = JSON.parse(s);
+    const storedSyms = new Set(stored.map(x => x.sym));
+    const added = TANGEM_SEED.filter(x => !storedSyms.has(x.sym));
+    return added.length ? [...stored, ...added] : stored;
+  } catch(e) { return JSON.parse(JSON.stringify(TANGEM_SEED)); }
 }
 function saveTangemHoldings(h) { try { localStorage.setItem('tangem_v1', JSON.stringify(h)); } catch(e) {} }
 
@@ -6555,21 +6563,25 @@ function renderTangem() {
   document.getElementById('tg-count').textContent = active + ' aset';
   document.getElementById('tg-top').textContent   = top ? top.sym + ' Rp' + idrRaw(Math.round(top.valIDR)) : '—';
 
-  // Table — only show assets with amt > 0
-  const visible = sorted.filter(h => h.amt > 0);
-  document.getElementById('tg-body').innerHTML = visible.map(h => {
+  // Table — show all; grey out zero-amount entries
+  const withAmt = sorted.filter(h => h.amt > 0);
+  document.getElementById('tg-body').innerHTML = sorted.map(h => {
     const tgIdx    = tgHoldings.indexOf(h);
-    const fmtAmt   = h.amt >= 1 ? h.amt.toLocaleString('en-US', { maximumFractionDigits: 8 })
-                                 : h.amt.toLocaleString('en-US', { maximumFractionDigits: 10 });
-    const fmtPrice = h.priceIDR >= 1000 ? idrRaw(Math.round(h.priceIDR))
-                                        : h.priceIDR.toLocaleString('id-ID', { maximumFractionDigits: 2 });
-    const fmtVal   = h.valIDR >= 0.01 ? idrRaw(Math.round(h.valIDR)) : '<1';
+    const noAmt    = h.amt === 0;
+    const fmtAmt   = noAmt ? '—'
+                   : h.amt >= 1 ? h.amt.toLocaleString('en-US', { maximumFractionDigits: 8 })
+                                : h.amt.toLocaleString('en-US', { maximumFractionDigits: 10 });
+    const fmtPrice = h.priceIDR > 0
+                   ? (h.priceIDR >= 1000 ? idrRaw(Math.round(h.priceIDR))
+                                         : h.priceIDR.toLocaleString('id-ID', { maximumFractionDigits: 2 }))
+                   : '—';
+    const fmtVal   = noAmt ? '—' : (h.valIDR >= 0.01 ? idrRaw(Math.round(h.valIDR)) : '<1');
     const hasLive  = !!h.yf || h.stable;
     const badge    = hasLive ? '' : ' <span style="font-size:9px;color:var(--muted)">[manual]</span>';
     const symEl    = h.yf
       ? `<span class="sym-click" onclick="openTangemChart(${tgIdx})" style="font-weight:700">${h.sym}</span>`
       : `<span style="font-weight:700">${h.sym}</span>`;
-    return `<tr>
+    return `<tr style="${noAmt ? 'opacity:.45' : ''}">
       <td style="text-align:left">
         ${symEl}${badge}<br>
         <span style="font-size:10px;color:var(--muted)">${h.name}</span>
@@ -6580,8 +6592,8 @@ function renderTangem() {
     </tr>`;
   }).join('');
 
-  // Charts — top 8 by value for readability
-  const top8 = visible.slice(0, 8);
+  // Charts — top 8 by value (exclude zero-amount)
+  const top8 = withAmt.slice(0, 8);
   const chartColors = PALETTE.concat(PALETTE);
   const bgBorder = '#1a1a2e';
 
