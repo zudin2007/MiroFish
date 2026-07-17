@@ -8550,6 +8550,7 @@ function setupFirebaseListeners() {
           if (key === 'cr_trades_v1') { try { renderCrypto(); } catch(e){} }
           if (key === 'wl_custom_v1') { try { renderWatchlist(); } catch(e){} }
           if (key === 'kom_custom_v1') { try { renderKomCustom(); } catch(e){} }
+          if (key === 'idx_cash_v2' || key === 'idx_cash_hist_v1') { try { renderAccount(); renderPorto(); } catch(e){} }
         } catch(e) {}
       }
     });
