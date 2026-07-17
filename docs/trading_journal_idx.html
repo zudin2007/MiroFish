@@ -659,6 +659,7 @@ select.fi option{background:var(--card)}
       <div style="font-size:12px;color:var(--muted)">T+2 settlement. Negatif = wajib top-up.</div>
       <div id="sync-status-display"></div>
       <div id="sync-queue-display"></div>
+      <div id="sync-issue-display"></div>
     </div>
     <div class="card">
       <div class="card-title">Portfolio Value</div>
@@ -1065,7 +1066,11 @@ select.fi option{background:var(--card)}
           ✓ Perubahan otomatis terupdate dalam hitungan detik
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button class="btn btn-o" onclick="manualSyncToFirebase()" style="padding:10px;font-size:13px;font-weight:700">🔄 Sync Sekarang</button>
+          <button class="btn btn-o" onclick="manualSyncToFirebase()" style="padding:10px;font-size:13px;font-weight:700">🔄 Push Data</button>
+          <button class="btn btn-o" onclick="manualResyncFromFirebase()" style="padding:10px;font-size:13px;font-weight:700">⬇ Pull Data</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <button class="btn btn-o" onclick="reprocessSyncQueue()" style="padding:10px;font-size:13px;font-weight:700">↻ Retry Queue</button>
           <button class="btn btn-o" onclick="resetFirebaseSync()" style="padding:10px;font-size:13px;font-weight:700">Disconnect</button>
         </div>
         <div style="font-size:11px;color:var(--muted);margin-top:12px">
@@ -8611,10 +8616,18 @@ function setupFirebaseListeners() {
       if (val !== null && val !== undefined) {
         try {
           // Firebase might return objects instead of strings, need to stringify
-          const value = typeof val === 'string' ? val : JSON.stringify(val);
+          let value = typeof val === 'string' ? val : JSON.stringify(val);
+
+          // Validate data integrity before storing
+          const validValue = validateSyncData(key, value);
+          if (!validValue) {
+            reportSyncIssue('Data corruption detected for ' + key + ', skipping sync');
+            return;
+          }
+
           const timestamp = new Date().toISOString();
           _keyTimestamps[key] = timestamp;
-          localStorage.setItem(key, value);
+          localStorage.setItem(key, validValue);
           console.log('[Firebase Listen] ✓ Updated localStorage for key:', key);
           // Reload global state from localStorage before rendering
           if (key === 'porto_holdings_v1') {
@@ -8701,11 +8714,19 @@ function pullAllCachedDataFromFirebase() {
       if (data[key] !== null && data[key] !== undefined) {
         try {
           // Firebase returns objects, but localStorage needs strings
-          const value = typeof data[key] === 'string' ? data[key] : JSON.stringify(data[key]);
+          let value = typeof data[key] === 'string' ? data[key] : JSON.stringify(data[key]);
+
+          // Validate data integrity
+          const validValue = validateSyncData(key, value);
+          if (!validValue) {
+            console.warn('[Pull Cached] Skipping corrupted data for key:', key);
+            return; // skip this key
+          }
+
           const timestamp = new Date().toISOString();
           _keyTimestamps[key] = timestamp;
-          localStorage.setItem(key, value);
-          console.log('[Pull Cached] Restored key:', key, 'length:', value?.length);
+          localStorage.setItem(key, validValue);
+          console.log('[Pull Cached] Restored key:', key, 'length:', validValue?.length);
         } catch(e) {
           console.error('[Pull Cached] Failed to restore ' + key, e);
         }
@@ -8835,6 +8856,44 @@ async function manualSyncToFirebase() {
   }
 }
 
+async function manualResyncFromFirebase() {
+  if (!_fbDb) { showToast('⚠ Tidak terhubung ke Firebase'); return; }
+
+  const statusEl = document.getElementById('sync-status');
+  const btn = event.target;
+  statusEl.textContent = '⬇ Pulling…'; btn.disabled = true;
+
+  try {
+    console.log('[Manual Resync] Starting full data pull from Firebase');
+    pullAllCachedDataFromFirebase();
+    statusEl.textContent = '✓ Pull berhasil!';
+    showToast('✓ Data diperbarui dari Firebase');
+  } catch(e) {
+    statusEl.textContent = '✗ Gagal: ' + e.message;
+    showToast('⚠ Pull gagal');
+    console.error('Resync error:', e);
+  } finally {
+    btn.disabled = false;
+    setTimeout(() => { statusEl.textContent = ''; }, 3000);
+  }
+}
+
+function reprocessSyncQueue() {
+  const statusEl = document.getElementById('sync-status');
+  if (_syncQueue.length === 0) {
+    statusEl.textContent = '✓ Queue kosong';
+    showToast('✓ Tidak ada item di queue');
+    return;
+  }
+  statusEl.textContent = '↻ Retrying ' + _syncQueue.length + ' items…';
+  console.log('[Retry Queue] Reprocessing', _syncQueue.length, 'queued items');
+  processSyncQueue();
+  setTimeout(() => {
+    statusEl.textContent = '✓ Queue processing complete';
+    setTimeout(() => { statusEl.textContent = ''; }, 2000);
+  }, 500);
+}
+
 function resetFirebaseSync() {
   if (!confirm('Disconnect dari Firebase? Data tetap tersimpan di Firebase.')) return;
 
@@ -8874,6 +8933,39 @@ function updateSyncQueueDisplay() {
     </div>`;
   } else {
     statusEl.innerHTML = '';
+  }
+}
+
+function validateSyncData(key, value) {
+  try {
+    if (typeof value !== 'string') {
+      console.warn('[Data Validation] Key', key, 'has non-string value, converting to string');
+      return typeof value === 'object' ? JSON.stringify(value) : String(value);
+    }
+    // Try to parse if it looks like JSON
+    if (value.startsWith('[') || value.startsWith('{')) {
+      JSON.parse(value);
+    }
+    // Check for suspiciously large values (corruption indicator)
+    if (value.length > 10_000_000) {
+      console.error('[Data Validation] Key', key, 'exceeds 10MB, possible corruption');
+      return null;
+    }
+    return value;
+  } catch (e) {
+    console.error('[Data Validation] Corrupted data for key', key, ':', e.message);
+    return null;
+  }
+}
+
+function reportSyncIssue(message) {
+  console.warn('[Sync Issue]', message);
+  const issueEl = document.getElementById('sync-issue-display');
+  if (issueEl) {
+    issueEl.innerHTML = `<div style="font-size:11px;color:var(--red);margin-top:8px;padding:8px;background:rgba(255,77,77,.1);border:1px solid rgba(255,77,77,.3);border-radius:6px">
+      ⚠ ${message}
+    </div>`;
+    setTimeout(() => { issueEl.innerHTML = ''; }, 8000);
   }
 }
 
