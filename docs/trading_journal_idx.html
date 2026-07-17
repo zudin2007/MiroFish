@@ -1338,6 +1338,20 @@ function loadPortoHoldings() {
 }
 function savePortoHoldings() { try { localStorage.setItem('porto_holdings_v1', JSON.stringify(holdings)); } catch(e) {} }
 let holdings = loadPortoHoldings();
+// Initial render on page load (before DOM might be ready, but queues the render)
+if (typeof window !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => { try { renderPorto(); } catch(e){} });
+  } else {
+    try { renderPorto(); } catch(e) {}
+  }
+}
+function deleteHolding(sym) {
+  if (!confirm(`Hapus ${sym} dari portfolio?`)) return;
+  holdings = holdings.filter(h => h.sym !== sym);
+  savePortoHoldings();
+  renderPorto();
+}
 
 // ── STORAGE ────────────────────────────────────────────
 function loadTrades() {
