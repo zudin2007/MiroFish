@@ -6558,6 +6558,7 @@ function renderTangem() {
   // Table — only show assets with amt > 0
   const visible = sorted.filter(h => h.amt > 0);
   document.getElementById('tg-body').innerHTML = visible.map(h => {
+    const tgIdx    = tgHoldings.indexOf(h);
     const fmtAmt   = h.amt >= 1 ? h.amt.toLocaleString('en-US', { maximumFractionDigits: 8 })
                                  : h.amt.toLocaleString('en-US', { maximumFractionDigits: 10 });
     const fmtPrice = h.priceIDR >= 1000 ? idrRaw(Math.round(h.priceIDR))
@@ -6565,9 +6566,12 @@ function renderTangem() {
     const fmtVal   = h.valIDR >= 0.01 ? idrRaw(Math.round(h.valIDR)) : '<1';
     const hasLive  = !!h.yf || h.stable;
     const badge    = hasLive ? '' : ' <span style="font-size:9px;color:var(--muted)">[manual]</span>';
+    const symEl    = h.yf
+      ? `<span class="sym-click" onclick="openTangemChart(${tgIdx})" style="font-weight:700">${h.sym}</span>`
+      : `<span style="font-weight:700">${h.sym}</span>`;
     return `<tr>
       <td style="text-align:left">
-        <span style="font-weight:700">${h.sym}</span>${badge}<br>
+        ${symEl}${badge}<br>
         <span style="font-size:10px;color:var(--muted)">${h.name}</span>
       </td>
       <td style="text-align:right;font-variant-numeric:tabular-nums;font-size:12px">${fmtAmt}</td>
@@ -6598,6 +6602,29 @@ function renderTangem() {
       scales: { x: { ticks:{ color:'#6868a8', font:{size:11} }, grid:{ color:'rgba(45,45,80,.4)' } },
         y: { ticks:{ color:'#6868a8', callback: v => idrRaw(v), font:{size:10} }, grid:{ color:'rgba(45,45,80,.4)' } } } }
   });
+}
+function openTangemChart(tgIdx) {
+  const h = tgHoldings[tgIdx];
+  if (!h || !h.yf) return;
+  aModalSym       = h.yf;
+  aModalAvgUSD    = 0;
+  aModalShares    = h.amt;
+  aModalName      = h.name;
+  aModalChartType = 'line';
+  aModalCached    = null;
+  document.getElementById('amodal-sym').textContent = h.name;
+  const usdRate  = tgUSDIDR || gtUSDIDR || cryptoUSDIDR || 16000;
+  const priceUSD = h.usd && h.priceIDR > 0 ? h.priceIDR / usdRate : null;
+  const amtStr   = h.amt.toLocaleString('en-US', { maximumFractionDigits: 8 });
+  const idrStr   = h.priceIDR > 0 ? 'Rp' + idrRaw(Math.round(h.priceIDR)) : '—';
+  const usdStr   = priceUSD ? ' ($' + priceUSD.toLocaleString('en-US', { maximumFractionDigits: 4 }) + ')' : '';
+  document.getElementById('amodal-posinfo').innerHTML = `${amtStr} ${h.sym} &nbsp;·&nbsp; ${idrStr}${usdStr}`;
+  document.querySelectorAll('#amodal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('atf-1d').classList.add('on');
+  document.querySelectorAll('#amodal-ct-row .tf-btn').forEach(b => b.classList.remove('on'));
+  document.querySelector('#amodal-ct-row .tf-btn').classList.add('on');
+  document.getElementById('asset-modal').classList.add('on');
+  fetchAssetChart(h.yf, '1d', '5m');
 }
 // ════════════════════════════════════════════════════════════════════
 
