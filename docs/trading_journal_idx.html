@@ -2113,7 +2113,7 @@ function drawModalChart({ valid, fmtT, meta, sym }) {
   if (modalShowST) {
     const { st, dir } = calcSupertrend(valid);
     stDs = [{ label:'Supertrend', data:st, borderWidth:1.5, pointRadius:0, fill:false,
-      tension:0, spanGaps:false, yAxisID:'y',
+      stepped:'after', spanGaps:false, yAxisID:'y',
       segment:{ borderColor: ctx => dir[ctx.p0DataIndex]===1 ? '#00c853' : '#ff4d4d' }
     }];
   }
@@ -2281,7 +2281,7 @@ function drawAssetChart({ valid, fmtT, meta, sym }) {
   if (aModalShowST) {
     const { st, dir } = calcSupertrend(valid);
     stDs = [{ label:'Supertrend', data:st, borderWidth:1.5, pointRadius:0, fill:false,
-      tension:0, spanGaps:false, yAxisID:'y',
+      stepped:'after', spanGaps:false, yAxisID:'y',
       segment:{ borderColor: ctx => dir[ctx.p0DataIndex]===1 ? '#00c853' : '#ff4d4d' }
     }];
   }
