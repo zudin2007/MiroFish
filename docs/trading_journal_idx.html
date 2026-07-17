@@ -1584,50 +1584,55 @@ async function fetchPrice(sym) {
 
 async function fetchAll() {
   const btn = document.getElementById('btn-upd');
-  btn.textContent = '⟳ Mengambil…'; btn.disabled = true;
-  diagLogs = [];
-  showDiag(`Starting update (${holdings.length} stocks)...`);
+  btn.textContent = '⟳ Updating…'; btn.disabled = true;
 
   try {
     if (holdings.length === 0) {
-      showDiag('ERROR: No holdings data found!');
-      document.getElementById('last-ts').textContent = '✗ Tidak ada data saham';
+      document.getElementById('last-ts').textContent = '✗ No data';
       btn.textContent = '↻ Update Harga';
       btn.disabled = false;
       return;
     }
 
-    let success = 0, fail = 0;
+    // STEP 1: Show local data immediately (don't wait)
+    renderPorto();
+    document.getElementById('last-ts').textContent = '⟳ Fetching prices...';
+
+    // STEP 2: Try to fetch new prices (background, with timeout)
+    let success = 0;
     for (const h of holdings) {
-      const p = await fetchPrice(h.sym);
-      if (p !== null) {
-        h.price = p;
-        success++;
-      } else {
-        fail++;
+      try {
+        const p = await Promise.race([
+          fetchPrice(h.sym),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+        ]);
+        if (p !== null) {
+          h.price = p;
+          success++;
+        }
+      } catch(e) {
+        // Continue with next stock if one fails
       }
     }
 
+    // STEP 3: Re-render with whatever we got
     renderPorto();
-    showDiag(`Selesai: ${success}/${holdings.length} berhasil`);
+    savePortoHoldings();
 
-    // Show result message
-    const msg = success > 0 ?
-      `✓ ${success}/${holdings.length}` :
-      '✗ Gagal (cek WiFi)';
+    // Show result
+    const msg = success > 0 ? `✓ ${success} prices updated` : '(using cache)';
     document.getElementById('last-ts').textContent = msg;
 
     setTimeout(() => {
-      document.getElementById('last-ts').textContent =
-        'Update: ' + new Date().toLocaleTimeString('id-ID');
-    }, 3000);
+      document.getElementById('last-ts').textContent = 'Update: ' + new Date().toLocaleTimeString('id-ID');
+    }, 2000);
 
   } catch(e) {
-    showDiag(`FATAL ERROR: ${e.message}`);
     document.getElementById('last-ts').textContent = '✗ ' + e.message;
   }
 
-  btn.textContent = '↻ Update Harga'; btn.disabled = false;
+  btn.textContent = '↻ Update Harga';
+  btn.disabled = false;
 }
 
 // ── AUTO-POLL ──────────────────────────────────────────
