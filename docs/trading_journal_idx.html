@@ -1467,101 +1467,69 @@ function renderPortoShortlist() {
 }
 
 function renderPorto() {
-  const cash = loadCash();
-  let totalNilai = 0, totalModal = 0;
-  document.getElementById('porto-body').innerHTML = holdings.map(h => {
-    const nilai = h.shares * h.price;
-    const modal = h.shares * h.avg;
-    const pnl   = nilai - modal;
-    const pct   = modal > 0 ? pnl / modal * 100 : 0;
-    totalNilai += nilai; totalModal += modal;
-    const kep = h.shares >= 100
-      ? `${(h.shares/100 % 1 === 0 ? h.shares/100 : (h.shares/100).toFixed(2))} lot`
-      : `${h.shares} lbr`;
-    return `<tr>
-      <td><span class="sym-click" onclick="openStockChart('${h.sym}')">${h.sym}</span></td><td>${kep}</td><td>${idrRaw(h.avg)}</td>
-      <td id="px-${h.sym}">${idrRaw(h.price)}</td>
-      <td>${idrRaw(nilai)}</td>
-      <td class="${pnl>=0?'g':'r'}">${pnl>=0?'+':''}${idrRaw(pnl)}</td>
-      <td class="${pnl>=0?'g':'r'}">${pnl>=0?'+':''}${pct.toFixed(2)}%</td>
-    </tr>`;
-  }).join('');
-  const pnl    = totalNilai - totalModal;
-  const equity = totalNilai + cash;
-  const rpnl   = loadTrades().filter(t=>t.pnl!=null).reduce((s,t)=>s+t.pnl,0);
-  grandPortoNilai = totalNilai; updateGrandTotal();
-  document.getElementById('c-nilai').textContent  = idr(totalNilai);
-  document.getElementById('c-modal').textContent  = idr(totalModal);
-  const cp = document.getElementById('c-pnl');
-  cp.textContent = (pnl>=0?'+':'') + idr(pnl);
-  cp.className = 'chip-v ' + (pnl>=0?'g':'r');
-  const cr = document.getElementById('c-rpnl');
-  cr.textContent = (rpnl>=0?'+':'') + idr(rpnl);
-  cr.className = 'chip-v ' + (rpnl>=0?'g':'r');
-  const ce = document.getElementById('c-equity');
-  ce.textContent = idr(equity);
-  ce.className = 'chip-v ' + (equity>=0?'g':'r');
-  const cc = document.getElementById('c-cash');
-  cc.textContent = (cash>=0?'':'−') + idr(Math.abs(cash));
-  cc.className = 'chip-v ' + (cash>=0?'g':'r');
-  const cd = document.getElementById('cash-display');
-  cd.textContent = (cash<0?'−Rp ':'Rp ') + idrRaw(Math.abs(cash));
-  cd.style.color = cash < 0 ? 'var(--red)' : 'var(--green)';
-  if (cash < 0) {
-    document.getElementById('cash-warn').style.display = 'flex';
-    document.getElementById('topup-needed').textContent = idr(Math.abs(cash) + 100000);
-  } else {
+  try {
+    // HARDCODED TEST VERSION - to verify page can render data
+    showDiag('[renderPorto] START - hardcoded test version');
+
+    // Test data
+    const testHoldings = [
+      { sym: 'BBCA', shares: 100, avg: 6000, price: 6150 },
+      { sym: 'BBNI', shares: 200, avg: 3400, price: 3430 }
+    ];
+
+    // Calculate totals
+    let totalNilai = 0, totalModal = 0;
+    testHoldings.forEach(h => {
+      totalNilai += h.shares * h.price;
+      totalModal += h.shares * h.avg;
+    });
+
+    const cash = 50000000; // Test cash
+    const pnl = totalNilai - totalModal;
+    const rpnl = 1500000; // Test realized PnL
+    const equity = totalNilai + cash;
+
+    // Set table rows
+    const tableBody = document.getElementById('porto-body');
+    tableBody.innerHTML = testHoldings.map(h => {
+      const nilai = h.shares * h.price;
+      const modal = h.shares * h.avg;
+      const hpnl = nilai - modal;
+      const pct = modal > 0 ? hpnl / modal * 100 : 0;
+      return `<tr>
+        <td><span class="sym-click">${h.sym}</span></td>
+        <td>${h.shares} lbr</td>
+        <td>Rp${h.avg.toLocaleString('id-ID')}</td>
+        <td id="px-${h.sym}">Rp${Math.round(h.price).toLocaleString('id-ID')}</td>
+        <td>Rp${Math.round(nilai).toLocaleString('id-ID')}</td>
+        <td class="${hpnl>=0?'g':'r'}">${hpnl>=0?'+':''}Rp${Math.round(Math.abs(hpnl)).toLocaleString('id-ID')}</td>
+        <td class="${hpnl>=0?'g':'r'}">${hpnl>=0?'+':''}${pct.toFixed(2)}%</td>
+      </tr>`;
+    }).join('');
+
+    // Update summary elements
+    const fmt = v => 'Rp' + Math.round(v).toLocaleString('id-ID');
+    document.getElementById('c-nilai').textContent = fmt(totalNilai);
+    document.getElementById('c-modal').textContent = fmt(totalModal);
+    document.getElementById('c-pnl').textContent = (pnl>=0?'+':'') + fmt(pnl);
+    document.getElementById('c-pnl').className = 'chip-v ' + (pnl>=0?'g':'r');
+    document.getElementById('c-rpnl').textContent = (rpnl>=0?'+':'') + fmt(rpnl);
+    document.getElementById('c-rpnl').className = 'chip-v ' + (rpnl>=0?'g':'r');
+    document.getElementById('c-equity').textContent = fmt(equity);
+    document.getElementById('c-equity').className = 'chip-v ' + (equity>=0?'g':'r');
+    document.getElementById('c-cash').textContent = fmt(cash);
+    document.getElementById('c-cash').className = 'chip-v g';
+    document.getElementById('cash-display').textContent = 'Rp ' + Math.abs(cash).toLocaleString('id-ID');
+    document.getElementById('cash-display').style.color = 'var(--green)';
     document.getElementById('cash-warn').style.display = 'none';
-  }
-  renderPortoShortlist();
 
-  // ── Charts (with error handling) ──
-  try {
-    const chartColors = PALETTE.concat(PALETTE);
-    const bgBorder = '#1a1a2e';
-    const chartData = holdings.map(h => ({
-      sym: h.sym,
-      nilai: h.shares * h.price,
-      pnl: h.shares * h.price - h.shares * h.avg
-    }));
+    grandPortoNilai = totalNilai;
+    updateGrandTotal();
 
-    if (ptChAlloc && typeof ptChAlloc.destroy === 'function') ptChAlloc.destroy();
-    if (typeof Chart !== 'undefined') {
-      ptChAlloc = new Chart(document.getElementById('pt-ch-alloc'), {
-        type: 'doughnut',
-        data: {
-          labels: chartData.map(d => d.sym),
-          datasets: [{ data: chartData.map(d => Math.round(d.nilai)), backgroundColor: chartColors, borderWidth: 2, borderColor: bgBorder }]
-        },
-        options: { plugins: { legend: { position: 'bottom', labels: { color: '#a8a8c8', font: { size: 11 }, boxWidth: 12 } },
-          tooltip: { callbacks: { label: ctx => ' ' + idrRaw(ctx.parsed) } } } }
-      });
-    }
-  } catch(chartErr) {
-    console.error('[renderPorto] Chart error:', chartErr.message);
-  }
-
-  try {
-    if (ptChPnl && typeof ptChPnl.destroy === 'function') ptChPnl.destroy();
-    if (typeof Chart !== 'undefined') {
-      ptChPnl = new Chart(document.getElementById('pt-ch-pnl'), {
-    type: 'bar',
-    data: {
-      labels: chartData.map(d => d.sym),
-      datasets: [{ label: 'P&L', data: chartData.map(d => Math.round(d.pnl)),
-        backgroundColor: chartData.map(d => d.pnl >= 0 ? 'rgba(0,200,83,.7)' : 'rgba(255,77,77,.7)'),
-        borderRadius: 4 }]
-    },
-    options: { plugins: { legend: { display: false },
-      tooltip: { callbacks: { label: ctx => ' ' + (ctx.parsed.y >= 0 ? '+' : '') + idrRaw(ctx.parsed.y) } } },
-      scales: {
-        x: { ticks: { color: '#6868a8', font: { size: 11 } }, grid: { color: 'rgba(45,45,80,.4)' } },
-        y: { ticks: { color: '#6868a8', callback: v => idrRaw(v), font: { size: 10 } }, grid: { color: 'rgba(45,45,80,.4)' } }
-      } }
-      });
-    }
-  } catch(chartErr) {
-    console.error('[renderPorto] PnL Chart error:', chartErr.message);
+    showDiag('[renderPorto] SUCCESS - test data rendered');
+  } catch(e) {
+    showDiag('[renderPorto] ERROR: ' + e.message);
+    console.error('[renderPorto]', e);
   }
 }
 
