@@ -657,6 +657,7 @@ select.fi option{background:var(--card)}
       <div class="card-title">Cash Balance</div>
       <div style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;margin:8px 0" id="cash-big">—</div>
       <div style="font-size:12px;color:var(--muted)">T+2 settlement. Negatif = wajib top-up.</div>
+      <div id="sync-status-display"></div>
     </div>
     <div class="card">
       <div class="card-title">Portfolio Value</div>
@@ -2107,6 +2108,22 @@ function renderAccount() {
   // Populate Finnhub key input if stored
   const fhInp = document.getElementById('fh-key-input');
   if (fhInp && !fhInp.value && fhKey) fhInp.value = fhKey;
+  // Update sync status display
+  updateSyncStatusDisplay();
+}
+
+function updateSyncStatusDisplay() {
+  const statusEl = document.getElementById('sync-status-display');
+  if (!statusEl) return;
+  const hist = loadCashHistory();
+  const cashData = localStorage.getItem('idx_cash_hist_v1');
+  statusEl.innerHTML = `
+    <div style="font-size:11px;color:var(--muted);margin-top:8px;padding:8px;background:rgba(255,255,255,.03);border-radius:6px;border:1px solid var(--border)">
+      <div>Firebase: ${_fbConnected ? '🟢 Connected' : '🔴 Disconnected'}</div>
+      <div>Cash History: ${hist.length} entries</div>
+      <div style="font-size:10px;margin-top:4px;color:var(--sub)">Last: ${new Date().toLocaleTimeString('id-ID')}</div>
+    </div>
+  `;
 }
 
 function applyTopup(sign) {
@@ -8522,24 +8539,46 @@ let _fbConnected = false;
 
 function initFirebaseSync() {
   try {
-    if (_fbApp) return; // Already initialized
+    console.log('[Firebase Init] Starting Firebase initialization...');
+    if (_fbApp) {
+      console.log('[Firebase Init] Already initialized');
+      return;
+    }
+
+    if (typeof firebase === 'undefined') {
+      console.error('[Firebase Init] Firebase SDK not loaded!');
+      showToast('⚠ Firebase SDK tidak tersedia');
+      return;
+    }
+
+    console.log('[Firebase Init] Initializing with config:', firebaseConfig.projectId);
     _fbApp = firebase.initializeApp(firebaseConfig);
     _fbDb = firebase.database(_fbApp);
+    console.log('[Firebase Init] Firebase initialized successfully');
 
     // Test connection ke Firebase
     const testRef = _fbDb.ref('.info/connected');
+    let connectionAttempts = 0;
     testRef.on('value', snap => {
-      _fbConnected = snap.val() === true;
+      connectionAttempts++;
+      const isConnected = snap.val() === true;
+      _fbConnected = isConnected;
+      console.log('[Firebase Init] Connection status (attempt ' + connectionAttempts + '):', isConnected);
+
       if (_fbConnected) {
+        console.log('[Firebase Init] ✓ Firebase connected!');
         document.getElementById('sync-user-id').textContent = 'Shared public data • Semua device sync';
         setupFirebaseListeners();
-        if (!_fbListeners.length) {
+        if (_fbListeners.length > 0) {
+          console.log('[Firebase Init] ✓ Setup', _fbListeners.length, 'listeners');
           showToast('✓ Terhubung ke Firebase');
         }
+      } else if (connectionAttempts > 1) {
+        console.warn('[Firebase Init] Firebase not connected after', connectionAttempts, 'attempts');
       }
     });
   } catch(e) {
-    console.error('Firebase init error:', e);
+    console.error('[Firebase Init] ✗ Error:', e);
     showToast('⚠ Firebase error: ' + e.message);
   }
 }
