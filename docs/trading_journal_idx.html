@@ -262,7 +262,7 @@ select.fi option{background:var(--card)}
       <table>
         <thead><tr>
           <th>Saham</th><th>Kepemilikan</th><th>Avg (Rp)</th>
-          <th>Harga (Rp)</th><th>Nilai (Rp)</th><th>P&amp;L (Rp)</th><th>%</th>
+          <th>Harga (Rp)</th><th>Nilai (Rp)</th><th>P&amp;L (Rp)</th><th>%</th><th></th>
         </tr></thead>
         <tbody id="porto-body"></tbody>
       </table>
@@ -1262,6 +1262,12 @@ function loadPortoHoldings() {
 }
 function savePortoHoldings() { try { localStorage.setItem('porto_holdings_v1', JSON.stringify(holdings)); } catch(e) {} }
 let holdings = loadPortoHoldings();
+function deleteHolding(sym) {
+  if (!confirm(`Hapus ${sym} dari portfolio?`)) return;
+  holdings = holdings.filter(h => h.sym !== sym);
+  savePortoHoldings();
+  renderPorto();
+}
 
 // ── STORAGE ────────────────────────────────────────────
 function loadTrades() {
@@ -1398,6 +1404,7 @@ function renderPorto() {
       <td>${idrRaw(nilai)}</td>
       <td class="${pnl>=0?'g':'r'}">${pnl>=0?'+':''}${idrRaw(pnl)}</td>
       <td class="${pnl>=0?'g':'r'}">${pnl>=0?'+':''}${pct.toFixed(2)}%</td>
+      <td><button class="btn btn-sm btn-del" onclick="deleteHolding('${h.sym}')">✕</button></td>
     </tr>`;
   }).join('');
   const pnl    = totalNilai - totalModal;
