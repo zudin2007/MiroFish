@@ -148,6 +148,18 @@ function hideLoadingScreen() {
   }
 }
 
+// Force test data if localStorage empty
+if (!localStorage.getItem('porto_holdings_v1')) {
+  try {
+    localStorage.setItem('porto_holdings_v1', JSON.stringify([
+      { sym:'BBCA', shares:100, avg:6150, price:6125 },
+      { sym:'BBNI', shares:200, avg:3430, price:3420 },
+      { sym:'BBRI', shares:300, avg:2800, price:2790 },
+    ]));
+    console.log('[Init] Set default holdings');
+  } catch(e) {}
+}
+
 // Check if page is ready
 function checkPageReady() {
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
