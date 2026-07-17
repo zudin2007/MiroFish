@@ -2128,9 +2128,9 @@ function updateSyncStatusDisplay() {
   const hist = loadCashHistory();
   const cashData = localStorage.getItem('idx_cash_hist_v1');
   const storage = checkStorageQuota();
-  const storageColor = storage.percent > 80 ? 'rgba(255,77,77' : 'rgba(255,255,255';
+  const storageColor = storage.percent > 80 ? 'rgba(255,77,77,.1)' : 'rgba(255,255,255,.03)';
   statusEl.innerHTML = `
-    <div style="font-size:11px;color:var(--muted);margin-top:8px;padding:8px;background:${storageColor},.03);border-radius:6px;border:1px solid var(--border)">
+    <div style="font-size:11px;color:var(--muted);margin-top:8px;padding:8px;background:${storageColor};border-radius:6px;border:1px solid var(--border)">
       <div>Firebase: ${_fbConnected ? '🟢 Connected' : '🔴 Disconnected'}</div>
       <div>Cash History: ${hist.length} entries</div>
       <div>Storage: ${formatBytes(storage.usage)} (${storage.percent}%)</div>
