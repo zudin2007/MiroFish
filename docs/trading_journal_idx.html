@@ -1485,30 +1485,25 @@ function renderPortoShortlist() {
 
 function renderPorto() {
   try {
-    // HARDCODED TEST VERSION - to verify page can render data
-    showDiag('[renderPorto] START - hardcoded test version');
+    if (!holdings || !holdings.length) {
+      document.getElementById('porto-body').innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);">No holdings</td></tr>';
+      return;
+    }
 
-    // Test data
-    const testHoldings = [
-      { sym: 'BBCA', shares: 100, avg: 6000, price: 6150 },
-      { sym: 'BBNI', shares: 200, avg: 3400, price: 3430 }
-    ];
-
-    // Calculate totals
+    // Calculate grand totals
     let totalNilai = 0, totalModal = 0;
-    testHoldings.forEach(h => {
+    holdings.forEach(h => {
       totalNilai += h.shares * h.price;
       totalModal += h.shares * h.avg;
     });
 
-    const cash = 50000000; // Test cash
+    const cash = loadCash();
     const pnl = totalNilai - totalModal;
-    const rpnl = 1500000; // Test realized PnL
     const equity = totalNilai + cash;
 
-    // Set table rows
+    // Render holdings table
     const tableBody = document.getElementById('porto-body');
-    tableBody.innerHTML = testHoldings.map(h => {
+    tableBody.innerHTML = holdings.map(h => {
       const nilai = h.shares * h.price;
       const modal = h.shares * h.avg;
       const hpnl = nilai - modal;
@@ -1530,22 +1525,20 @@ function renderPorto() {
     document.getElementById('c-modal').textContent = fmt(totalModal);
     document.getElementById('c-pnl').textContent = (pnl>=0?'+':'') + fmt(pnl);
     document.getElementById('c-pnl').className = 'chip-v ' + (pnl>=0?'g':'r');
-    document.getElementById('c-rpnl').textContent = (rpnl>=0?'+':'') + fmt(rpnl);
-    document.getElementById('c-rpnl').className = 'chip-v ' + (rpnl>=0?'g':'r');
+    document.getElementById('c-rpnl').textContent = fmt(0);
+    document.getElementById('c-rpnl').className = 'chip-v m';
     document.getElementById('c-equity').textContent = fmt(equity);
     document.getElementById('c-equity').className = 'chip-v ' + (equity>=0?'g':'r');
     document.getElementById('c-cash').textContent = fmt(cash);
-    document.getElementById('c-cash').className = 'chip-v g';
+    document.getElementById('c-cash').className = 'chip-v ' + (cash>=0?'g':'r');
     document.getElementById('cash-display').textContent = 'Rp ' + Math.abs(cash).toLocaleString('id-ID');
-    document.getElementById('cash-display').style.color = 'var(--green)';
-    document.getElementById('cash-warn').style.display = 'none';
+    document.getElementById('cash-display').style.color = cash >= 0 ? 'var(--green)' : 'var(--red)';
+    document.getElementById('cash-warn').style.display = cash < 0 ? 'block' : 'none';
 
     grandPortoNilai = totalNilai;
     updateGrandTotal();
-
-    showDiag('[renderPorto] SUCCESS - test data rendered');
+    renderPortoShortlist();
   } catch(e) {
-    showDiag('[renderPorto] ERROR: ' + e.message);
     console.error('[renderPorto]', e);
   }
 }
