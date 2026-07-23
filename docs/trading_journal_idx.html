@@ -6453,31 +6453,21 @@ function buildAllGLData() {
     const g = (t.price - t.cb) * t.units;
     rows.push({ date: t.date.replace(/-/g,'/'), code: t.code,
       sell: t.price, buy: t.cb, lot: t.units,
-
-               	// Include IDX trades with P&L (closed positions)
-  	const idxTrades = loadTrades();
-  	if (idxTrades && idxTrades.length > 0) {
-  		idxTrades.forEach(t => {
-  			if (t.pnl) { // Only include trades with P&L (closed)
-  				const key = `${t.date}|${t.code}`;
-  				rows.push({
-  					date: t.date,
-  					code: t.code,
-  					aksi: t.type || (t.pnl >= 0 ? 'Sell' : 'Buy'),
-  					lot: t.lot || 1,
-  					harga: t.price || 0,
-  					fee: t.fee || 0,
-  					pnl: t.pnl,
-  					strategi: t.strategy || '—',
-  					emosi: t.emotion || '—',
-  					catatan: t.notes || ''
-  });
-  }
-  });
-  	}
       pct: t.cb > 0 ? (t.price - t.cb) / t.cb * 100 : 0,
       gross: Math.round(g * r), net: Math.round(t.pnl * r),
       _src:'cr', _usd:true, _usdIdr:r });
+  });
+  // Include IDX trades with P&L (closed positions)
+  loadTrades().filter(t => t.action === 'Sell' && t.pnl !== null).forEach(t => {
+    const shares = (t.lot || 0) * 100;
+    if (!shares) return;
+    const grossTotal = t.pnl + (t.fee || 0); // undo fee subtraction from addTrade()'s pnl calc
+    const buy = t.price - grossTotal / shares;
+    rows.push({ date: t.date.replace(/-/g,'/'), code: t.code,
+      sell: t.price, buy, lot: t.lot,
+      pct: buy > 0 ? (t.price - buy) / buy * 100 : 0,
+      gross: Math.round(grossTotal), net: Math.round(t.pnl),
+      _src:'idx', _usd:false });
   });
   return rows;
 }
