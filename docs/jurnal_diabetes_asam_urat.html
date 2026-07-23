@@ -1174,9 +1174,9 @@ function showToast(msg='Catatan berhasil disimpan.'){
 
 // Form handling
 function setFormDefaults(){
-  const today = '2026-06-25';
-  document.getElementById('f_date').value = today;
   const now = new Date();
+  const today = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+  document.getElementById('f_date').value = today;
   const hh = String(now.getHours()).padStart(2,'0');
   const mm = String(now.getMinutes()).padStart(2,'0');
   document.getElementById('f_time').value = `${hh}:${mm}`;
