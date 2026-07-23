@@ -1254,7 +1254,7 @@ function showTab(name, btn) {
   if (name === 'tangem')    setTimeout(() => { try { renderTangem();   } catch(e){} }, 60);
   if (name === 'gainloss')  setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
   if (name === 'aktivitas') setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
-  if (name === 'watchlist')  setTimeout(() => { try { fetchWatchlist();  } catch(e){} }, 60);
+  if (name === 'watchlist')  { try { renderWatchlist(); } catch(e){} setTimeout(() => { try { fetchWatchlist();  } catch(e){} }, 60); }
   if (name === 'komunitas')  setTimeout(() => { try { renderKomConfido(); fetchKomPrices(); renderKomIdea(); fetchKomIdeaPrices(); renderKomCustom(); fetchKomCustomPrices(); } catch(e){} }, 60);
 }
 
@@ -7574,6 +7574,7 @@ async function fetchWatchlist(force) {
     const batch = unique.slice(i, i + BATCH);
     const results = await Promise.all(batch.map(yf => fetchWlQuote(yf)));
     batch.forEach((yf, idx) => { if (results[idx]) wlPrices[yf] = results[idx]; });
+    renderWatchlist(); // progressive fill-in instead of one long blank wait
   }
 
   // Update IHSG chip
