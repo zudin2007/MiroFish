@@ -10,6 +10,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-auth-compat.js"></script>
+<script src="https://s3.tradingview.com/tv.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1088,42 +1089,7 @@ select.fi option{background:var(--card)}
       </div>
       <button class="modal-close" onclick="closeStockModal()">✕</button>
     </div>
-    <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;flex-wrap:wrap" id="modal-ct-row">
-      <span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0">Tipe:</span>
-      <div id="modal-type-btns" style="display:flex;gap:4px">
-        <button class="tf-btn on" onclick="setChartType('line',this)">Line</button>
-        <button class="tf-btn"    onclick="setChartType('candle',this)">Candle</button>
-      </div>
-      <span style="width:1px;height:18px;background:var(--border);flex-shrink:0"></span>
-      <button class="tf-btn" id="modal-st-btn"    onclick="toggleST('modal',this)">Supertrend</button>
-      <button class="tf-btn" id="modal-ema20-btn" onclick="toggleEMA('modal',20,this)" style="color:#29b6f6">EMA 20</button>
-      <button class="tf-btn" id="modal-ema50-btn" onclick="toggleEMA('modal',50,this)" style="color:#ab47bc">EMA 50</button>
-      <button class="tf-btn" id="modal-rsi-btn"   onclick="toggleOsc('modal','rsi',this)"  style="color:#ff9800">RSI</button>
-      <button class="tf-btn" id="modal-macd-btn"  onclick="toggleOsc('modal','macd',this)" style="color:#26c6da">MACD</button>
-      <button class="tf-btn" id="modal-fcb-btn"   onclick="toggleFCB('modal',this)"        style="color:#e040fb">FCB</button>
-    </div>
-    <div class="tf-wrap" id="modal-tf-row">
-      <button class="tf-btn on" id="tf-1d"  onclick="setTF('1d','5m',this)">1 Hari</button>
-      <button class="tf-btn"    id="tf-1mo" onclick="setTF('1mo','1d',this)">1 Bln</button>
-      <button class="tf-btn"    id="tf-3mo" onclick="setTF('3mo','1d',this)">3 Bln</button>
-      <button class="tf-btn"    id="tf-6mo" onclick="setTF('6mo','1d',this)">6 Bln</button>
-      <button class="tf-btn"    id="tf-1y"  onclick="setTF('1y','1d',this)">1 Tahun</button>
-      <button class="tf-btn"    id="tf-2y"  onclick="setTF('2y','1d',this)">2 Tahun</button>
-      <button class="tf-btn"    id="tf-5y"  onclick="setTF('5y','1d',this)">5 Tahun</button>
-      <button class="tf-btn"    id="tf-max" onclick="setTF('max','1mo',this)">Maks</button>
-      <button class="tf-btn" id="modal-zoom-reset" onclick="resetChartZoom('modal')" title="Reset zoom" style="margin-left:auto;display:none">⟲ Reset</button>
-    </div>
-    <div id="modal-status" style="font-size:12px;color:var(--muted);min-height:16px;margin-bottom:6px"></div>
-    <canvas id="modal-chart" height="220"></canvas>
-    <div id="modal-rsi-wrap" style="display:none;margin-top:6px">
-      <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">RSI (14)</div>
-      <canvas id="modal-rsi-chart" height="70"></canvas>
-    </div>
-    <div id="modal-macd-wrap" style="display:none;margin-top:6px">
-      <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">MACD (12,26,9)</div>
-      <canvas id="modal-macd-chart" height="70"></canvas>
-    </div>
-    <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px" id="modal-stats"></div>
+    <div id="modal-tv-chart" style="height:500px;margin-top:8px"></div>
   </div>
 </div>
 
@@ -1137,42 +1103,7 @@ select.fi option{background:var(--card)}
       </div>
       <button class="modal-close" onclick="closeAssetModal()">✕</button>
     </div>
-    <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;flex-wrap:wrap" id="amodal-ct-row">
-      <span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0">Tipe:</span>
-      <div id="amodal-type-btns" style="display:flex;gap:4px">
-        <button class="tf-btn on" onclick="setAssetChartType('line',this)">Line</button>
-        <button class="tf-btn"    onclick="setAssetChartType('candle',this)">Candle</button>
-      </div>
-      <span style="width:1px;height:18px;background:var(--border);flex-shrink:0"></span>
-      <button class="tf-btn" id="amodal-st-btn"    onclick="toggleST('amodal',this)">Supertrend</button>
-      <button class="tf-btn" id="amodal-ema20-btn" onclick="toggleEMA('amodal',20,this)" style="color:#29b6f6">EMA 20</button>
-      <button class="tf-btn" id="amodal-ema50-btn" onclick="toggleEMA('amodal',50,this)" style="color:#ab47bc">EMA 50</button>
-      <button class="tf-btn" id="amodal-rsi-btn"   onclick="toggleOsc('amodal','rsi',this)"  style="color:#ff9800">RSI</button>
-      <button class="tf-btn" id="amodal-macd-btn"  onclick="toggleOsc('amodal','macd',this)" style="color:#26c6da">MACD</button>
-      <button class="tf-btn" id="amodal-fcb-btn"   onclick="toggleFCB('amodal',this)"        style="color:#e040fb">FCB</button>
-    </div>
-    <div class="tf-wrap" id="amodal-tf-row">
-      <button class="tf-btn on" id="atf-1d"  onclick="setAssetTF('1d','5m',this)">1 Hari</button>
-      <button class="tf-btn"    id="atf-1mo" onclick="setAssetTF('1mo','1d',this)">1 Bln</button>
-      <button class="tf-btn"    id="atf-3mo" onclick="setAssetTF('3mo','1d',this)">3 Bln</button>
-      <button class="tf-btn"    id="atf-6mo" onclick="setAssetTF('6mo','1d',this)">6 Bln</button>
-      <button class="tf-btn"    id="atf-1y"  onclick="setAssetTF('1y','1d',this)">1 Tahun</button>
-      <button class="tf-btn"    id="atf-2y"  onclick="setAssetTF('2y','1d',this)">2 Tahun</button>
-      <button class="tf-btn"    id="atf-5y"  onclick="setAssetTF('5y','1d',this)">5 Tahun</button>
-      <button class="tf-btn"    id="atf-max" onclick="setAssetTF('max','1mo',this)">Maks</button>
-      <button class="tf-btn" id="amodal-zoom-reset" onclick="resetChartZoom('amodal')" title="Reset zoom" style="margin-left:auto;display:none">⟲ Reset</button>
-    </div>
-    <div id="amodal-status" style="font-size:12px;color:var(--muted);min-height:16px;margin-bottom:6px"></div>
-    <canvas id="amodal-chart" height="220"></canvas>
-    <div id="amodal-rsi-wrap" style="display:none;margin-top:6px">
-      <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">RSI (14)</div>
-      <canvas id="amodal-rsi-chart" height="70"></canvas>
-    </div>
-    <div id="amodal-macd-wrap" style="display:none;margin-top:6px">
-      <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">MACD (12,26,9)</div>
-      <canvas id="amodal-macd-chart" height="70"></canvas>
-    </div>
-    <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px" id="amodal-stats"></div>
+    <div id="amodal-tv-chart" style="height:500px;margin-top:8px"></div>
   </div>
 </div>
 
@@ -2261,317 +2192,41 @@ function drawIHSGMini(closes, isUp) {
   });
 }
 
-// ── CANDLESTICK PLUGIN ─────────────────────────────────
-const CandlestickPlugin = {
-  id: 'candlestick',
-  afterDatasetsDraw(chart, args, options) {
-    if (!options?.ohlcv?.length) return;
-    const ctx    = chart.ctx;
-    const yScale = chart.scales.y;
-    const meta   = chart.getDatasetMeta(0);
-    if (!meta?.data?.length) return;
-    const step = meta.data.length > 1 ? Math.abs(meta.data[1].x - meta.data[0].x) : 8;
-    const w    = Math.max(2, step * 0.5);
-    options.ohlcv.forEach((d, i) => {
-      if (d.o == null || d.h == null || d.l == null || d.c == null) return;
-      const pt = meta.data[i];
-      if (!pt) return;
-      const x   = pt.x;
-      const up  = d.c >= d.o;
-      const clr = up ? '#00c853' : '#ff4d4d';
-      const yO  = yScale.getPixelForValue(d.o);
-      const yC  = yScale.getPixelForValue(d.c);
-      const yH  = yScale.getPixelForValue(d.h);
-      const yL  = yScale.getPixelForValue(d.l);
-      ctx.save();
-      ctx.strokeStyle = clr;
-      ctx.lineWidth   = 1;
-      ctx.beginPath(); ctx.moveTo(x, yH); ctx.lineTo(x, yL); ctx.stroke();
-      const bTop = Math.min(yO, yC);
-      const bH   = Math.max(1, Math.abs(yO - yC));
-      ctx.fillStyle = up ? clr : 'transparent';
-      ctx.fillRect(x - w/2, bTop, w, bH);
-      ctx.strokeRect(x - w/2, bTop, w, bH);
-      ctx.restore();
-    });
-  }
+// ── TRADINGVIEW SYMBOL/CHART HELPERS ──────────────────
+// Yahoo-Finance-style tickers (as used throughout this app) → TradingView symbols
+const TV_INDEX_MAP = {
+  '^JKSE': 'TVC:JAKIDX', '^DJI': 'TVC:DJI', '^IXIC': 'TVC:IXIC', '^GSPC': 'TVC:SPX',
+  '^N225': 'TVC:NI225', '^HSI': 'TVC:HSI', '000001.SS': 'TVC:SHCOMP',
+  '^FTSE': 'TVC:UKX', '^GDAXI': 'TVC:DAX', 'USDIDR=X': 'FX_IDC:USDIDR',
+  'GC=F': 'TVC:GOLD', 'GC%3DF': 'TVC:GOLD'
 };
-try { Chart.register(CandlestickPlugin); } catch(e) {}
+function toTvSymbol(sym, market) {
+  if (market === 'idx') return 'IDX:' + sym;
+  if (TV_INDEX_MAP[sym]) return TV_INDEX_MAP[sym];
+  const cryptoMatch = /^([A-Z]+)-USD$/.exec(sym);
+  if (cryptoMatch) return 'BINANCE:' + cryptoMatch[1] + 'USDT';
+  return sym; // plain US ticker (e.g. NVDA, MU) — TradingView resolves it directly
+}
+
+function renderTvWidget(containerId, symbol) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  new TradingView.widget({
+    autosize: true,
+    symbol,
+    interval: 'D',
+    timezone: 'Asia/Jakarta',
+    theme: 'dark',
+    style: '1',
+    locale: 'id',
+    studies: ['RSI@tv-basicstudies', 'MACD@tv-basicstudies'],
+    container_id: containerId
+  });
+}
 
 // ── STOCK CHART MODAL ──────────────────────────────────
-let modalChart      = null;
-let modalSym        = '';
-let modalChartType  = 'line';
-let modalCachedData = null;
-let aModalChart     = null;
-let aModalSym       = '';
-let aModalAvgUSD    = 0;
-let aModalShares    = 0;
-let aModalName      = '';
-let aModalChartType = 'line';
-let aModalCached    = null;
-let modalShowST     = false;
-let aModalShowST    = false;
-let modalShowEMA20  = false, modalShowEMA50  = false;
-let aModalShowEMA20 = false, aModalShowEMA50 = false;
-let modalShowRSI    = false, aModalShowRSI   = false;
-let modalShowMACD   = false, aModalShowMACD  = false;
-let modalShowFCB    = false, aModalShowFCB   = false;
-let modalRsiChart   = null,  aModalRsiChart  = null;
-let modalMacdChart  = null,  aModalMacdChart = null;
-
-function calcSupertrend(valid, period, mult) {
-  period = period || 10; mult = mult || 3;
-  const n = valid.length;
-  if (n < period) return { st: new Array(n).fill(null), dir: new Array(n).fill(1) };
-  const tr = valid.map((d, i) => {
-    const hi = d.h ?? d.c, lo = d.l ?? d.c;
-    if (i === 0) return hi - lo;
-    const pc = valid[i-1].c;
-    return Math.max(hi - lo, Math.abs(hi - pc), Math.abs(lo - pc));
-  });
-  const atr = new Array(n).fill(0);
-  let s = 0;
-  for (let i = 0; i < period; i++) s += tr[i];
-  atr[period-1] = s / period;
-  for (let i = period; i < n; i++) atr[i] = (atr[i-1]*(period-1) + tr[i]) / period;
-  const bU = valid.map((d, i) => { const hi=d.h??d.c, lo=d.l??d.c; return (hi+lo)/2 + mult*atr[i]; });
-  const bL = valid.map((d, i) => { const hi=d.h??d.c, lo=d.l??d.c; return (hi+lo)/2 - mult*atr[i]; });
-  const fU = new Array(n).fill(0), fL = new Array(n).fill(0);
-  const st = new Array(n).fill(null), dir = new Array(n).fill(1);
-  for (let i = 0; i < n; i++) {
-    if (i < period-1) continue;
-    if (i === period-1) { fU[i]=bU[i]; fL[i]=bL[i]; dir[i]=1; st[i]=fL[i]; continue; }
-    fU[i] = (bU[i] < fU[i-1] || valid[i-1].c > fU[i-1]) ? bU[i] : fU[i-1];
-    fL[i] = (bL[i] > fL[i-1] || valid[i-1].c < fL[i-1]) ? bL[i] : fL[i-1];
-    if      (dir[i-1]===-1 && valid[i].c > fU[i]) dir[i] =  1;
-    else if (dir[i-1]=== 1 && valid[i].c < fL[i]) dir[i] = -1;
-    else dir[i] = dir[i-1];
-    st[i] = dir[i]===1 ? fL[i] : fU[i];
-  }
-  return { st, dir };
-}
-
-function calcEMA(valid, period) {
-  const n = valid.length, ema = new Array(n).fill(null);
-  if (n < period) return ema;
-  const k = 2 / (period + 1);
-  let s = 0;
-  for (let i = 0; i < period; i++) s += valid[i].c;
-  ema[period-1] = s / period;
-  for (let i = period; i < n; i++) ema[i] = valid[i].c * k + ema[i-1] * (1 - k);
-  return ema;
-}
-
-function toggleST(which, btn) {
-  const on = btn.classList.toggle('on');
-  if (which === 'modal') { modalShowST = on; if (modalCachedData) drawModalChart(modalCachedData); }
-  else                   { aModalShowST = on; if (aModalCached)    drawAssetChart(aModalCached);   }
-}
-
-function toggleEMA(which, period, btn) {
-  const on = btn.classList.toggle('on');
-  if (which === 'modal') {
-    if (period === 20) modalShowEMA20 = on; else modalShowEMA50 = on;
-    if (modalCachedData) drawModalChart(modalCachedData);
-  } else {
-    if (period === 20) aModalShowEMA20 = on; else aModalShowEMA50 = on;
-    if (aModalCached) drawAssetChart(aModalCached);
-  }
-}
-
-function _emaArr(src, period) {
-  const n = src.length, out = new Array(n).fill(null);
-  if (n < period) return out;
-  const k = 2 / (period + 1);
-  let s = 0;
-  for (let i = 0; i < period; i++) s += (src[i] ?? 0);
-  out[period-1] = s / period;
-  for (let i = period; i < n; i++) {
-    if (src[i] == null || out[i-1] == null) continue;
-    out[i] = src[i] * k + out[i-1] * (1 - k);
-  }
-  return out;
-}
-
-function calcRSI(valid, period) {
-  period = period || 14;
-  const n = valid.length, rsi = new Array(n).fill(null);
-  if (n <= period) return rsi;
-  let gains = 0, losses = 0;
-  for (let i = 1; i <= period; i++) {
-    const d = valid[i].c - valid[i-1].c;
-    if (d > 0) gains += d; else losses -= d;
-  }
-  let avgG = gains / period, avgL = losses / period;
-  rsi[period] = avgG + avgL === 0 ? 50 : 100 - 100 / (1 + avgG / (avgL || 1e-10));
-  for (let i = period + 1; i < n; i++) {
-    const d = valid[i].c - valid[i-1].c;
-    avgG = (avgG * (period-1) + Math.max(d, 0)) / period;
-    avgL = (avgL * (period-1) + Math.max(-d, 0)) / period;
-    rsi[i] = avgG + avgL === 0 ? 50 : 100 - 100 / (1 + avgG / (avgL || 1e-10));
-  }
-  return rsi;
-}
-
-function calcMACD(valid, fast, slow, sig) {
-  fast = fast || 12; slow = slow || 26; sig = sig || 9;
-  const n = valid.length;
-  const closes = valid.map(d => d.c);
-  const emaFast = _emaArr(closes, fast);
-  const emaSlow = _emaArr(closes, slow);
-  const macd = new Array(n).fill(null);
-  for (let i = slow - 1; i < n; i++) {
-    if (emaFast[i] != null && emaSlow[i] != null) macd[i] = emaFast[i] - emaSlow[i];
-  }
-  const macdSeed = macd.slice(slow - 1);
-  const sigArr   = _emaArr(macdSeed, sig);
-  const sigLine  = new Array(slow - 1).fill(null).concat(sigArr);
-  const hist = new Array(n).fill(null);
-  for (let i = 0; i < n; i++) {
-    if (macd[i] != null && sigLine[i] != null) hist[i] = macd[i] - sigLine[i];
-  }
-  return { macd, sigLine, hist };
-}
-
-function calcFCB(valid) {
-  const n = valid.length;
-  const upper = new Array(n).fill(null);
-  const lower = new Array(n).fill(null);
-  let lastUpper = null, lastLower = null;
-  for (let j = 0; j < n; j++) {
-    const i = j - 2;
-    if (i >= 2) {
-      const hi = valid[i].h ?? valid[i].c;
-      const lo = valid[i].l ?? valid[i].c;
-      const isPeak =
-        hi > (valid[i-1].h ?? valid[i-1].c) &&
-        hi > (valid[i-2].h ?? valid[i-2].c) &&
-        hi > (valid[i+1].h ?? valid[i+1].c) &&
-        hi > (valid[i+2].h ?? valid[i+2].c);
-      const isTrough =
-        lo < (valid[i-1].l ?? valid[i-1].c) &&
-        lo < (valid[i-2].l ?? valid[i-2].c) &&
-        lo < (valid[i+1].l ?? valid[i+1].c) &&
-        lo < (valid[i+2].l ?? valid[i+2].c);
-      if (isPeak)   lastUpper = hi;
-      if (isTrough) lastLower = lo;
-    }
-    upper[j] = lastUpper;
-    lower[j] = lastLower;
-  }
-  return { upper, lower };
-}
-
-function toggleFCB(which, btn) {
-  const on = btn.classList.toggle('on');
-  if (which === 'modal') {
-    modalShowFCB = on;
-    if (modalCachedData) drawModalChart(modalCachedData);
-  } else {
-    aModalShowFCB = on;
-    if (aModalCached) drawAssetChart(aModalCached);
-  }
-}
-
-function drawSubCharts(which, { valid, labels }) {
-  const pre      = which === 'modal' ? 'modal' : 'amodal';
-  const showRSI  = which === 'modal' ? modalShowRSI  : aModalShowRSI;
-  const showMACD = which === 'modal' ? modalShowMACD : aModalShowMACD;
-
-  // RSI
-  const rsiWrap = document.getElementById(pre + '-rsi-wrap');
-  if (which === 'modal') { if (modalRsiChart)  { modalRsiChart.destroy();  modalRsiChart  = null; } }
-  else                   { if (aModalRsiChart) { aModalRsiChart.destroy(); aModalRsiChart = null; } }
-  rsiWrap.style.display = showRSI ? '' : 'none';
-  if (showRSI) {
-    const rsiVals = calcRSI(valid);
-    const n = rsiVals.length;
-    const rsiCtx = document.getElementById(pre + '-rsi-chart').getContext('2d');
-    const rsiChart = new Chart(rsiCtx, {
-      type: 'line',
-      data: { labels, datasets: [
-        { label:'RSI', data:rsiVals, borderColor:'#ff9800', borderWidth:1.5,
-          pointRadius:0, fill:false, tension:0, spanGaps:false },
-        { label:'_ob', data:new Array(n).fill(70), borderColor:'rgba(255,77,77,0.4)',
-          borderDash:[3,3], borderWidth:1, pointRadius:0, fill:false },
-        { label:'_os', data:new Array(n).fill(30), borderColor:'rgba(0,200,83,0.4)',
-          borderDash:[3,3], borderWidth:1, pointRadius:0, fill:false },
-      ]},
-      options: {
-        plugins: {
-          legend: { display:false },
-          tooltip: { mode:'index', intersect:false,
-            filter: item => item.dataset.label === 'RSI',
-            callbacks: { label: c => ' RSI: ' + (c.parsed.y != null ? c.parsed.y.toFixed(2) : '—') }
-          }
-        },
-        scales: {
-          x: { ticks:{ color:'#6868a8', maxTicksLimit:7, maxRotation:0, font:{size:9} } },
-          y: { position:'right', min:0, max:100,
-               ticks:{ color:'#6868a8', font:{size:9}, maxTicksLimit:5 } }
-        },
-        interaction: { mode:'index', intersect:false }
-      }
-    });
-    if (which === 'modal') modalRsiChart = rsiChart; else aModalRsiChart = rsiChart;
-  }
-
-  // MACD
-  const macdWrap = document.getElementById(pre + '-macd-wrap');
-  if (which === 'modal') { if (modalMacdChart)  { modalMacdChart.destroy();  modalMacdChart  = null; } }
-  else                   { if (aModalMacdChart) { aModalMacdChart.destroy(); aModalMacdChart = null; } }
-  macdWrap.style.display = showMACD ? '' : 'none';
-  if (showMACD) {
-    const { macd, sigLine, hist } = calcMACD(valid);
-    const histColors = hist.map(v => v == null ? 'transparent' : v >= 0 ? 'rgba(0,200,83,0.7)' : 'rgba(255,77,77,0.7)');
-    const macdCtx = document.getElementById(pre + '-macd-chart').getContext('2d');
-    const macdChart = new Chart(macdCtx, {
-      type: 'bar',
-      data: { labels, datasets: [
-        { label:'Hist', data:hist, backgroundColor:histColors, borderWidth:0, order:2 },
-        { label:'MACD',   data:macd,    borderColor:'#26c6da', borderWidth:1.5,
-          pointRadius:0, fill:false, tension:0, spanGaps:false, type:'line', order:1 },
-        { label:'Signal', data:sigLine, borderColor:'#ff4d4d', borderWidth:1.2,
-          pointRadius:0, fill:false, tension:0, spanGaps:false, type:'line', order:1 },
-      ]},
-      options: {
-        plugins: {
-          legend: { display:false },
-          tooltip: { mode:'index', intersect:false,
-            callbacks: { label: c => {
-              if (c.parsed.y == null) return '';
-              return ' ' + c.dataset.label + ': ' + c.parsed.y.toFixed(4);
-            }}
-          }
-        },
-        scales: {
-          x: { ticks:{ color:'#6868a8', maxTicksLimit:7, maxRotation:0, font:{size:9} } },
-          y: { position:'right', ticks:{ color:'#6868a8', font:{size:9}, maxTicksLimit:4 } }
-        },
-        interaction: { mode:'index', intersect:false }
-      }
-    });
-    if (which === 'modal') modalMacdChart = macdChart; else aModalMacdChart = macdChart;
-  }
-}
-
-function toggleOsc(which, type, btn) {
-  const on = btn.classList.toggle('on');
-  if (which === 'modal') {
-    if (type === 'rsi') modalShowRSI = on; else modalShowMACD = on;
-    if (modalCachedData) {
-      const { valid, fmtT } = modalCachedData;
-      drawSubCharts('modal', { valid, labels: valid.map(d => fmtT(d.t)) });
-    }
-  } else {
-    if (type === 'rsi') aModalShowRSI = on; else aModalShowMACD = on;
-    if (aModalCached) {
-      const { valid, fmtT } = aModalCached;
-      drawSubCharts('amodal', { valid, labels: valid.map(d => fmtT(d.t)) });
-    }
-  }
-}
+let modalSym  = '';
+let aModalSym = '', aModalAvgUSD = 0, aModalShares = 0, aModalName = '';
 
 function openStockChart(sym) {
   modalSym = sym;
@@ -2588,196 +2243,14 @@ function openStockChart(sym) {
   } else {
     document.getElementById('modal-posinfo').textContent = 'Tidak ada posisi aktif';
   }
-  document.querySelectorAll('#modal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
-  document.getElementById('tf-1d').classList.add('on');
   document.getElementById('stock-modal').classList.add('on');
-  fetchStockChart(sym, '1d', '5m');
+  renderTvWidget('modal-tv-chart', toTvSymbol(sym, 'idx'));
 }
 
 function closeStockModal() {
   document.getElementById('stock-modal').classList.remove('on');
-  if (modalRsiChart)  { modalRsiChart.destroy();  modalRsiChart  = null; }
-  if (modalMacdChart) { modalMacdChart.destroy(); modalMacdChart = null; }
-  document.getElementById('modal-zoom-reset').style.display = 'none';
 }
 
-function resetChartZoom(which) {
-  if (which === 'modal') {
-    if (modalChart) modalChart.resetZoom();
-    document.getElementById('modal-zoom-reset').style.display = 'none';
-  } else {
-    if (aModalChart) aModalChart.resetZoom();
-    document.getElementById('amodal-zoom-reset').style.display = 'none';
-  }
-}
-
-function setTF(range, interval, btn) {
-  document.querySelectorAll('#modal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  fetchStockChart(modalSym, range, interval);
-}
-
-function setChartType(type, btn) {
-  document.querySelectorAll('#modal-type-btns .tf-btn').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  modalChartType = type;
-  if (modalCachedData) drawModalChart(modalCachedData);
-}
-
-async function fetchStockChart(sym, range, interval) {
-  const status = document.getElementById('modal-status');
-  status.textContent = '⟳ Mengambil data…';
-  document.getElementById('modal-stats').innerHTML = '';
-  modalCachedData = null;
-  const yfUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}.JK?range=${range}&interval=${interval}`;
-  const proxies = [
-    'https://api.allorigins.win/raw?url=' + encodeURIComponent(yfUrl),
-    'https://corsproxy.io/?url=' + encodeURIComponent(yfUrl),
-  ];
-  for (const url of proxies) {
-    try {
-      const r   = await tFetch(url);
-      const j   = await r.json();
-      const res = j?.chart?.result?.[0];
-      if (!res) continue;
-      const meta   = res.meta;
-      const times  = res.timestamp || [];
-      const q      = res.indicators?.quote?.[0] || {};
-      const closes = q.close  || [];
-      const opens  = q.open   || [];
-      const highs  = q.high   || [];
-      const lows   = q.low    || [];
-      const vols   = q.volume || [];
-      const valid  = times.map((t,i) => ({
-        t, o:opens[i], h:highs[i], l:lows[i], c:closes[i], v:vols[i]
-      })).filter(d => d.c != null);
-      if (!valid.length) continue;
-      const isIntra   = range === '1d';
-      const longRange = range === '1y' || range === '2y' || range === '5y' || range === 'max';
-      const fmtT = isIntra
-        ? t => new Date(t*1000).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})
-        : t => new Date(t*1000).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:longRange?'numeric':undefined});
-      modalCachedData = { valid, fmtT, meta, sym };
-      drawModalChart(modalCachedData);
-      status.textContent = '';
-      return;
-    } catch(e) {}
-  }
-  status.textContent = 'Gagal mengambil data. Cek koneksi atau coba lagi.';
-}
-
-function drawModalChart({ valid, fmtT, meta, sym }) {
-  const labels  = valid.map(d => fmtT(d.t));
-  const cData   = valid.map(d => d.c);
-  const vData   = valid.map(d => d.v || 0);
-  const first   = cData[0], last = cData[cData.length-1];
-  const isUp    = last >= first;
-  const color   = isUp ? '#00c853' : '#ff4d4d';
-  const maxVol  = Math.max(...vData.filter(v => v > 0)) || 1;
-  const h       = holdings.find(x => x.sym === sym);
-  const isCandle = modalChartType === 'candle';
-  const avgSet  = h ? [{
-    label:'Avg Beli', data:cData.map(() => h.avg),
-    borderColor:'#f59e0b', borderDash:[5,4], borderWidth:1.5,
-    pointRadius:0, fill:false, yAxisID:'y'
-  }] : [];
-  const priceDs = isCandle
-    ? { label:sym, data:cData, borderColor:'transparent', backgroundColor:'transparent',
-        fill:false, tension:0, pointRadius:0, borderWidth:0, yAxisID:'y', order:1 }
-    : { label:sym, data:cData, borderColor:color, backgroundColor:color+'18',
-        fill:true, tension:0.2, pointRadius:0, borderWidth:2, yAxisID:'y', order:1 };
-  let stDs = [];
-  if (modalShowST) {
-    const { st, dir } = calcSupertrend(valid);
-    stDs = [{ label:'Supertrend', data:st, borderWidth:1.5, pointRadius:0, fill:false,
-      stepped:'after', spanGaps:false, yAxisID:'y',
-      segment:{ borderColor: ctx => dir[ctx.p0DataIndex]===1 ? '#00c853' : '#ff4d4d' }
-    }];
-  }
-  const emaDs = [];
-  if (modalShowEMA20) emaDs.push({ label:'EMA 20', data:calcEMA(valid,20), borderColor:'#29b6f6',
-    borderWidth:1.2, pointRadius:0, fill:false, tension:0, spanGaps:false, yAxisID:'y' });
-  if (modalShowEMA50) emaDs.push({ label:'EMA 50', data:calcEMA(valid,50), borderColor:'#ab47bc',
-    borderWidth:1.2, pointRadius:0, fill:false, tension:0, spanGaps:false, yAxisID:'y' });
-  const fcbDs = [];
-  if (modalShowFCB) {
-    const { upper, lower } = calcFCB(valid);
-    fcbDs.push({ label:'FCB Upper', data:upper, borderColor:'#ff4d4d', borderWidth:1.2,
-      pointRadius:0, fill:false, stepped:'after', spanGaps:false, yAxisID:'y' });
-    fcbDs.push({ label:'FCB Lower', data:lower, borderColor:'#00c853', borderWidth:1.2,
-      pointRadius:0, fill:false, stepped:'after', spanGaps:false, yAxisID:'y' });
-  }
-  const ctx = document.getElementById('modal-chart').getContext('2d');
-  if (modalChart) { modalChart.destroy(); modalChart = null; }
-  document.getElementById('modal-zoom-reset').style.display = 'none';
-  modalChart = new Chart(ctx, {
-    type:'line',
-    data:{ labels, datasets:[ priceDs, ...avgSet, ...stDs, ...emaDs, ...fcbDs,
-      { label:'Volume', data:vData, type:'bar',
-        backgroundColor:color+'50', borderRadius:1, yAxisID:'vol', order:2 }
-    ]},
-    options:{
-      plugins:{
-        candlestick: isCandle ? { ohlcv:valid } : { ohlcv:null },
-        legend:{ display:true, position:'top', labels:{
-          color:'#a8a8c8', boxWidth:12, font:{size:11},
-          filter: item => !(isCandle && item.datasetIndex === 0)
-        }},
-        tooltip:{
-          mode:'index', intersect:false,
-          callbacks:{
-            label: ctx => {
-              if (ctx.dataset.label === 'Volume')
-                return ' Vol: ' + (ctx.parsed.y/1e6).toFixed(2) + 'M';
-              if (isCandle && ctx.datasetIndex === 0) {
-                const d = valid[ctx.dataIndex];
-                if (!d) return '';
-                return [` O: ${idrRaw(d.o)}`, ` H: ${idrRaw(d.h)}`, ` L: ${idrRaw(d.l)}`, ` C: ${idrRaw(d.c)}`];
-              }
-              return ' ' + ctx.dataset.label + ': ' + idrRaw(ctx.parsed.y);
-            }
-          }
-        },
-        zoom:{
-          zoom:{
-            wheel:{ enabled:true, speed:0.08 },
-            pinch:{ enabled:true },
-            mode:'x',
-            onZoomComplete:() => { document.getElementById('modal-zoom-reset').style.display=''; }
-          },
-          pan:{
-            enabled:true, mode:'x',
-            onPanComplete:() => { document.getElementById('modal-zoom-reset').style.display=''; }
-          },
-          limits:{ x:{ minRange:5 } }
-        }
-      },
-      scales:{
-        x:{ ticks:{ color:'#6868a8', maxTicksLimit:7, maxRotation:0 } },
-        y:{ position:'right', ticks:{ color:'#6868a8', callback:v=>idrRaw(v) } },
-        vol:{
-          position:'left', min:0, max:maxVol*4,
-          ticks:{ display:false }, grid:{ display:false }, border:{ display:false }
-        }
-      },
-      interaction:{ mode:'index', intersect:false }
-    }
-  });
-  const priceChg = last - first;
-  const pct = first > 0 ? priceChg / first * 100 : 0;
-  const hi = Math.max(...cData), lo = Math.min(...cData);
-  document.getElementById('modal-stats').innerHTML = `
-    <div class="sb"><div class="sb-l">Harga</div><div class="sb-v">${idrRaw(last)}</div></div>
-    <div class="sb"><div class="sb-l">Perubahan</div><div class="sb-v ${priceChg>=0?'g':'r'}">${priceChg>=0?'+':''}${idrRaw(priceChg)}</div></div>
-    <div class="sb"><div class="sb-l">% Rentang</div><div class="sb-v ${pct>=0?'g':'r'}">${pct>=0?'+':''}${pct.toFixed(2)}%</div></div>
-    <div class="sb"><div class="sb-l">Tertinggi</div><div class="sb-v">${idrRaw(hi)}</div></div>
-    <div class="sb"><div class="sb-l">Terendah</div><div class="sb-v">${idrRaw(lo)}</div></div>
-    ${meta.regularMarketVolume?`<div class="sb"><div class="sb-l">Volume</div><div class="sb-v">${(meta.regularMarketVolume/1e6).toFixed(1)}M</div></div>`:''}
-  `;
-  drawSubCharts('modal', { valid, labels });
-}
-
-// ── ASSET CHART MODAL (Gotrade / Crypto — USD) ──────────
 function openAssetChart(sym, displayName, avgUSD, sharesAmt) {
   aModalSym    = sym;
   aModalAvgUSD = avgUSD;
@@ -2794,177 +2267,13 @@ function openAssetChart(sym, displayName, avgUSD, sharesAmt) {
     document.getElementById('amodal-posinfo').innerHTML =
       `${sharesAmt} units &nbsp;·&nbsp; Avg: $${avgUSD.toLocaleString('en-US',{maximumFractionDigits:4})}`;
   }
-  document.querySelectorAll('#amodal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
-  document.getElementById('atf-1d').classList.add('on');
   document.getElementById('asset-modal').classList.add('on');
-  fetchAssetChart(sym, '1d', '5m');
+  renderTvWidget('amodal-tv-chart', toTvSymbol(sym, 'asset'));
 }
 
 function closeAssetModal() {
   document.getElementById('asset-modal').classList.remove('on');
-  if (aModalRsiChart)  { aModalRsiChart.destroy();  aModalRsiChart  = null; }
-  if (aModalMacdChart) { aModalMacdChart.destroy(); aModalMacdChart = null; }
-  document.getElementById('amodal-zoom-reset').style.display = 'none';
 }
-
-function setAssetTF(range, interval, btn) {
-  document.querySelectorAll('#amodal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  fetchAssetChart(aModalSym, range, interval);
-}
-
-function setAssetChartType(type, btn) {
-  document.querySelectorAll('#amodal-type-btns .tf-btn').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  aModalChartType = type;
-  if (aModalCached) drawAssetChart(aModalCached);
-}
-
-async function fetchAssetChart(sym, range, interval) {
-  const status = document.getElementById('amodal-status');
-  status.textContent = '⟳ Mengambil data…';
-  document.getElementById('amodal-stats').innerHTML = '';
-  aModalCached = null;
-  const yfUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?range=${range}&interval=${interval}`;
-  const proxies = [
-    'https://api.allorigins.win/raw?url=' + encodeURIComponent(yfUrl),
-    'https://corsproxy.io/?url=' + encodeURIComponent(yfUrl),
-  ];
-  for (const url of proxies) {
-    try {
-      const r   = await tFetch(url);
-      const j   = await r.json();
-      const res = j?.chart?.result?.[0];
-      if (!res) continue;
-      const meta   = res.meta;
-      const times  = res.timestamp || [];
-      const q      = res.indicators?.quote?.[0] || {};
-      const closes = q.close  || [];
-      const opens  = q.open   || [];
-      const highs  = q.high   || [];
-      const lows   = q.low    || [];
-      const vols   = q.volume || [];
-      const valid  = times.map((t,i) => ({
-        t, o:opens[i], h:highs[i], l:lows[i], c:closes[i], v:vols[i]
-      })).filter(d => d.c != null);
-      if (!valid.length) continue;
-      const isIntra   = range === '1d';
-      const longRange = ['1y','2y','5y','max'].includes(range);
-      const fmtT = isIntra
-        ? t => new Date(t*1000).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})
-        : t => new Date(t*1000).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:longRange?'numeric':undefined});
-      aModalCached = { valid, fmtT, meta, sym };
-      drawAssetChart(aModalCached);
-      status.textContent = '';
-      return;
-    } catch(e) {}
-  }
-  status.textContent = 'Gagal mengambil data. Cek koneksi atau coba lagi.';
-}
-
-function drawAssetChart({ valid, fmtT, meta, sym }) {
-  const fUSD  = v => v == null ? '—' : '$' + v.toLocaleString('en-US', { maximumFractionDigits: v >= 100 ? 2 : 4 });
-  const labels = valid.map(d => fmtT(d.t));
-  const cData  = valid.map(d => d.c);
-  const vData  = valid.map(d => d.v || 0);
-  const first  = cData[0], last = cData[cData.length-1];
-  const isUp   = last >= first;
-  const color  = isUp ? '#00c853' : '#ff4d4d';
-  const maxVol = Math.max(...vData.filter(v => v > 0)) || 1;
-  const isCandle = aModalChartType === 'candle';
-  const avgSet = aModalAvgUSD > 0 ? [{
-    label:'Avg Beli', data:cData.map(() => aModalAvgUSD),
-    borderColor:'#f59e0b', borderDash:[5,4], borderWidth:1.5,
-    pointRadius:0, fill:false, yAxisID:'y'
-  }] : [];
-  const priceDs = isCandle
-    ? { label:sym, data:cData, borderColor:'transparent', backgroundColor:'transparent', fill:false, tension:0, pointRadius:0, borderWidth:0, yAxisID:'y', order:1 }
-    : { label:aModalName, data:cData, borderColor:color, backgroundColor:color+'18', fill:true, tension:0.2, pointRadius:0, borderWidth:2, yAxisID:'y', order:1 };
-  let stDs = [];
-  if (aModalShowST) {
-    const { st, dir } = calcSupertrend(valid);
-    stDs = [{ label:'Supertrend', data:st, borderWidth:1.5, pointRadius:0, fill:false,
-      stepped:'after', spanGaps:false, yAxisID:'y',
-      segment:{ borderColor: ctx => dir[ctx.p0DataIndex]===1 ? '#00c853' : '#ff4d4d' }
-    }];
-  }
-  const emaDs = [];
-  if (aModalShowEMA20) emaDs.push({ label:'EMA 20', data:calcEMA(valid,20), borderColor:'#29b6f6',
-    borderWidth:1.2, pointRadius:0, fill:false, tension:0, spanGaps:false, yAxisID:'y' });
-  if (aModalShowEMA50) emaDs.push({ label:'EMA 50', data:calcEMA(valid,50), borderColor:'#ab47bc',
-    borderWidth:1.2, pointRadius:0, fill:false, tension:0, spanGaps:false, yAxisID:'y' });
-  const fcbDs = [];
-  if (aModalShowFCB) {
-    const { upper, lower } = calcFCB(valid);
-    fcbDs.push({ label:'FCB Upper', data:upper, borderColor:'#ff4d4d', borderWidth:1.2,
-      pointRadius:0, fill:false, stepped:'after', spanGaps:false, yAxisID:'y' });
-    fcbDs.push({ label:'FCB Lower', data:lower, borderColor:'#00c853', borderWidth:1.2,
-      pointRadius:0, fill:false, stepped:'after', spanGaps:false, yAxisID:'y' });
-  }
-  const ctx = document.getElementById('amodal-chart').getContext('2d');
-  if (aModalChart) { aModalChart.destroy(); aModalChart = null; }
-  document.getElementById('amodal-zoom-reset').style.display = 'none';
-  aModalChart = new Chart(ctx, {
-    type:'line',
-    data:{ labels, datasets:[ priceDs, ...avgSet, ...stDs, ...emaDs, ...fcbDs,
-      { label:'Volume', data:vData, type:'bar', backgroundColor:color+'50', borderRadius:1, yAxisID:'vol', order:2 }
-    ]},
-    options:{
-      plugins:{
-        candlestick: isCandle ? { ohlcv:valid } : { ohlcv:null },
-        legend:{ display:true, position:'top', labels:{ color:'#a8a8c8', boxWidth:12, font:{size:11},
-          filter: item => !(isCandle && item.datasetIndex === 0)
-        }},
-        tooltip:{
-          mode:'index', intersect:false,
-          callbacks:{ label: ctx => {
-            if (ctx.dataset.label === 'Volume')
-              return ' Vol: ' + (ctx.parsed.y >= 1e6 ? (ctx.parsed.y/1e6).toFixed(2)+'M' : ctx.parsed.y.toLocaleString());
-            if (isCandle && ctx.datasetIndex === 0) {
-              const d = valid[ctx.dataIndex];
-              if (!d) return '';
-              return [` O: ${fUSD(d.o)}`, ` H: ${fUSD(d.h)}`, ` L: ${fUSD(d.l)}`, ` C: ${fUSD(d.c)}`];
-            }
-            return ' ' + ctx.dataset.label + ': ' + fUSD(ctx.parsed.y);
-          }}
-        },
-        zoom:{
-          zoom:{
-            wheel:{ enabled:true, speed:0.08 },
-            pinch:{ enabled:true },
-            mode:'x',
-            onZoomComplete:() => { document.getElementById('amodal-zoom-reset').style.display=''; }
-          },
-          pan:{
-            enabled:true, mode:'x',
-            onPanComplete:() => { document.getElementById('amodal-zoom-reset').style.display=''; }
-          },
-          limits:{ x:{ minRange:5 } }
-        }
-      },
-      scales:{
-        x:{ ticks:{ color:'#6868a8', maxTicksLimit:7, maxRotation:0 } },
-        y:{ position:'right', ticks:{ color:'#6868a8', callback: v => fUSD(v) } },
-        vol:{ position:'left', min:0, max:maxVol*4, ticks:{ display:false }, grid:{ display:false }, border:{ display:false } }
-      },
-      interaction:{ mode:'index', intersect:false }
-    }
-  });
-  const priceChg = last - first;
-  const pct = first > 0 ? priceChg / first * 100 : 0;
-  const hi = Math.max(...cData), lo = Math.min(...cData);
-  const vol = meta.regularMarketVolume;
-  document.getElementById('amodal-stats').innerHTML = `
-    <div class="sb"><div class="sb-l">Harga</div><div class="sb-v">${fUSD(last)}</div></div>
-    <div class="sb"><div class="sb-l">Perubahan</div><div class="sb-v ${priceChg>=0?'g':'r'}">${priceChg>=0?'+':''}${fUSD(priceChg)}</div></div>
-    <div class="sb"><div class="sb-l">% Rentang</div><div class="sb-v ${pct>=0?'g':'r'}">${pct>=0?'+':''}${pct.toFixed(2)}%</div></div>
-    <div class="sb"><div class="sb-l">Tertinggi</div><div class="sb-v">${fUSD(hi)}</div></div>
-    <div class="sb"><div class="sb-l">Terendah</div><div class="sb-v">${fUSD(lo)}</div></div>
-    ${vol ? `<div class="sb"><div class="sb-l">Volume</div><div class="sb-v">${vol>=1e6?(vol/1e6).toFixed(1)+'M':vol.toLocaleString()}</div></div>` : ''}
-  `;
-  drawSubCharts('amodal', { valid, labels });
-}
-// ── END ASSET CHART MODAL ────────────────────────────────
 
 // ── P.RETURN ───────────────────────────────────────────
 const PRETURN_DATA = [
@@ -7358,12 +6667,10 @@ function renderTangem() {
 function openTangemChart(tgIdx) {
   const h = tgHoldings[tgIdx];
   if (!h || !h.yf) return;
-  aModalSym       = h.yf;
-  aModalAvgUSD    = 0;
-  aModalShares    = h.amt;
-  aModalName      = h.name;
-  aModalChartType = 'line';
-  aModalCached    = null;
+  aModalSym    = h.yf;
+  aModalAvgUSD = 0;
+  aModalShares = h.amt;
+  aModalName   = h.name;
   document.getElementById('amodal-sym').textContent = h.name;
   const usdRate  = tgUSDIDR || gtUSDIDR || cryptoUSDIDR || 16000;
   const priceUSD = h.usd && h.priceIDR > 0 ? h.priceIDR / usdRate : null;
@@ -7371,12 +6678,8 @@ function openTangemChart(tgIdx) {
   const idrStr   = h.priceIDR > 0 ? 'Rp' + idrRaw(Math.round(h.priceIDR)) : '—';
   const usdStr   = priceUSD ? ' ($' + priceUSD.toLocaleString('en-US', { maximumFractionDigits: 4 }) + ')' : '';
   document.getElementById('amodal-posinfo').innerHTML = `${amtStr} ${h.sym} &nbsp;·&nbsp; ${idrStr}${usdStr}`;
-  document.querySelectorAll('#amodal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
-  document.getElementById('atf-1d').classList.add('on');
-  document.querySelectorAll('#amodal-type-btns .tf-btn').forEach(b => b.classList.remove('on'));
-  document.querySelector('#amodal-type-btns .tf-btn').classList.add('on');
   document.getElementById('asset-modal').classList.add('on');
-  fetchAssetChart(h.yf, '1d', '5m');
+  renderTvWidget('amodal-tv-chart', toTvSymbol(h.yf, 'asset'));
 }
 // ════════════════════════════════════════════════════════════════════
 
@@ -8398,23 +7701,16 @@ function openWlChartIdx(sym) {
   } else {
     document.getElementById('modal-posinfo').textContent = 'Watchlist';
   }
-  document.querySelectorAll('#modal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
-  document.getElementById('tf-1y').classList.add('on');
   document.getElementById('stock-modal').classList.add('on');
-  fetchStockChart(sym, '1y', '1d');
+  renderTvWidget('modal-tv-chart', toTvSymbol(sym, 'idx'));
 }
 
 function openWlChartUsd(yf, name) {
   aModalSym = yf; aModalAvgUSD = 0; aModalShares = 0; aModalName = name;
-  aModalChartType = 'line'; aModalCached = null;
   document.getElementById('amodal-sym').textContent = name;
   document.getElementById('amodal-posinfo').textContent = yf;
-  document.querySelectorAll('#amodal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
-  document.getElementById('atf-1y').classList.add('on');
-  document.querySelectorAll('#amodal-type-btns .tf-btn').forEach(b => b.classList.remove('on'));
-  document.querySelector('#amodal-type-btns .tf-btn').classList.add('on');
   document.getElementById('asset-modal').classList.add('on');
-  fetchAssetChart(yf, '1y', '1d');
+  renderTvWidget('amodal-tv-chart', toTvSymbol(yf, 'asset'));
 }
 
 // ── CUSTOM WATCHLIST MANAGEMENT ──────────────────────────
