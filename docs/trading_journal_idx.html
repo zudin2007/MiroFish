@@ -276,8 +276,8 @@ select.fi option{background:var(--card)}
   <div class="chips" id="gt-chips">
     <div class="chip"><div class="chip-l">Total Nilai (IDR)</div><div class="chip-v" id="gt-nilai">—</div></div>
     <div class="chip"><div class="chip-l">Unrealized P&amp;L</div><div class="chip-v" id="gt-upnl">—</div></div>
-    <div class="chip"><div class="chip-l">Realized All-Time</div><div class="chip-v r" id="gt-realized">−Rp2.359.352</div></div>
-    <div class="chip"><div class="chip-l">Realized YTD</div><div class="chip-v r" id="gt-ryzd">−Rp1.515.403</div></div>
+    <div class="chip"><div class="chip-l">Realized All-Time</div><div class="chip-v r" id="gt-realized">−Rp1.778.435</div></div>
+    <div class="chip"><div class="chip-l">Realized YTD</div><div class="chip-v r" id="gt-ryzd">−Rp1.135.508</div></div>
     <div class="chip-spacer">
       <span style="font-size:11px;color:var(--muted)" id="gt-ts"></span>
       <button class="btn btn-o" id="gt-btn" onclick="fetchGotrade()">↻ Update Harga</button>
@@ -6216,26 +6216,26 @@ function glToggleMonth(month) {
 // ══ GOTRADE ══════════════════════════════════════════════
 const GT_HOLDINGS_SEED = [
   // t=ticker, s=shares, a=avgUSD, c=costIDR, at=allTime, rz=realized, ry=rlzdYTD
-  {t:'FTNT', s:0.50182,  a:149.76, c:1362191.51, at: 62994.94,   rz:-45767.68,   ry:null},
-  {t:'CRWD', s:0.28463,  a:174.62, c:900870.66,  at:null,        rz:null,        ry:null},
-  {t:'NVDA', s:0.055074, a:194.83, c:194491.98,  at:595901.70,   rz:584894.83,   ry:114056.88},
-  {t:'PANW', s:0.24325,  a:311.40, c:1373031.95, at:null,        rz:null,        ry:null},
-  {t:'KO',   s:0.36755,  a:80.915, c:539076.16,  at:4289.62,     rz:-15987.68,   ry:-15987.68},
-  {t:'AMD',  s:0.08856,  a:526.31, c:844855.54,  at:181876.96,   rz:156104.61,   ry:5825.62},
-  {t:'ANET', s:0.30335,  a:181.18, c:996196.39,  at:null,        rz:null,        ry:null},
-  {t:'STX',  s:0.016498, a:853.22, c:255151.86,  at:null,        rz:null,        ry:null},
-  {t:'CB',   s:0.11527,  a:353.42, c:738455.15,  at:null,        rz:null,        ry:null},
-  {t:'OKTA', s:0.32442,  a:141.42, c:831620.88,  at:null,        rz:null,        ry:null},
-  {t:'WDC',  s:0.015402, a:559.68, c:156245.56,  at:null,        rz:null,        ry:null},
-  {t:'ZS',   s:0.33802,  a:147.33, c:902674.80,  at:null,        rz:null,        ry:null},
-  {t:'CAT',  s:0.014436, a:975.32, c:255213.71,  at:null,        rz:null,        ry:null},
-  {t:'MU',   s:0.013777, a:975.56, c:243613.44,  at:94069.19,    rz:104654.67,   ry:104654.67},
-  {t:'LRCX', s:0.016619, a:351.41, c:105855.84,  at:null,        rz:null,        ry:null},
+  {t:'FTNT', s:0.50182,  a:149.76, c:1337077.23, at:-9636.68,     rz:-34536.27,   ry:null},
+  {t:'CRWD', s:0.28463,  a:174.62, c:884325.85,  at:null,        rz:null,        ry:null},
+  {t:'NVDA', s:0.055074, a:194.83, c:193633.58,  at:521335.48,   rz:509054.64,   ry:120889.77},
+  {t:'PANW', s:0.24325,  a:311.40, c:1347680.04, at:null,        rz:null,        ry:null},
+  {t:'KO',   s:0.36755,  a:80.915, c:533136.08,  at:-10562.04,   rz:-11756.86,   ry:-11756.86},
+  {t:'AMD',  s:0.08856,  a:526.31, c:829208.74,  at:157773.70,   rz:130972.32,   ry:5947.88},
+  {t:'ANET', s:0.30335,  a:181.18, c:994674.55,  at:null,        rz:null,        ry:null},
+  {t:'STX',  s:0.016498, a:853.22, c:254025.73,  at:null,        rz:null,        ry:null},
+  {t:'CB',   s:0.11527,  a:353.42, c:724680.94,  at:null,        rz:null,        ry:null},
+  {t:'OKTA', s:0.32442,  a:141.42, c:816108.87,  at:null,        rz:null,        ry:null},
+  {t:'WDC',  s:0.015402, a:559.68, c:155555.96,  at:null,        rz:null,        ry:null},
+  {t:'ZS',   s:0.33802,  a:147.33, c:885837.44,  at:null,        rz:null,        ry:null},
+  {t:'CAT',  s:0.014436, a:975.32, c:254087.31,  at:null,        rz:null,        ry:null},
+  {t:'MU',   s:0.013777, a:975.56, c:242538.24,  at:115181.06,   rz:113394.14,   ry:113394.14},
+  {t:'LRCX', s:0.016619, a:351.41, c:105388.64,  at:null,        rz:null,        ry:null},
 ];
-const GT_CASH_IDR  = 12227.33;
-const GT_COST_IDR  = 9711772.77;
-const GT_REALIZED  = -2359352.62;
-const GT_RLZD_YTD  = -1515403.12;
+const GT_CASH_IDR  = 12081.62;
+const GT_COST_IDR  = 9570040.83;
+const GT_REALIZED  = -1778435.03;
+const GT_RLZD_YTD  = -1135508.61;
 
 // Clear stale holdings cache from previous approach
 try { localStorage.removeItem('gt_holdings_v1'); localStorage.removeItem('cr_holdings_v1'); } catch(e) {}
@@ -6539,14 +6539,14 @@ let crHoldings = rebuildCrHoldings();
 const TANGEM_SEED = [
   { name:'Bitcoin',             sym:'BTC',     yf:'BTC-USD', usd:true,  stable:false, amt:0,           priceIDR:0,           valIDR:0         },
   { name:'Solana',              sym:'SOL',     yf:'SOL-USD', usd:true,  stable:false, amt:0,           priceIDR:0,           valIDR:0         },
-  { name:'Arm Holdings (Ondo)', sym:'ARMON',   yf:'ARM',     usd:true,  stable:false, amt:0.07865495,  priceIDR:4644305.17,  valIDR:365297.59 },
-  { name:'Oracle (Ondo)',       sym:'ORCLON',  yf:'ORCL',    usd:true,  stable:false, amt:0.06577526,  priceIDR:2253757.97,  valIDR:148241.52 },
-  { name:'BNB Smart Chain',     sym:'BNB',     yf:'BNB-USD', usd:true,  stable:false, amt:0.00551588,  priceIDR:10290302.46, valIDR:56760.10  },
-  { name:'Kaspa',               sym:'KAS',     yf:null,      usd:false, stable:false, amt:61.05618553, priceIDR:507.46,      valIDR:30983.52  },
-  { name:'Nockchain',           sym:'NOCK',    yf:null,      usd:false, stable:false, amt:45.55437233, priceIDR:365.68,      valIDR:16658.31  },
-  { name:'Gram',                sym:'GRAM',    yf:null,      usd:false, stable:false, amt:0.36699036,  priceIDR:27287.21,    valIDR:10014.14  },
-  { name:'Ethereum',            sym:'ETH',     yf:'ETH-USD', usd:true,  stable:false, amt:0.00000389,  priceIDR:33508836.95, valIDR:130.51    },
-  { name:'Arbitrum (ETH)',      sym:'ETH·ARB', yf:'ETH-USD', usd:true,  stable:false, amt:0.00000014,  priceIDR:33508836.95, valIDR:4.57      },
+  { name:'Arm Holdings (Ondo)', sym:'ARMON',   yf:'ARM',     usd:true,  stable:false, amt:0.07865495,  priceIDR:5095088.89,  valIDR:400753.96 },
+  { name:'Oracle (Ondo)',       sym:'ORCLON',  yf:'ORCL',    usd:true,  stable:false, amt:0.06577526,  priceIDR:2216628.22,  valIDR:145799.30 },
+  { name:'BNB Smart Chain',     sym:'BNB',     yf:'BNB-USD', usd:true,  stable:false, amt:0.00551588,  priceIDR:10237039.29, valIDR:56466.30  },
+  { name:'Kaspa',               sym:'KAS',     yf:null,      usd:false, stable:false, amt:155.110856,  priceIDR:505.45,      valIDR:78401.19  },
+  { name:'Nockchain',           sym:'NOCK',    yf:null,      usd:false, stable:false, amt:45.55437233, priceIDR:285.90,      valIDR:13023.84  },
+  { name:'Gram',                sym:'GRAM',    yf:null,      usd:false, stable:false, amt:0.36699036,  priceIDR:26020.92,    valIDR:9549.43   },
+  { name:'Ethereum',            sym:'ETH',     yf:'ETH-USD', usd:true,  stable:false, amt:0.00000389,  priceIDR:33735231.89, valIDR:131.39    },
+  { name:'Arbitrum (ETH)',      sym:'ETH·ARB', yf:'ETH-USD', usd:true,  stable:false, amt:0.00000014,  priceIDR:33735231.89, valIDR:4.60      },
   { name:'USDC',                sym:'USDC',    yf:null,      usd:true,  stable:true,  amt:0.000114,    priceIDR:17973.37,    valIDR:2.05      },
   { name:'Avalanche C-Chain',   sym:'AVAX',    yf:'AVAX-USD',usd:true,  stable:false, amt:0.00000591,  priceIDR:116883.81,   valIDR:0.69      },
   { name:'Hyperliquid EVM',     sym:'HYPE',    yf:null,      usd:false, stable:false, amt:0.00000037,  priceIDR:1091140.86,  valIDR:0.40      },
