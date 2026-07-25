@@ -331,8 +331,8 @@ select.fi option{background:var(--card)}
   <div class="chips" id="cr-chips">
     <div class="chip"><div class="chip-l">Total Nilai (IDR)</div><div class="chip-v" id="cr-nilai">—</div></div>
     <div class="chip"><div class="chip-l">Unrealized P&amp;L</div><div class="chip-v" id="cr-upnl">—</div></div>
-    <div class="chip"><div class="chip-l">Realized All-Time</div><div class="chip-v g" id="cr-realized">+Rp62.627.602</div></div>
-    <div class="chip"><div class="chip-l">Realized YTD</div><div class="chip-v r" id="cr-ryzd">−Rp18.661.788</div></div>
+    <div class="chip"><div class="chip-l">Realized All-Time</div><div class="chip-v g" id="cr-realized">+Rp82.706.536</div></div>
+    <div class="chip"><div class="chip-l">Realized YTD</div><div class="chip-v r" id="cr-ryzd">−Rp11.719.948</div></div>
     <div class="chip-spacer">
       <span style="font-size:11px;color:var(--muted)" id="cr-ts"></span>
       <button class="btn btn-o" id="cr-btn" onclick="fetchCrypto()">↻ Update Harga</button>
@@ -6519,17 +6519,14 @@ function renderGotrade() {
 // ══ CRYPTO (TANGEM WALLET) ════════════════════════════════
 // t=ticker(yahoo), n=display name, s=units, a=avgUSD, c=costIDR, at=allTimeIDR, rz=realizedIDR, ry=rlzdYTDIDR
 const CRYPTO_HOLDINGS_SEED = [
-  {t:'BTC-USD', n:'Bitcoin',    s:0.11915,   a:75618.26,  c:163320292.01, at: 42066483,  rz: 70931861,  ry:-16480115},
-  {t:'GC%3DF',  n:'XAU/USD',   s:1.0365,    a:4910.99,   c:92265769.63,  at:-16147400,  rz:  616644,   ry:  616644},
-  {t:'GOOGL',   n:'GOOGL (ON)', s:0.029547,  a:336.67,    c:180309.99,    at:null,       rz:null,       ry:null},
-  {t:'AMZN',    n:'AMZN (ON)',  s:0.039406,  a:254.99,    c:182132.51,    at:null,       rz:null,       ry:null},
-  {t:'MSFT',    n:'MSFT (ON)',  s:0.023449,  a:425.62,    c:180902.99,    at:null,       rz:null,       ry:null},
-  {t:'ARM',     n:'ARM (ON)',   s:0.078655,  a:397.00,    c:566002.75,    at:null,       rz:null,       ry:null},
-  {t:'ORCL',    n:'ORCL (ON)',  s:0.066165,  a:179.66,    c:215467.72,    at:null,       rz:null,       ry:null},
+  {t:'BTC-USD', n:'Bitcoin',    s:0.11918,   a:75559.10,  c:154749424.41, at: 73555755.94, rz: 90114245.72, ry:-10874722.45},
+  {t:'GC%3DF',  n:'XAU/USD',   s:1.059,     a:4892.41,   c:87823421.17,  at: -9939561.58, rz:   813045.48, ry:   813045.48},
+  {t:'ARM',     n:'ARM (ON)',   s:0.078655,  a:397.00,    c:558664.64,    at:null,         rz:null,         ry:null},
+  {t:'ORCL',    n:'ORCL (ON)',  s:0.066165,  a:179.66,    c:206220.72,    at:null,         rz:null,         ry:null},
 ];
-const CRYPTO_COST_IDR  = 256910877.59;
-const CRYPTO_REALIZED  =  62627602.75;
-const CRYPTO_RLZD_YTD  = -18661788.85;
+const CRYPTO_COST_IDR  = 243337730.93;
+const CRYPTO_REALIZED  =  82706536.37;
+const CRYPTO_RLZD_YTD  = -11719948.25;
 
 let crHoldings = rebuildCrHoldings();
 
