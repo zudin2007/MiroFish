@@ -1067,6 +1067,7 @@ select.fi option{background:var(--card)}
           <button class="btn btn-o" onclick="manualSyncToFirebase()" style="padding:10px;font-size:13px;font-weight:700">🔄 Sync Sekarang</button>
           <button class="btn btn-o" onclick="resetFirebaseSync()" style="padding:10px;font-size:13px;font-weight:700">Disconnect</button>
         </div>
+        <button class="btn btn-del" onclick="resetToDefaults()" style="width:100%;padding:10px;font-size:13px;font-weight:700;margin-top:8px">⚠ Reset ke Default (Porto/Jurnal/Tangem/Gotrade/Crypto)</button>
         <div style="font-size:11px;color:var(--muted);margin-top:12px">
           <div id="sync-status" style="text-align:center;min-height:20px"></div>
         </div>
@@ -7889,7 +7890,7 @@ localStorage.setItem = function(key, value) {
 
 function openSyncModal() {
   document.getElementById('sync-modal').style.display = 'flex';
-  if (!_fbUserId) {
+  if (!_fbApp) {
     initFirebaseSync();
   }
   document.getElementById('sync-status').textContent = '';
@@ -7944,6 +7945,29 @@ function resetFirebaseSync() {
 
   closeSyncModal();
   showToast('Disconnected dari Firebase');
+}
+
+// Holdings/trade caches that shadow the code's SEED defaults once populated
+// (locally and/or on Firebase) — this is what "Reset ke Default" clears.
+const RESET_KEYS = ['porto_holdings_v1', 'idx_trades_v3', 'idx_cash_v2', 'idx_cash_hist_v1', 'tangem_v1', 'gt_trades_v1', 'cr_trades_v1'];
+
+async function resetToDefaults() {
+  if (!confirm('Ini akan menghapus data Porto, Jurnal IDX, Cash, Tangem, Gotrade, dan Crypto yang tersimpan di perangkat ini dan di Firebase, lalu memuat ulang nilai default terbaru dari kode. Data yang sudah kamu input manual akan hilang. Lanjutkan?')) return;
+
+  const statusEl = document.getElementById('sync-status');
+  if (statusEl) statusEl.textContent = '⟳ Mereset…';
+
+  RESET_KEYS.forEach(k => { try { localStorage.removeItem(k); } catch(e) {} });
+
+  if (_fbDb) {
+    try {
+      const sharedDataRef = _fbDb.ref('shared/data');
+      await Promise.all(RESET_KEYS.map(k => sharedDataRef.child(k).remove()));
+    } catch(e) { console.error('Reset Firebase error:', e); }
+  }
+
+  showToast('✓ Direset ke default, memuat ulang…');
+  setTimeout(() => location.reload(), 700);
 }
 
 // Auto-init Firebase on load
