@@ -1111,14 +1111,12 @@ select.fi option{background:var(--card)}
 <script>
 // ── CONSTANTS ──────────────────────────────────────────
 const SEED = [
-  { sym:'BBCA', shares:800,  avg:6550,  price:6275  },
-  { sym:'BBHI', shares:2,    avg:1563,  price:905   },
-  { sym:'BNBA', shares:20,   avg:3708,  price:775   },
-  { sym:'GULA', shares:2000, avg:770,   price:765   },
-  { sym:'ITMG', shares:100,  avg:24575, price:24500 },
-  { sym:'RANS', shares:7000, avg:230,   price:224   },
+  { sym:'BBCA', shares:500,  avg:6550,  price:6325 },
+  { sym:'BBHI', shares:2,    avg:1563,  price:945  },
+  { sym:'BNBA', shares:20,   avg:3708,  price:740  },
+  { sym:'RANS', shares:7000, avg:230,   price:208  },
 ];
-const SEED_CASH = -5587805;
+const SEED_CASH = 289654;
 const WATCHLIST = ['BBCA','BBHI','BBNI','BBRI','BNBA','BMRI','TLKM','ASII','GOTO','BRIS','BBTN','NISP','MEGA','BDMN'];
 const PALETTE   = ['#FF7A00','#00C853','#29B6F6','#AB47BC','#FF4D4D','#FFD54F','#4DD0E1','#AED581'];
 const WL_GROUPS = [
@@ -2376,7 +2374,7 @@ const PRETURN_DATA = [
   { month:'2026/04', endVal:25298330, deposit:2200200,   withdraw:6860000,  change:-5353184,  gainLoss:-693384,  yield:-2.11 },
   { month:'2026/05', endVal:3012103,  deposit:0,         withdraw:18750000, change:-22286227, gainLoss:-3536227, yield:-13.98},
   { month:'2026/06', endVal:2856534,  deposit:0,         withdraw:0,        change:-155569,   gainLoss:-155569,  yield:-5.16 },
-  { month:'2026/07', endVal:5024616,  deposit:5100736,   withdraw:2700000,  change:-2168082,  gainLoss:-232654,  yield:-2.92 },
+  { month:'2026/07', endVal:4924844,  deposit:5100736,   withdraw:2700000,  change:2068310,   gainLoss:-332426,  yield:-4.18 },
 ];
 
 let prYieldChart = null, prCumulChart = null;
@@ -2557,6 +2555,9 @@ const GL_DATA = [
   {date:'2026/07/21',code:'BBRI',sell:3050,   buy:2961,    lot:5,  pct:3.0,   gross:44500,    net:38468  },
   {date:'2026/07/23',code:'ITMG',sell:24350,  buy:24200,   lot:1,  pct:0.6,   gross:15000,    net:5283   },
   {date:'2026/07/23',code:'BBNI',sell:3610,   buy:3622.5,  lot:12, pct:-0.3,  gross:-15000,   net:-32350 },
+  {date:'2026/07/28',code:'ITMG',sell:24500,  buy:24575,   lot:1,  pct:-0.3,  gross:-7500,    net:-17311 },
+  {date:'2026/07/28',code:'GULA',sell:770,    buy:770,     lot:20, pct:0.0,   gross:0,        net:-6160  },
+  {date:'2026/07/30',code:'BBCA',sell:6400,   buy:6550,    lot:3,  pct:-2.3,  gross:-45000,   net:-52747 },
   // ── P2: 2025/10 – 2026/01 ─────────────────────────────
   {date:'2025/10/29',code:'KRAS',sell:328,    buy:350,     lot:30, pct:-6.3,  gross:-66000,   net:-70035 },
   {date:'2025/11/03',code:'ADMR',sell:1365,   buy:1410,    lot:8,  pct:-3.2,  gross:-36000,   net:-40422 },
