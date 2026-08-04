@@ -2205,11 +2205,18 @@ const TV_INDEX_MAP = {
   '^FTSE': 'TVC:UKX', '^GDAXI': 'TVC:DAX', 'USDIDR=X': 'FX_IDC:USDIDR',
   'GC=F': 'TVC:GOLD', 'GC%3DF': 'TVC:GOLD'
 };
+// Coins whose USDT pair isn't available on TradingView's Binance feed —
+// route these to the exchange that actually carries them there instead.
+const TV_CRYPTO_EXCHANGE_OVERRIDE = { KAS:'MEXC', NOCK:'MEXC', GRAM:'MEXC', HYPE:'MEXC' };
 function toTvSymbol(sym, market) {
   if (market === 'idx') return 'IDX:' + sym;
   if (TV_INDEX_MAP[sym]) return TV_INDEX_MAP[sym];
   const cryptoMatch = /^([A-Z]+)-USD$/.exec(sym);
-  if (cryptoMatch) return 'BINANCE:' + cryptoMatch[1] + 'USDT';
+  if (cryptoMatch) {
+    const base = cryptoMatch[1];
+    const exch = TV_CRYPTO_EXCHANGE_OVERRIDE[base] || 'BINANCE';
+    return exch + ':' + base + 'USDT';
+  }
   return sym; // plain US ticker (e.g. NVDA, MU) — TradingView resolves it directly
 }
 
