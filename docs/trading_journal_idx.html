@@ -6615,7 +6615,31 @@ async function fetchTangem() {
   if (ts) ts.textContent = 'Update: ' + new Date().toLocaleTimeString('id-ID');
 }
 
+// One-time patch for devices that already had tangem_v1 synced before KAS's
+// balance update and the KAS/NOCK/GRAM/HYPE chart-link fix — merge-by-sym in
+// loadTangemHoldings() only adds new symbols, it doesn't update existing
+// ones, so those changes never reached already-synced devices.
+function migrateTangemV2() {
+  try {
+    if (localStorage.getItem('tangem_patched_v2')) return;
+    const patches = {
+      KAS:  { amt:326.95876341, yf:'KAS-USD',  usd:true },
+      NOCK: { yf:'NOCK-USD', usd:true },
+      GRAM: { yf:'GRAM-USD', usd:true },
+      HYPE: { yf:'HYPE-USD', usd:true },
+    };
+    let changed = false;
+    tgHoldings.forEach(h => {
+      const p = patches[h.sym];
+      if (p) { Object.assign(h, p); changed = true; }
+    });
+    if (changed) saveTangemHoldings(tgHoldings);
+    localStorage.setItem('tangem_patched_v2', '1');
+  } catch(e) {}
+}
+
 function renderTangem() {
+  migrateTangemV2();
   const sorted = [...tgHoldings].sort((a, b) => b.valIDR - a.valIDR);
   const total  = tgHoldings.reduce((s, h) => s + h.valIDR, 0);
   const active = tgHoldings.filter(h => h.valIDR > 0).length;
