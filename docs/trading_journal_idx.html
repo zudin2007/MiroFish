@@ -7289,9 +7289,12 @@ const KOM_CUSTOM_SEED = [
 function loadKomCustom() {
   try {
     const raw = localStorage.getItem('kom_custom_v1');
-    if (raw === null) return JSON.parse(JSON.stringify(KOM_CUSTOM_SEED));
-    return JSON.parse(raw);
-  } catch(e) { return []; }
+    if (!raw) return JSON.parse(JSON.stringify(KOM_CUSTOM_SEED));
+    const stored = JSON.parse(raw);
+    const storedIds = new Set(stored.map(g => g.id));
+    const added = KOM_CUSTOM_SEED.filter(g => !storedIds.has(g.id));
+    return added.length ? [...stored, ...JSON.parse(JSON.stringify(added))] : stored;
+  } catch(e) { return JSON.parse(JSON.stringify(KOM_CUSTOM_SEED)); }
 }
 function saveKomCustom(data) {
   try { localStorage.setItem('kom_custom_v1', JSON.stringify(data)); } catch(e) {}
@@ -7972,7 +7975,7 @@ function resetFirebaseSync() {
 
 // Holdings/trade caches that shadow the code's SEED defaults once populated
 // (locally and/or on Firebase) — this is what "Reset ke Default" clears.
-const RESET_KEYS = ['porto_holdings_v1', 'idx_trades_v3', 'idx_cash_v2', 'idx_cash_hist_v1', 'tangem_v1', 'gt_trades_v1', 'cr_trades_v1'];
+const RESET_KEYS = ['porto_holdings_v1', 'idx_trades_v3', 'idx_cash_v2', 'idx_cash_hist_v1', 'tangem_v1', 'gt_trades_v1', 'cr_trades_v1', 'kom_custom_v1'];
 
 async function resetToDefaults() {
   if (!confirm('Ini akan menghapus data Porto, Jurnal IDX, Cash, Tangem, Gotrade, dan Crypto yang tersimpan di perangkat ini dan di Firebase, lalu memuat ulang nilai default terbaru dari kode. Data yang sudah kamu input manual akan hilang. Lanjutkan?')) return;
