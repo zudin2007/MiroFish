@@ -276,8 +276,8 @@ select.fi option{background:var(--card)}
   <div class="chips" id="gt-chips">
     <div class="chip"><div class="chip-l">Total Nilai (IDR)</div><div class="chip-v" id="gt-nilai">—</div></div>
     <div class="chip"><div class="chip-l">Unrealized P&amp;L</div><div class="chip-v" id="gt-upnl">—</div></div>
-    <div class="chip"><div class="chip-l">Realized All-Time</div><div class="chip-v r" id="gt-realized">−Rp1.778.435</div></div>
-    <div class="chip"><div class="chip-l">Realized YTD</div><div class="chip-v r" id="gt-ryzd">−Rp1.135.508</div></div>
+    <div class="chip"><div class="chip-l">Realized All-Time</div><div class="chip-v r" id="gt-realized">−Rp1.614.540</div></div>
+    <div class="chip"><div class="chip-l">Realized YTD</div><div class="chip-v r" id="gt-ryzd">−Rp971.614</div></div>
     <div class="chip-spacer">
       <span style="font-size:11px;color:var(--muted)" id="gt-ts"></span>
       <button class="btn btn-o" id="gt-btn" onclick="fetchGotrade()">↻ Update Harga</button>
@@ -6227,26 +6227,26 @@ function glToggleMonth(month) {
 // ══ GOTRADE ══════════════════════════════════════════════
 const GT_HOLDINGS_SEED = [
   // t=ticker, s=shares, a=avgUSD, c=costIDR, at=allTime, rz=realized, ry=rlzdYTD
-  {t:'FTNT', s:0.501819, a:149.76, c:1337051.00, at:-265.44,      rz:-34536.27,   ry:null},
-  {t:'CRWD', s:0.285922, a:173.87, c:884344.00,  at:null,        rz:null,        ry:null},
-  {t:'NVDA', s:0.165718, a:198.96, c:586595.00,  at:516948.45,   rz:509054.64,   ry:120889.77},
-  {t:'PANW', s:0.243253, a:311.41, c:1347725.00, at:null,        rz:null,        ry:null},
-  {t:'INTC', s:0.095189, a:85.69,  c:145117.00,  at:null,        rz:null,        ry:null},
-  {t:'AMD',  s:0.087964, a:529.81, c:829141.00,  at:130791.63,   rz:130972.32,   ry:5947.88},
-  {t:'ANET', s:0.363936, a:180.58, c:1169210.00, at:null,        rz:null,        ry:null},
-  {t:'STX',  s:0.021053, a:869.19, c:325517.00,  at:null,        rz:null,        ry:null},
-  {t:'CB',   s:0.115222, a:353.62, c:724709.00,  at:null,        rz:null,        ry:null},
-  {t:'OKTA', s:0.318037, a:144.24, c:816174.00,  at:null,        rz:null,        ry:null},
-  {t:'WDC',  s:0.022966, a:559.07, c:228425.00,  at:null,        rz:null,        ry:null},
-  {t:'ZS',   s:0.345569, a:144.13, c:885933.00,  at:null,        rz:null,        ry:null},
-  {t:'CAT',  s:0.019115, a:957.15, c:325511.00,  at:null,        rz:null,        ry:null},
-  {t:'MU',   s:0.043882, a:912.48, c:712402.00,  at:94530.05,    rz:113394.14,   ry:113394.14},
-  {t:'LRCX', s:0.034772, a:336.52, c:208140.00,  at:null,        rz:null,        ry:null},
+  {t:'FTNT', s:0.376364, a:149.77, c:1002863.00, at:-265.44,      rz:2318.73,     ry:null},
+  {t:'CRWD', s:0.160831, a:173.81, c:497287.00,  at:null,        rz:75074.00,    ry:75074.00},
+  {t:'NVDA', s:0.230017, a:202.05, c:826656.00,  at:516948.45,   rz:509054.64,   ry:120889.77},
+  {t:'PANW', s:0.182440, a:311.41, c:1010799.00, at:null,        rz:51966.00,    ry:51966.00},
+  {t:'INTC', s:0.095189, a:85.71,  c:145185.00,  at:null,        rz:null,        ry:null},
+  {t:'AMD',  s:0.087964, a:529.86, c:829263.00,  at:130791.63,   rz:130972.32,   ry:5947.88},
+  {t:'ANET', s:0.435149, a:182.05, c:1409416.00, at:null,        rz:null,        ry:null},
+  {t:'STX',  s:0.027250, a:867.05, c:420287.00,  at:null,        rz:null,        ry:null},
+  {t:'CB',   s:0.115222, a:353.52, c:724492.00,  at:null,        rz:null,        ry:null},
+  {t:'OKTA', s:0.318037, a:144.28, c:816370.00,  at:null,        rz:null,        ry:null},
+  {t:'WDC',  s:0.032720, a:555.00, c:323081.00,  at:null,        rz:null,        ry:null},
+  {t:'ZS',   s:0.345569, a:144.11, c:885830.00,  at:null,        rz:null,        ry:null},
+  {t:'CAT',  s:0.025125, a:939.93, c:420171.00,  at:null,        rz:null,        ry:null},
+  {t:'MU',   s:0.063202, a:901.29, c:1013454.00, at:94530.05,    rz:113394.14,   ry:113394.14},
+  {t:'LRCX', s:0.058550, a:325.75, c:339324.00,  at:null,        rz:null,        ry:null},
 ];
-const GT_CASH_IDR  = 6938.56;
-const GT_COST_IDR  = 10525994.00;
-const GT_REALIZED  = -1778435.03;
-const GT_RLZD_YTD  = -1135508.61;
+const GT_CASH_IDR  = 16545.81;
+const GT_COST_IDR  = 10664478.00;
+const GT_REALIZED  = -1614540.03;
+const GT_RLZD_YTD  = -971613.61;
 
 // Clear stale holdings cache from previous approach
 try { localStorage.removeItem('gt_holdings_v1'); localStorage.removeItem('cr_holdings_v1'); } catch(e) {}
