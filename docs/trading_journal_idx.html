@@ -149,6 +149,7 @@ select.fi option{background:var(--card)}
 <div class="tabbar">
   <button class="tab on" onclick="showTab('porto',this)">Porto</button>
   <button class="tab" onclick="showTab('gotrade',this)">Gotrade</button>
+  <button class="tab" onclick="showTab('dividends',this)">Dividen</button>
   <button class="tab" onclick="showTab('crypto',this)">Crypto</button>
   <button class="tab" onclick="showTab('tangem',this)">Tangem</button>
   <button class="tab" onclick="showTab('watchlist',this)">Watchlist</button>
@@ -276,8 +277,8 @@ select.fi option{background:var(--card)}
   <div class="chips" id="gt-chips">
     <div class="chip"><div class="chip-l">Total Nilai (IDR)</div><div class="chip-v" id="gt-nilai">—</div></div>
     <div class="chip"><div class="chip-l">Unrealized P&amp;L</div><div class="chip-v" id="gt-upnl">—</div></div>
-    <div class="chip"><div class="chip-l">Realized All-Time</div><div class="chip-v r" id="gt-realized">−Rp1.614.540</div></div>
-    <div class="chip"><div class="chip-l">Realized YTD</div><div class="chip-v r" id="gt-ryzd">−Rp971.614</div></div>
+    <div class="chip"><div class="chip-l">Realized All-Time</div><div class="chip-v r" id="gt-realized">−Rp1.650.020</div></div>
+    <div class="chip"><div class="chip-l">Realized YTD</div><div class="chip-v r" id="gt-ryzd">−Rp1.007.093</div></div>
     <div class="chip-spacer">
       <span style="font-size:11px;color:var(--muted)" id="gt-ts"></span>
       <button class="btn btn-o" id="gt-btn" onclick="fetchGotrade()">↻ Update Harga</button>
@@ -321,6 +322,30 @@ select.fi option{background:var(--card)}
           <th style="text-align:right;min-width:80px">Total</th>
         </tr></thead>
         <tbody id="gt-body"><tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">Klik ↻ Update Harga untuk memuat data</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ DIVIDENDS ══════════════ -->
+<div id="tab-dividends" class="panel">
+  <div class="chips" id="div-chips">
+    <div class="chip"><div class="chip-l">Total Dividen (USD)</div><div class="chip-v g" id="div-total-usd">—</div></div>
+    <div class="chip"><div class="chip-l">Total Dividen (IDR, est.)</div><div class="chip-v g" id="div-total-idr">—</div></div>
+    <div class="chip"><div class="chip-l">Jumlah Entri</div><div class="chip-v" id="div-count">—</div></div>
+  </div>
+  <div class="card">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Catatan dividen dari akun Gotrade. Konversi ke Rupiah pakai kurs perkiraan (bisa beda dari kurs saat dividen diterima).</div>
+    <div class="tbl-wrap">
+      <table id="div-table">
+        <thead><tr>
+          <th style="text-align:left;min-width:90px">Tanggal</th>
+          <th style="text-align:left;min-width:130px">Saham</th>
+          <th style="text-align:right;min-width:70px">Per Lembar</th>
+          <th style="text-align:right;min-width:90px">Lembar</th>
+          <th style="text-align:right;min-width:70px">Jumlah</th>
+        </tr></thead>
+        <tbody id="div-body"></tbody>
       </table>
     </div>
   </div>
@@ -1255,6 +1280,7 @@ function showTab(name, btn) {
   if (name === 'akun')     try { renderAccount(); } catch(e){}
   if (name === 'preturn')  setTimeout(() => { try { renderPReturn(); } catch(e){} }, 60);
   if (name === 'gotrade')   setTimeout(() => { try { fetchGotrade();   } catch(e){} }, 60);
+  if (name === 'dividends') setTimeout(() => { try { renderDividends(); } catch(e){} }, 60);
   if (name === 'crypto')    setTimeout(() => { try { fetchCrypto();    } catch(e){} }, 60);
   if (name === 'tangem')    setTimeout(() => { try { renderTangem();   } catch(e){} }, 60);
   if (name === 'gainloss')  setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
@@ -6237,26 +6263,86 @@ function glToggleMonth(month) {
 // ══ GOTRADE ══════════════════════════════════════════════
 const GT_HOLDINGS_SEED = [
   // t=ticker, s=shares, a=avgUSD, c=costIDR, at=allTime, rz=realized, ry=rlzdYTD
-  {t:'FTNT', s:0.376364, a:149.77, c:1002863.00, at:-265.44,      rz:2318.73,     ry:null},
-  {t:'CRWD', s:0.160831, a:173.81, c:497287.00,  at:null,        rz:75074.00,    ry:75074.00},
-  {t:'NVDA', s:0.230017, a:202.05, c:826656.00,  at:516948.45,   rz:509054.64,   ry:120889.77},
-  {t:'PANW', s:0.182440, a:311.41, c:1010799.00, at:null,        rz:51966.00,    ry:51966.00},
-  {t:'INTC', s:0.095189, a:85.71,  c:145185.00,  at:null,        rz:null,        ry:null},
-  {t:'AMD',  s:0.087964, a:529.86, c:829263.00,  at:130791.63,   rz:130972.32,   ry:5947.88},
-  {t:'ANET', s:0.435149, a:182.05, c:1409416.00, at:null,        rz:null,        ry:null},
-  {t:'STX',  s:0.027250, a:867.05, c:420287.00,  at:null,        rz:null,        ry:null},
-  {t:'CB',   s:0.115222, a:353.52, c:724492.00,  at:null,        rz:null,        ry:null},
-  {t:'OKTA', s:0.318037, a:144.28, c:816370.00,  at:null,        rz:null,        ry:null},
-  {t:'WDC',  s:0.032720, a:555.00, c:323081.00,  at:null,        rz:null,        ry:null},
-  {t:'ZS',   s:0.345569, a:144.11, c:885830.00,  at:null,        rz:null,        ry:null},
-  {t:'CAT',  s:0.025125, a:939.93, c:420171.00,  at:null,        rz:null,        ry:null},
-  {t:'MU',   s:0.063202, a:901.29, c:1013454.00, at:94530.05,    rz:113394.14,   ry:113394.14},
-  {t:'LRCX', s:0.058550, a:325.75, c:339324.00,  at:null,        rz:null,        ry:null},
+  {t:'FTNT', s:0.376364, a:151.27, c:1012918.30, at:-265.44,      rz:2318.73,     ry:null},
+  {t:'CRWD', s:0.160831, a:176.47, c:504956.05,  at:null,        rz:75074.00,    ry:75074.00},
+  {t:'NVDA', s:0.230017, a:202.03, c:826778.61,  at:516948.45,   rz:509054.64,   ry:120889.77},
+  {t:'PANW', s:0.182440, a:320.77, c:1041155.95, at:null,        rz:51966.00,    ry:51966.00},
+  {t:'INTC', s:0.311187, a:97.28,  c:538588.00,  at:null,        rz:null,        ry:null},
+  {t:'AMD',  s:0.043982, a:529.85, c:414603.53,  at:130791.63,   rz:95492.62,    ry:-29531.82},
+  {t:'ANET', s:0.435149, a:182.05, c:1409397.64, at:null,        rz:null,        ry:null},
+  {t:'STX',  s:0.027250, a:866.71, c:420184.50,  at:null,        rz:null,        ry:null},
+  {t:'CB',   s:0.115222, a:353.54, c:724747.16,  at:null,        rz:null,        ry:null},
+  {t:'OKTA', s:0.318037, a:144.28, c:816375.63,  at:null,        rz:null,        ry:null},
+  {t:'WDC',  s:0.032720, a:555.01, c:323086.12,  at:null,        rz:null,        ry:null},
+  {t:'ZS',   s:0.345569, a:144.13, c:886111.91,  at:null,        rz:null,        ry:null},
+  {t:'CAT',  s:0.025125, a:939.81, c:420107.10,  at:null,        rz:null,        ry:null},
+  {t:'MU',   s:0.063202, a:901.14, c:1013282.80, at:94530.05,    rz:113394.14,   ry:113394.14},
+  {t:'LRCX', s:0.058550, a:325.69, c:339258.02,  at:null,        rz:null,        ry:null},
 ];
-const GT_CASH_IDR  = 16545.81;
-const GT_COST_IDR  = 10664478.00;
-const GT_REALIZED  = -1614540.03;
-const GT_RLZD_YTD  = -971613.61;
+const GT_CASH_IDR  = 0;
+const GT_COST_IDR  = 10691551.32;
+const GT_REALIZED  = -1650019.73;
+const GT_RLZD_YTD  = -1007093.31;
+
+// ── DIVIDENDS ────────────────────────────────────────────
+const DIVIDEND_SEED = [
+  // date, code, name, perShare (USD), shares, amount (USD), note
+  { date:'2026-05-07', code:'EC',   name:'Ecopetrol SA',              perShare:0.65, shares:2.140799951, amount:1.39,  note:'' },
+  { date:'2026-05-05', code:'ASML', name:'ASML',                      perShare:2.69, shares:0.02599155,  amount:0.07,  note:'' },
+  { date:'2026-04-15', code:'MU',   name:'Micron Technology',         perShare:0.15, shares:0.133333333, amount:0.02,  note:'' },
+  { date:'2026-04-01', code:'KO',   name:'Coca-Cola',                 perShare:null, shares:null,        amount:-0.01, note:'Withholding tax 15% (IDN)' },
+  { date:'2026-04-01', code:'KO',   name:'Coca-Cola',                 perShare:0.53, shares:0.169811321, amount:0.09,  note:'' },
+  { date:'2026-03-27', code:'AU',   name:'AngloGold',                 perShare:1.61, shares:0.074766355, amount:0.12,  note:'' },
+  { date:'2026-03-27', code:'AU',   name:'AngloGold',                 perShare:0.13, shares:0.08,        amount:0.01,  note:'' },
+  { date:'2026-03-26', code:'KGC',  name:'Kinross Gold',               perShare:0.03, shares:0.294117647, amount:0.01,  note:'' },
+  { date:'2026-03-26', code:'NEM',  name:'Newmont',                   perShare:0.26, shares:0.038461538, amount:0.01,  note:'' },
+  { date:'2026-02-10', code:'AXP',  name:'American Express',          perShare:0.82, shares:0.012195122, amount:0.01,  note:'' },
+  { date:'2026-02-09', code:'MA',   name:'Mastercard',                perShare:0.87, shares:0.011494253, amount:0.01,  note:'' },
+  { date:'2026-02-02', code:'T',    name:'AT&T',                      perShare:0.28, shares:0.216216216, amount:0.06,  note:'' },
+  { date:'2026-01-15', code:'MAIN', name:'Main Street Capital',       perShare:0.26, shares:0.115384615, amount:0.03,  note:'' },
+  { date:'2026-01-06', code:'PEP',  name:'Pepsi',                     perShare:1.42, shares:0.028119508, amount:0.04,  note:'' },
+  { date:'2025-12-31', code:'LTC',  name:'LTC Properties',             perShare:0.19, shares:0.157894737, amount:0.03,  note:'' },
+  { date:'2025-12-30', code:'CNI',  name:'Canadian National Railway', perShare:0.55, shares:0.054484828, amount:0.03,  note:'' },
+  { date:'2025-12-29', code:'MAIN', name:'Main Street Capital',       perShare:0.30, shares:0.10,        amount:0.03,  note:'' },
+  { date:'2025-12-26', code:'BAC',  name:'Bank of America',           perShare:0.28, shares:0.107142857, amount:0.03,  note:'' },
+  { date:'2025-12-18', code:'GM',   name:'General Motors',            perShare:0.15, shares:0.066666667, amount:0.01,  note:'' },
+  { date:'2025-12-15', code:'MAIN', name:'Main Street Capital',       perShare:0.26, shares:0.117647059, amount:0.03,  note:'' },
+  { date:'2025-12-15', code:'KO',   name:'Coca-Cola',                 perShare:0.51, shares:0.078431373, amount:0.04,  note:'' },
+  { date:'2025-12-15', code:'MCD',  name:"McDonald's",                perShare:1.86, shares:0.010752688, amount:0.02,  note:'' },
+];
+function loadDividends() {
+  try {
+    const raw = localStorage.getItem('gt_dividends_v1');
+    if (!raw) return JSON.parse(JSON.stringify(DIVIDEND_SEED));
+    return JSON.parse(raw);
+  } catch(e) { return JSON.parse(JSON.stringify(DIVIDEND_SEED)); }
+}
+function saveDividends(d) { try { localStorage.setItem('gt_dividends_v1', JSON.stringify(d)); } catch(e) {} }
+
+function renderDividends() {
+  const rows = loadDividends().slice().sort((a,b) => b.date.localeCompare(a.date));
+  const totalUsd = rows.reduce((s,r) => s + r.amount, 0);
+  const usdIdr = gtUSDIDR || tgUSDIDR || cryptoUSDIDR || 16000;
+
+  document.getElementById('div-total-usd').textContent = (totalUsd >= 0 ? '+' : '−') + '$' + Math.abs(totalUsd).toFixed(2);
+  document.getElementById('div-total-idr').textContent = (totalUsd >= 0 ? '+' : '−') + 'Rp' + idrRaw(Math.round(Math.abs(totalUsd) * usdIdr));
+  document.getElementById('div-count').textContent = rows.length + ' entri';
+
+  document.getElementById('div-body').innerHTML = rows.map(r => {
+    const dateFmt = new Date(r.date).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+    const perShareStr = r.perShare != null ? '$' + r.perShare.toFixed(2) : '—';
+    const sharesStr = r.shares != null ? r.shares.toLocaleString('en-US', { maximumFractionDigits: 9 }) : '—';
+    const amountStr = (r.amount >= 0 ? '+' : '−') + '$' + Math.abs(r.amount).toFixed(2);
+    const noteRow = r.note ? `<tr><td colspan="5" style="font-size:11px;color:var(--muted);padding:2px 8px 8px;border-bottom:1px solid var(--border)">${escHtml(r.note)}</td></tr>` : '';
+    return `<tr style="border-bottom:${r.note?'none':'1px solid var(--border)'}">
+      <td style="text-align:left;color:var(--muted);font-size:12px">${dateFmt}</td>
+      <td style="text-align:left"><span style="font-weight:700">${escHtml(r.code)}</span><br><span style="font-size:10px;color:var(--muted)">${escHtml(r.name)}</span></td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums">${perShareStr}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums;font-size:11px">${sharesStr}</td>
+      <td style="text-align:right;font-weight:700" class="${r.amount>=0?'g':'r'}">${amountStr}</td>
+    </tr>${noteRow}`;
+  }).join('');
+}
 
 // Clear stale holdings cache from previous approach
 try { localStorage.removeItem('gt_holdings_v1'); localStorage.removeItem('cr_holdings_v1'); } catch(e) {}
@@ -7860,7 +7946,8 @@ function removeWlItem(yf) {
 // ── DATA SYNC (Firebase Realtime) ────────────────────────────────
 const SYNC_KEYS = [
   'porto_holdings_v1', 'idx_trades_v3', 'idx_cash_v2', 'jurnal_sub', 'gt_trades_v1', 'cr_trades_v1',
-  'idx_cash_hist_v1', 'tangem_v1', 'finnhub_key', 'wl_custom_v1', 'kom_custom_v1', 'idx_active_tab'
+  'idx_cash_hist_v1', 'tangem_v1', 'finnhub_key', 'wl_custom_v1', 'kom_custom_v1', 'idx_active_tab',
+  'gt_dividends_v1'
 ];
 
 // Firebase config
@@ -8010,7 +8097,7 @@ function resetFirebaseSync() {
 
 // Holdings/trade caches that shadow the code's SEED defaults once populated
 // (locally and/or on Firebase) — this is what "Reset ke Default" clears.
-const RESET_KEYS = ['porto_holdings_v1', 'idx_trades_v3', 'idx_cash_v2', 'idx_cash_hist_v1', 'tangem_v1', 'gt_trades_v1', 'cr_trades_v1', 'kom_custom_v1'];
+const RESET_KEYS = ['porto_holdings_v1', 'idx_trades_v3', 'idx_cash_v2', 'idx_cash_hist_v1', 'tangem_v1', 'gt_trades_v1', 'cr_trades_v1', 'kom_custom_v1', 'gt_dividends_v1'];
 
 async function resetToDefaults() {
   if (!confirm('Ini akan menghapus data Porto, Jurnal IDX, Cash, Tangem, Gotrade, dan Crypto yang tersimpan di perangkat ini dan di Firebase, lalu memuat ulang nilai default terbaru dari kode. Data yang sudah kamu input manual akan hilang. Lanjutkan?')) return;
