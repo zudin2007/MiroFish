@@ -188,6 +188,10 @@ select.fi option{background:var(--card)}
         <div style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums" id="grand-crypto">—</div>
       </div>
     </div>
+    <div style="flex-basis:100%;margin-top:4px">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Pertumbuhan Grand Total (dicatat otomatis tiap kali tab ini dibuka — mulai tercatat dari hari ini, tidak ada data historis sebelumnya)</div>
+      <canvas id="grand-ch-hist" height="90"></canvas>
+    </div>
   </div>
 
   <!-- IHSG Live Panel -->
@@ -7221,6 +7225,50 @@ function updateGrandTotal() {
   if (ep) ep.textContent = grandPortoNilai > 0 ? idrRaw(Math.round(grandPortoNilai)) : '—';
   if (eg) eg.textContent = grandGotNilai > 0 ? idrRaw(Math.round(grandGotNilai)) : '—';
   if (ec) ec.textContent = grandCryptoNilai > 0 ? idrRaw(Math.round(grandCryptoNilai)) : '—';
+  if (total > 0) recordGrandSnapshot(total);
+}
+
+// ── GRAND TOTAL GROWTH HISTORY ──────────────────────────
+function loadGrandHist() {
+  try { return JSON.parse(localStorage.getItem('grand_hist_v1') || '[]'); } catch(e) { return []; }
+}
+function saveGrandHist(h) { try { localStorage.setItem('grand_hist_v1', JSON.stringify(h)); } catch(e) {} }
+
+function recordGrandSnapshot(total) {
+  const today = new Date().toISOString().slice(0, 10);
+  const hist = loadGrandHist();
+  const idx = hist.findIndex(h => h.date === today);
+  if (idx >= 0) hist[idx].total = total;
+  else hist.push({ date: today, total });
+  hist.sort((a, b) => a.date.localeCompare(b.date));
+  saveGrandHist(hist);
+  renderGrandChart(hist);
+}
+
+let grandChHist = null;
+function renderGrandChart(hist) {
+  hist = hist || loadGrandHist();
+  const canvas = document.getElementById('grand-ch-hist');
+  if (!canvas) return;
+  if (grandChHist) grandChHist.destroy();
+  grandChHist = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: hist.map(h => new Date(h.date).toLocaleDateString('id-ID', { day:'2-digit', month:'short' })),
+      datasets: [{
+        label: 'Grand Total', data: hist.map(h => Math.round(h.total)),
+        borderColor: '#FF7A00', backgroundColor: 'rgba(255,122,0,.12)',
+        borderWidth: 2, pointRadius: hist.length > 1 ? 2 : 4, fill: true, tension: .25,
+      }],
+    },
+    options: {
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' Rp' + idrRaw(ctx.parsed.y) } } },
+      scales: {
+        x: { ticks: { color: '#6868a8', font: { size: 10 } }, grid: { display: false } },
+        y: { ticks: { color: '#6868a8', callback: v => idrRaw(v), font: { size: 10 } }, grid: { color: 'rgba(45,45,80,.4)' } },
+      },
+    },
+  });
 }
 
 // ── INIT ───────────────────────────────────────────────
@@ -7947,7 +7995,7 @@ function removeWlItem(yf) {
 const SYNC_KEYS = [
   'porto_holdings_v1', 'idx_trades_v3', 'idx_cash_v2', 'jurnal_sub', 'gt_trades_v1', 'cr_trades_v1',
   'idx_cash_hist_v1', 'tangem_v1', 'finnhub_key', 'wl_custom_v1', 'kom_custom_v1', 'idx_active_tab',
-  'gt_dividends_v1'
+  'gt_dividends_v1', 'grand_hist_v1'
 ];
 
 // Firebase config
