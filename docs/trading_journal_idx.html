@@ -10,6 +10,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-auth-compat.js"></script>
+<script src="https://s3.tradingview.com/tv.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -148,9 +149,10 @@ select.fi option{background:var(--card)}
 <div class="tabbar">
   <button class="tab on" onclick="showTab('porto',this)">Porto</button>
   <button class="tab" onclick="showTab('gotrade',this)">Gotrade</button>
+  <button class="tab" onclick="showTab('dividends',this)">Dividen</button>
   <button class="tab" onclick="showTab('crypto',this)">Crypto</button>
   <button class="tab" onclick="showTab('tangem',this)">Tangem</button>
-  <button class="tab" onclick="showTab('watchlist',this)">Watchlist</button>
+  <button class="tab" onclick="showTab('incaran',this)">Incaran</button>
   <button class="tab" onclick="showTab('komunitas',this)">Komunitas</button>
   <button class="tab" onclick="showTab('jurnal',this)">Jurnal</button>
   <button class="tab" onclick="showTab('analitik',this)">Analitik</button>
@@ -185,6 +187,10 @@ select.fi option{background:var(--card)}
         <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Crypto</div>
         <div style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums" id="grand-crypto">—</div>
       </div>
+    </div>
+    <div style="flex-basis:100%;margin-top:4px">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Pertumbuhan Grand Total (dicatat otomatis tiap kali tab ini dibuka — mulai tercatat dari hari ini, tidak ada data historis sebelumnya)</div>
+      <canvas id="grand-ch-hist" height="90"></canvas>
     </div>
   </div>
 
@@ -275,8 +281,8 @@ select.fi option{background:var(--card)}
   <div class="chips" id="gt-chips">
     <div class="chip"><div class="chip-l">Total Nilai (IDR)</div><div class="chip-v" id="gt-nilai">—</div></div>
     <div class="chip"><div class="chip-l">Unrealized P&amp;L</div><div class="chip-v" id="gt-upnl">—</div></div>
-    <div class="chip"><div class="chip-l">Realized All-Time</div><div class="chip-v r" id="gt-realized">−Rp2.359.352</div></div>
-    <div class="chip"><div class="chip-l">Realized YTD</div><div class="chip-v r" id="gt-ryzd">−Rp1.515.403</div></div>
+    <div class="chip"><div class="chip-l">Realized All-Time</div><div class="chip-v r" id="gt-realized">−Rp1.650.020</div></div>
+    <div class="chip"><div class="chip-l">Realized YTD</div><div class="chip-v r" id="gt-ryzd">−Rp1.007.093</div></div>
     <div class="chip-spacer">
       <span style="font-size:11px;color:var(--muted)" id="gt-ts"></span>
       <button class="btn btn-o" id="gt-btn" onclick="fetchGotrade()">↻ Update Harga</button>
@@ -325,13 +331,37 @@ select.fi option{background:var(--card)}
   </div>
 </div>
 
+<!-- ══════════════ DIVIDENDS ══════════════ -->
+<div id="tab-dividends" class="panel">
+  <div class="chips" id="div-chips">
+    <div class="chip"><div class="chip-l">Total Dividen (USD)</div><div class="chip-v g" id="div-total-usd">—</div></div>
+    <div class="chip"><div class="chip-l">Total Dividen (IDR, est.)</div><div class="chip-v g" id="div-total-idr">—</div></div>
+    <div class="chip"><div class="chip-l">Jumlah Entri</div><div class="chip-v" id="div-count">—</div></div>
+  </div>
+  <div class="card">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Catatan dividen dari akun Gotrade. Konversi ke Rupiah pakai kurs perkiraan (bisa beda dari kurs saat dividen diterima).</div>
+    <div class="tbl-wrap">
+      <table id="div-table">
+        <thead><tr>
+          <th style="text-align:left;min-width:90px">Tanggal</th>
+          <th style="text-align:left;min-width:130px">Saham</th>
+          <th style="text-align:right;min-width:70px">Per Lembar</th>
+          <th style="text-align:right;min-width:90px">Lembar</th>
+          <th style="text-align:right;min-width:70px">Jumlah</th>
+        </tr></thead>
+        <tbody id="div-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════ CRYPTO ══════════════ -->
 <div id="tab-crypto" class="panel">
   <div class="chips" id="cr-chips">
     <div class="chip"><div class="chip-l">Total Nilai (IDR)</div><div class="chip-v" id="cr-nilai">—</div></div>
     <div class="chip"><div class="chip-l">Unrealized P&amp;L</div><div class="chip-v" id="cr-upnl">—</div></div>
-    <div class="chip"><div class="chip-l">Realized All-Time</div><div class="chip-v g" id="cr-realized">+Rp62.627.602</div></div>
-    <div class="chip"><div class="chip-l">Realized YTD</div><div class="chip-v r" id="cr-ryzd">−Rp18.661.788</div></div>
+    <div class="chip"><div class="chip-l">Realized All-Time</div><div class="chip-v g" id="cr-realized">+Rp82.706.536</div></div>
+    <div class="chip"><div class="chip-l">Realized YTD</div><div class="chip-v r" id="cr-ryzd">−Rp11.719.948</div></div>
     <div class="chip-spacer">
       <span style="font-size:11px;color:var(--muted)" id="cr-ts"></span>
       <button class="btn btn-o" id="cr-btn" onclick="fetchCrypto()">↻ Update Harga</button>
@@ -832,29 +862,33 @@ select.fi option{background:var(--card)}
   </div>
 </div>
 
-<!-- ══════════════ WATCHLIST ══════════════ -->
-<div id="tab-watchlist" class="panel">
-  <!-- Market overview -->
-  <div class="chips" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:10px" id="wl-market-chips">
-    <div class="chip" style="cursor:pointer" onclick="openWlChartUsd('^JKSE','IHSG')">
-      <div class="chip-l">IHSG</div>
-      <div class="chip-v" id="wl-ihsg">—</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:2px" id="wl-ihsg-chg">—</div>
-    </div>
-    <div class="chip">
-      <div class="chip-l">USD/IDR</div>
-      <div class="chip-v" id="wl-usdidr">—</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:2px" id="wl-usdidr-chg">—</div>
-    </div>
-    <div class="chip" style="display:flex;flex-direction:column;justify-content:space-between;gap:6px">
-      <div style="font-size:11px;color:var(--muted)" id="wl-status">—</div>
-      <div style="display:flex;gap:6px">
-        <button class="tf-btn" onclick="openAddWl()" style="flex:1">＋ Tambah</button>
-        <button class="tf-btn" onclick="fetchWatchlist(true)" id="wl-refresh-btn">⟳</button>
+<!-- ══════════════ INCARAN (WATCHLIST) ══════════════ -->
+<div id="tab-incaran" class="panel">
+  <div class="chips" id="incaran-chips" style="margin-bottom:12px">
+    <div class="chip"><div class="chip-l">Target Dibuat</div><div class="chip-v" id="incaran-count">—</div></div>
+    <div class="chip"><div class="chip-l">Total Modal Incaran</div><div class="chip-v" id="incaran-capital">—</div></div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:6px">
+      <div class="card-title" style="margin:0">Target Saham</div>
+      <div style="display:flex;gap:4px">
+        <button class="tf-btn" onclick="addIncaranItem()" style="flex:1">＋ Tambah Target</button>
       </div>
     </div>
+    <div class="tbl-wrap">
+      <table id="incaran-table">
+        <thead><tr>
+          <th style="text-align:left;min-width:100px">Simbol</th>
+          <th style="text-align:left;min-width:150px">Nama</th>
+          <th style="text-align:right;min-width:80px">Target Harga</th>
+          <th style="text-align:right;min-width:80px">Target Qty</th>
+          <th style="text-align:right;min-width:100px">Est. Modal</th>
+          <th style="text-align:center;min-width:60px">Aksi</th>
+        </tr></thead>
+        <tbody id="incaran-body"></tbody>
+      </table>
+    </div>
   </div>
-  <div id="wl-body"></div>
 </div>
 
 <!-- ══════════════ KOMUNITAS ══════════════ -->
@@ -1066,6 +1100,7 @@ select.fi option{background:var(--card)}
           <button class="btn btn-o" onclick="manualSyncToFirebase()" style="padding:10px;font-size:13px;font-weight:700">🔄 Sync Sekarang</button>
           <button class="btn btn-o" onclick="resetFirebaseSync()" style="padding:10px;font-size:13px;font-weight:700">Disconnect</button>
         </div>
+        <button class="btn btn-del" onclick="resetToDefaults()" style="width:100%;padding:10px;font-size:13px;font-weight:700;margin-top:8px">⚠ Reset ke Default (Porto/Jurnal/Tangem/Gotrade/Crypto)</button>
         <div style="font-size:11px;color:var(--muted);margin-top:12px">
           <div id="sync-status" style="text-align:center;min-height:20px"></div>
         </div>
@@ -1088,42 +1123,7 @@ select.fi option{background:var(--card)}
       </div>
       <button class="modal-close" onclick="closeStockModal()">✕</button>
     </div>
-    <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;flex-wrap:wrap" id="modal-ct-row">
-      <span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0">Tipe:</span>
-      <div id="modal-type-btns" style="display:flex;gap:4px">
-        <button class="tf-btn on" onclick="setChartType('line',this)">Line</button>
-        <button class="tf-btn"    onclick="setChartType('candle',this)">Candle</button>
-      </div>
-      <span style="width:1px;height:18px;background:var(--border);flex-shrink:0"></span>
-      <button class="tf-btn" id="modal-st-btn"    onclick="toggleST('modal',this)">Supertrend</button>
-      <button class="tf-btn" id="modal-ema20-btn" onclick="toggleEMA('modal',20,this)" style="color:#29b6f6">EMA 20</button>
-      <button class="tf-btn" id="modal-ema50-btn" onclick="toggleEMA('modal',50,this)" style="color:#ab47bc">EMA 50</button>
-      <button class="tf-btn" id="modal-rsi-btn"   onclick="toggleOsc('modal','rsi',this)"  style="color:#ff9800">RSI</button>
-      <button class="tf-btn" id="modal-macd-btn"  onclick="toggleOsc('modal','macd',this)" style="color:#26c6da">MACD</button>
-      <button class="tf-btn" id="modal-fcb-btn"   onclick="toggleFCB('modal',this)"        style="color:#e040fb">FCB</button>
-    </div>
-    <div class="tf-wrap" id="modal-tf-row">
-      <button class="tf-btn on" id="tf-1d"  onclick="setTF('1d','5m',this)">1 Hari</button>
-      <button class="tf-btn"    id="tf-1mo" onclick="setTF('1mo','1d',this)">1 Bln</button>
-      <button class="tf-btn"    id="tf-3mo" onclick="setTF('3mo','1d',this)">3 Bln</button>
-      <button class="tf-btn"    id="tf-6mo" onclick="setTF('6mo','1d',this)">6 Bln</button>
-      <button class="tf-btn"    id="tf-1y"  onclick="setTF('1y','1d',this)">1 Tahun</button>
-      <button class="tf-btn"    id="tf-2y"  onclick="setTF('2y','1d',this)">2 Tahun</button>
-      <button class="tf-btn"    id="tf-5y"  onclick="setTF('5y','1d',this)">5 Tahun</button>
-      <button class="tf-btn"    id="tf-max" onclick="setTF('max','1mo',this)">Maks</button>
-      <button class="tf-btn" id="modal-zoom-reset" onclick="resetChartZoom('modal')" title="Reset zoom" style="margin-left:auto;display:none">⟲ Reset</button>
-    </div>
-    <div id="modal-status" style="font-size:12px;color:var(--muted);min-height:16px;margin-bottom:6px"></div>
-    <canvas id="modal-chart" height="220"></canvas>
-    <div id="modal-rsi-wrap" style="display:none;margin-top:6px">
-      <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">RSI (14)</div>
-      <canvas id="modal-rsi-chart" height="70"></canvas>
-    </div>
-    <div id="modal-macd-wrap" style="display:none;margin-top:6px">
-      <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">MACD (12,26,9)</div>
-      <canvas id="modal-macd-chart" height="70"></canvas>
-    </div>
-    <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px" id="modal-stats"></div>
+    <div id="modal-tv-chart" style="height:500px;margin-top:8px"></div>
   </div>
 </div>
 
@@ -1137,53 +1137,22 @@ select.fi option{background:var(--card)}
       </div>
       <button class="modal-close" onclick="closeAssetModal()">✕</button>
     </div>
-    <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;flex-wrap:wrap" id="amodal-ct-row">
-      <span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0">Tipe:</span>
-      <div id="amodal-type-btns" style="display:flex;gap:4px">
-        <button class="tf-btn on" onclick="setAssetChartType('line',this)">Line</button>
-        <button class="tf-btn"    onclick="setAssetChartType('candle',this)">Candle</button>
-      </div>
-      <span style="width:1px;height:18px;background:var(--border);flex-shrink:0"></span>
-      <button class="tf-btn" id="amodal-st-btn"    onclick="toggleST('amodal',this)">Supertrend</button>
-      <button class="tf-btn" id="amodal-ema20-btn" onclick="toggleEMA('amodal',20,this)" style="color:#29b6f6">EMA 20</button>
-      <button class="tf-btn" id="amodal-ema50-btn" onclick="toggleEMA('amodal',50,this)" style="color:#ab47bc">EMA 50</button>
-      <button class="tf-btn" id="amodal-rsi-btn"   onclick="toggleOsc('amodal','rsi',this)"  style="color:#ff9800">RSI</button>
-      <button class="tf-btn" id="amodal-macd-btn"  onclick="toggleOsc('amodal','macd',this)" style="color:#26c6da">MACD</button>
-      <button class="tf-btn" id="amodal-fcb-btn"   onclick="toggleFCB('amodal',this)"        style="color:#e040fb">FCB</button>
-    </div>
-    <div class="tf-wrap" id="amodal-tf-row">
-      <button class="tf-btn on" id="atf-1d"  onclick="setAssetTF('1d','5m',this)">1 Hari</button>
-      <button class="tf-btn"    id="atf-1mo" onclick="setAssetTF('1mo','1d',this)">1 Bln</button>
-      <button class="tf-btn"    id="atf-3mo" onclick="setAssetTF('3mo','1d',this)">3 Bln</button>
-      <button class="tf-btn"    id="atf-6mo" onclick="setAssetTF('6mo','1d',this)">6 Bln</button>
-      <button class="tf-btn"    id="atf-1y"  onclick="setAssetTF('1y','1d',this)">1 Tahun</button>
-      <button class="tf-btn"    id="atf-2y"  onclick="setAssetTF('2y','1d',this)">2 Tahun</button>
-      <button class="tf-btn"    id="atf-5y"  onclick="setAssetTF('5y','1d',this)">5 Tahun</button>
-      <button class="tf-btn"    id="atf-max" onclick="setAssetTF('max','1mo',this)">Maks</button>
-      <button class="tf-btn" id="amodal-zoom-reset" onclick="resetChartZoom('amodal')" title="Reset zoom" style="margin-left:auto;display:none">⟲ Reset</button>
-    </div>
-    <div id="amodal-status" style="font-size:12px;color:var(--muted);min-height:16px;margin-bottom:6px"></div>
-    <canvas id="amodal-chart" height="220"></canvas>
-    <div id="amodal-rsi-wrap" style="display:none;margin-top:6px">
-      <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">RSI (14)</div>
-      <canvas id="amodal-rsi-chart" height="70"></canvas>
-    </div>
-    <div id="amodal-macd-wrap" style="display:none;margin-top:6px">
-      <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">MACD (12,26,9)</div>
-      <canvas id="amodal-macd-chart" height="70"></canvas>
-    </div>
-    <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px" id="amodal-stats"></div>
+    <div id="amodal-tv-chart" style="height:500px;margin-top:8px"></div>
   </div>
 </div>
 
 <script>
 // ── CONSTANTS ──────────────────────────────────────────
 const SEED = [
-  { sym:'BBCA', shares:100, avg:6150, price:6125 },
-  { sym:'BBNI', shares:200, avg:3430, price:3420 },
-  { sym:'BBRI', shares:300, avg:2800, price:2790 },
+  { sym:'BAIK', shares:1400, avg:764,  price:755  },
+  { sym:'BBHI', shares:2,    avg:1563, price:915  },
+  { sym:'BNBA', shares:20,   avg:3708, price:735  },
+  { sym:'GJTL', shares:1400, avg:1313, price:1325 },
+  { sym:'GULA', shares:1100, avg:805,  price:790  },
+  { sym:'MBSS', shares:400,  avg:2847, price:2820 },
+  { sym:'PKPK', shares:300,  avg:3983, price:3920 },
 ];
-const SEED_CASH = -1484222;
+const SEED_CASH = 12672;
 const WATCHLIST = ['BBCA','BBHI','BBNI','BBRI','BNBA','BMRI','TLKM','ASII','GOTO','BRIS','BBTN','NISP','MEGA','BDMN'];
 const PALETTE   = ['#FF7A00','#00C853','#29B6F6','#AB47BC','#FF4D4D','#FFD54F','#4DD0E1','#AED581'];
 const WL_GROUPS = [
@@ -1319,11 +1288,12 @@ function showTab(name, btn) {
   if (name === 'akun')     try { renderAccount(); } catch(e){}
   if (name === 'preturn')  setTimeout(() => { try { renderPReturn(); } catch(e){} }, 60);
   if (name === 'gotrade')   setTimeout(() => { try { fetchGotrade();   } catch(e){} }, 60);
+  if (name === 'dividends') setTimeout(() => { try { renderDividends(); } catch(e){} }, 60);
   if (name === 'crypto')    setTimeout(() => { try { fetchCrypto();    } catch(e){} }, 60);
   if (name === 'tangem')    setTimeout(() => { try { renderTangem();   } catch(e){} }, 60);
   if (name === 'gainloss')  setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
   if (name === 'aktivitas') setTimeout(() => { try { renderGainLoss(); } catch(e){} }, 60);
-  if (name === 'watchlist')  setTimeout(() => { try { fetchWatchlist();  } catch(e){} }, 60);
+  if (name === 'incaran')    setTimeout(() => { try { renderIncaran(); } catch(e){} }, 60);
   if (name === 'komunitas')  setTimeout(() => { try { renderKomConfido(); fetchKomPrices(); renderKomIdea(); fetchKomIdeaPrices(); renderKomCustom(); fetchKomCustomPrices(); } catch(e){} }, 60);
 }
 
@@ -2261,317 +2231,48 @@ function drawIHSGMini(closes, isUp) {
   });
 }
 
-// ── CANDLESTICK PLUGIN ─────────────────────────────────
-const CandlestickPlugin = {
-  id: 'candlestick',
-  afterDatasetsDraw(chart, args, options) {
-    if (!options?.ohlcv?.length) return;
-    const ctx    = chart.ctx;
-    const yScale = chart.scales.y;
-    const meta   = chart.getDatasetMeta(0);
-    if (!meta?.data?.length) return;
-    const step = meta.data.length > 1 ? Math.abs(meta.data[1].x - meta.data[0].x) : 8;
-    const w    = Math.max(2, step * 0.5);
-    options.ohlcv.forEach((d, i) => {
-      if (d.o == null || d.h == null || d.l == null || d.c == null) return;
-      const pt = meta.data[i];
-      if (!pt) return;
-      const x   = pt.x;
-      const up  = d.c >= d.o;
-      const clr = up ? '#00c853' : '#ff4d4d';
-      const yO  = yScale.getPixelForValue(d.o);
-      const yC  = yScale.getPixelForValue(d.c);
-      const yH  = yScale.getPixelForValue(d.h);
-      const yL  = yScale.getPixelForValue(d.l);
-      ctx.save();
-      ctx.strokeStyle = clr;
-      ctx.lineWidth   = 1;
-      ctx.beginPath(); ctx.moveTo(x, yH); ctx.lineTo(x, yL); ctx.stroke();
-      const bTop = Math.min(yO, yC);
-      const bH   = Math.max(1, Math.abs(yO - yC));
-      ctx.fillStyle = up ? clr : 'transparent';
-      ctx.fillRect(x - w/2, bTop, w, bH);
-      ctx.strokeRect(x - w/2, bTop, w, bH);
-      ctx.restore();
-    });
-  }
+// ── TRADINGVIEW SYMBOL/CHART HELPERS ──────────────────
+// Yahoo-Finance-style tickers (as used throughout this app) → TradingView symbols
+const TV_INDEX_MAP = {
+  '^JKSE': 'TVC:JAKIDX', '^DJI': 'TVC:DJI', '^IXIC': 'TVC:IXIC', '^GSPC': 'TVC:SPX',
+  '^N225': 'TVC:NI225', '^HSI': 'TVC:HSI', '000001.SS': 'TVC:SHCOMP',
+  '^FTSE': 'TVC:UKX', '^GDAXI': 'TVC:DAX', 'USDIDR=X': 'FX_IDC:USDIDR',
+  'GC=F': 'TVC:GOLD', 'GC%3DF': 'TVC:GOLD'
 };
-try { Chart.register(CandlestickPlugin); } catch(e) {}
+// Coins whose USDT pair isn't available on TradingView's Binance feed —
+// route these to the exchange that actually carries them there instead.
+const TV_CRYPTO_EXCHANGE_OVERRIDE = { KAS:'MEXC', NOCK:'MEXC', GRAM:'MEXC', HYPE:'MEXC' };
+function toTvSymbol(sym, market) {
+  if (market === 'idx') return 'IDX:' + sym;
+  if (TV_INDEX_MAP[sym]) return TV_INDEX_MAP[sym];
+  const cryptoMatch = /^([A-Z]+)-USD$/.exec(sym);
+  if (cryptoMatch) {
+    const base = cryptoMatch[1];
+    const exch = TV_CRYPTO_EXCHANGE_OVERRIDE[base] || 'BINANCE';
+    return exch + ':' + base + 'USDT';
+  }
+  return sym; // plain US ticker (e.g. NVDA, MU) — TradingView resolves it directly
+}
+
+function renderTvWidget(containerId, symbol) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  new TradingView.widget({
+    autosize: true,
+    symbol,
+    interval: 'D',
+    timezone: 'Asia/Jakarta',
+    theme: 'dark',
+    style: '1',
+    locale: 'id',
+    studies: ['RSI@tv-basicstudies', 'VSTOP@tv-basicstudies'],
+    container_id: containerId
+  });
+}
 
 // ── STOCK CHART MODAL ──────────────────────────────────
-let modalChart      = null;
-let modalSym        = '';
-let modalChartType  = 'line';
-let modalCachedData = null;
-let aModalChart     = null;
-let aModalSym       = '';
-let aModalAvgUSD    = 0;
-let aModalShares    = 0;
-let aModalName      = '';
-let aModalChartType = 'line';
-let aModalCached    = null;
-let modalShowST     = false;
-let aModalShowST    = false;
-let modalShowEMA20  = false, modalShowEMA50  = false;
-let aModalShowEMA20 = false, aModalShowEMA50 = false;
-let modalShowRSI    = false, aModalShowRSI   = false;
-let modalShowMACD   = false, aModalShowMACD  = false;
-let modalShowFCB    = false, aModalShowFCB   = false;
-let modalRsiChart   = null,  aModalRsiChart  = null;
-let modalMacdChart  = null,  aModalMacdChart = null;
-
-function calcSupertrend(valid, period, mult) {
-  period = period || 10; mult = mult || 3;
-  const n = valid.length;
-  if (n < period) return { st: new Array(n).fill(null), dir: new Array(n).fill(1) };
-  const tr = valid.map((d, i) => {
-    const hi = d.h ?? d.c, lo = d.l ?? d.c;
-    if (i === 0) return hi - lo;
-    const pc = valid[i-1].c;
-    return Math.max(hi - lo, Math.abs(hi - pc), Math.abs(lo - pc));
-  });
-  const atr = new Array(n).fill(0);
-  let s = 0;
-  for (let i = 0; i < period; i++) s += tr[i];
-  atr[period-1] = s / period;
-  for (let i = period; i < n; i++) atr[i] = (atr[i-1]*(period-1) + tr[i]) / period;
-  const bU = valid.map((d, i) => { const hi=d.h??d.c, lo=d.l??d.c; return (hi+lo)/2 + mult*atr[i]; });
-  const bL = valid.map((d, i) => { const hi=d.h??d.c, lo=d.l??d.c; return (hi+lo)/2 - mult*atr[i]; });
-  const fU = new Array(n).fill(0), fL = new Array(n).fill(0);
-  const st = new Array(n).fill(null), dir = new Array(n).fill(1);
-  for (let i = 0; i < n; i++) {
-    if (i < period-1) continue;
-    if (i === period-1) { fU[i]=bU[i]; fL[i]=bL[i]; dir[i]=1; st[i]=fL[i]; continue; }
-    fU[i] = (bU[i] < fU[i-1] || valid[i-1].c > fU[i-1]) ? bU[i] : fU[i-1];
-    fL[i] = (bL[i] > fL[i-1] || valid[i-1].c < fL[i-1]) ? bL[i] : fL[i-1];
-    if      (dir[i-1]===-1 && valid[i].c > fU[i]) dir[i] =  1;
-    else if (dir[i-1]=== 1 && valid[i].c < fL[i]) dir[i] = -1;
-    else dir[i] = dir[i-1];
-    st[i] = dir[i]===1 ? fL[i] : fU[i];
-  }
-  return { st, dir };
-}
-
-function calcEMA(valid, period) {
-  const n = valid.length, ema = new Array(n).fill(null);
-  if (n < period) return ema;
-  const k = 2 / (period + 1);
-  let s = 0;
-  for (let i = 0; i < period; i++) s += valid[i].c;
-  ema[period-1] = s / period;
-  for (let i = period; i < n; i++) ema[i] = valid[i].c * k + ema[i-1] * (1 - k);
-  return ema;
-}
-
-function toggleST(which, btn) {
-  const on = btn.classList.toggle('on');
-  if (which === 'modal') { modalShowST = on; if (modalCachedData) drawModalChart(modalCachedData); }
-  else                   { aModalShowST = on; if (aModalCached)    drawAssetChart(aModalCached);   }
-}
-
-function toggleEMA(which, period, btn) {
-  const on = btn.classList.toggle('on');
-  if (which === 'modal') {
-    if (period === 20) modalShowEMA20 = on; else modalShowEMA50 = on;
-    if (modalCachedData) drawModalChart(modalCachedData);
-  } else {
-    if (period === 20) aModalShowEMA20 = on; else aModalShowEMA50 = on;
-    if (aModalCached) drawAssetChart(aModalCached);
-  }
-}
-
-function _emaArr(src, period) {
-  const n = src.length, out = new Array(n).fill(null);
-  if (n < period) return out;
-  const k = 2 / (period + 1);
-  let s = 0;
-  for (let i = 0; i < period; i++) s += (src[i] ?? 0);
-  out[period-1] = s / period;
-  for (let i = period; i < n; i++) {
-    if (src[i] == null || out[i-1] == null) continue;
-    out[i] = src[i] * k + out[i-1] * (1 - k);
-  }
-  return out;
-}
-
-function calcRSI(valid, period) {
-  period = period || 14;
-  const n = valid.length, rsi = new Array(n).fill(null);
-  if (n <= period) return rsi;
-  let gains = 0, losses = 0;
-  for (let i = 1; i <= period; i++) {
-    const d = valid[i].c - valid[i-1].c;
-    if (d > 0) gains += d; else losses -= d;
-  }
-  let avgG = gains / period, avgL = losses / period;
-  rsi[period] = avgG + avgL === 0 ? 50 : 100 - 100 / (1 + avgG / (avgL || 1e-10));
-  for (let i = period + 1; i < n; i++) {
-    const d = valid[i].c - valid[i-1].c;
-    avgG = (avgG * (period-1) + Math.max(d, 0)) / period;
-    avgL = (avgL * (period-1) + Math.max(-d, 0)) / period;
-    rsi[i] = avgG + avgL === 0 ? 50 : 100 - 100 / (1 + avgG / (avgL || 1e-10));
-  }
-  return rsi;
-}
-
-function calcMACD(valid, fast, slow, sig) {
-  fast = fast || 12; slow = slow || 26; sig = sig || 9;
-  const n = valid.length;
-  const closes = valid.map(d => d.c);
-  const emaFast = _emaArr(closes, fast);
-  const emaSlow = _emaArr(closes, slow);
-  const macd = new Array(n).fill(null);
-  for (let i = slow - 1; i < n; i++) {
-    if (emaFast[i] != null && emaSlow[i] != null) macd[i] = emaFast[i] - emaSlow[i];
-  }
-  const macdSeed = macd.slice(slow - 1);
-  const sigArr   = _emaArr(macdSeed, sig);
-  const sigLine  = new Array(slow - 1).fill(null).concat(sigArr);
-  const hist = new Array(n).fill(null);
-  for (let i = 0; i < n; i++) {
-    if (macd[i] != null && sigLine[i] != null) hist[i] = macd[i] - sigLine[i];
-  }
-  return { macd, sigLine, hist };
-}
-
-function calcFCB(valid) {
-  const n = valid.length;
-  const upper = new Array(n).fill(null);
-  const lower = new Array(n).fill(null);
-  let lastUpper = null, lastLower = null;
-  for (let j = 0; j < n; j++) {
-    const i = j - 2;
-    if (i >= 2) {
-      const hi = valid[i].h ?? valid[i].c;
-      const lo = valid[i].l ?? valid[i].c;
-      const isPeak =
-        hi > (valid[i-1].h ?? valid[i-1].c) &&
-        hi > (valid[i-2].h ?? valid[i-2].c) &&
-        hi > (valid[i+1].h ?? valid[i+1].c) &&
-        hi > (valid[i+2].h ?? valid[i+2].c);
-      const isTrough =
-        lo < (valid[i-1].l ?? valid[i-1].c) &&
-        lo < (valid[i-2].l ?? valid[i-2].c) &&
-        lo < (valid[i+1].l ?? valid[i+1].c) &&
-        lo < (valid[i+2].l ?? valid[i+2].c);
-      if (isPeak)   lastUpper = hi;
-      if (isTrough) lastLower = lo;
-    }
-    upper[j] = lastUpper;
-    lower[j] = lastLower;
-  }
-  return { upper, lower };
-}
-
-function toggleFCB(which, btn) {
-  const on = btn.classList.toggle('on');
-  if (which === 'modal') {
-    modalShowFCB = on;
-    if (modalCachedData) drawModalChart(modalCachedData);
-  } else {
-    aModalShowFCB = on;
-    if (aModalCached) drawAssetChart(aModalCached);
-  }
-}
-
-function drawSubCharts(which, { valid, labels }) {
-  const pre      = which === 'modal' ? 'modal' : 'amodal';
-  const showRSI  = which === 'modal' ? modalShowRSI  : aModalShowRSI;
-  const showMACD = which === 'modal' ? modalShowMACD : aModalShowMACD;
-
-  // RSI
-  const rsiWrap = document.getElementById(pre + '-rsi-wrap');
-  if (which === 'modal') { if (modalRsiChart)  { modalRsiChart.destroy();  modalRsiChart  = null; } }
-  else                   { if (aModalRsiChart) { aModalRsiChart.destroy(); aModalRsiChart = null; } }
-  rsiWrap.style.display = showRSI ? '' : 'none';
-  if (showRSI) {
-    const rsiVals = calcRSI(valid);
-    const n = rsiVals.length;
-    const rsiCtx = document.getElementById(pre + '-rsi-chart').getContext('2d');
-    const rsiChart = new Chart(rsiCtx, {
-      type: 'line',
-      data: { labels, datasets: [
-        { label:'RSI', data:rsiVals, borderColor:'#ff9800', borderWidth:1.5,
-          pointRadius:0, fill:false, tension:0, spanGaps:false },
-        { label:'_ob', data:new Array(n).fill(70), borderColor:'rgba(255,77,77,0.4)',
-          borderDash:[3,3], borderWidth:1, pointRadius:0, fill:false },
-        { label:'_os', data:new Array(n).fill(30), borderColor:'rgba(0,200,83,0.4)',
-          borderDash:[3,3], borderWidth:1, pointRadius:0, fill:false },
-      ]},
-      options: {
-        plugins: {
-          legend: { display:false },
-          tooltip: { mode:'index', intersect:false,
-            filter: item => item.dataset.label === 'RSI',
-            callbacks: { label: c => ' RSI: ' + (c.parsed.y != null ? c.parsed.y.toFixed(2) : '—') }
-          }
-        },
-        scales: {
-          x: { ticks:{ color:'#6868a8', maxTicksLimit:7, maxRotation:0, font:{size:9} } },
-          y: { position:'right', min:0, max:100,
-               ticks:{ color:'#6868a8', font:{size:9}, maxTicksLimit:5 } }
-        },
-        interaction: { mode:'index', intersect:false }
-      }
-    });
-    if (which === 'modal') modalRsiChart = rsiChart; else aModalRsiChart = rsiChart;
-  }
-
-  // MACD
-  const macdWrap = document.getElementById(pre + '-macd-wrap');
-  if (which === 'modal') { if (modalMacdChart)  { modalMacdChart.destroy();  modalMacdChart  = null; } }
-  else                   { if (aModalMacdChart) { aModalMacdChart.destroy(); aModalMacdChart = null; } }
-  macdWrap.style.display = showMACD ? '' : 'none';
-  if (showMACD) {
-    const { macd, sigLine, hist } = calcMACD(valid);
-    const histColors = hist.map(v => v == null ? 'transparent' : v >= 0 ? 'rgba(0,200,83,0.7)' : 'rgba(255,77,77,0.7)');
-    const macdCtx = document.getElementById(pre + '-macd-chart').getContext('2d');
-    const macdChart = new Chart(macdCtx, {
-      type: 'bar',
-      data: { labels, datasets: [
-        { label:'Hist', data:hist, backgroundColor:histColors, borderWidth:0, order:2 },
-        { label:'MACD',   data:macd,    borderColor:'#26c6da', borderWidth:1.5,
-          pointRadius:0, fill:false, tension:0, spanGaps:false, type:'line', order:1 },
-        { label:'Signal', data:sigLine, borderColor:'#ff4d4d', borderWidth:1.2,
-          pointRadius:0, fill:false, tension:0, spanGaps:false, type:'line', order:1 },
-      ]},
-      options: {
-        plugins: {
-          legend: { display:false },
-          tooltip: { mode:'index', intersect:false,
-            callbacks: { label: c => {
-              if (c.parsed.y == null) return '';
-              return ' ' + c.dataset.label + ': ' + c.parsed.y.toFixed(4);
-            }}
-          }
-        },
-        scales: {
-          x: { ticks:{ color:'#6868a8', maxTicksLimit:7, maxRotation:0, font:{size:9} } },
-          y: { position:'right', ticks:{ color:'#6868a8', font:{size:9}, maxTicksLimit:4 } }
-        },
-        interaction: { mode:'index', intersect:false }
-      }
-    });
-    if (which === 'modal') modalMacdChart = macdChart; else aModalMacdChart = macdChart;
-  }
-}
-
-function toggleOsc(which, type, btn) {
-  const on = btn.classList.toggle('on');
-  if (which === 'modal') {
-    if (type === 'rsi') modalShowRSI = on; else modalShowMACD = on;
-    if (modalCachedData) {
-      const { valid, fmtT } = modalCachedData;
-      drawSubCharts('modal', { valid, labels: valid.map(d => fmtT(d.t)) });
-    }
-  } else {
-    if (type === 'rsi') aModalShowRSI = on; else aModalShowMACD = on;
-    if (aModalCached) {
-      const { valid, fmtT } = aModalCached;
-      drawSubCharts('amodal', { valid, labels: valid.map(d => fmtT(d.t)) });
-    }
-  }
-}
+let modalSym  = '';
+let aModalSym = '', aModalAvgUSD = 0, aModalShares = 0, aModalName = '';
 
 function openStockChart(sym) {
   modalSym = sym;
@@ -2588,196 +2289,14 @@ function openStockChart(sym) {
   } else {
     document.getElementById('modal-posinfo').textContent = 'Tidak ada posisi aktif';
   }
-  document.querySelectorAll('#modal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
-  document.getElementById('tf-1d').classList.add('on');
   document.getElementById('stock-modal').classList.add('on');
-  fetchStockChart(sym, '1d', '5m');
+  renderTvWidget('modal-tv-chart', toTvSymbol(sym, 'idx'));
 }
 
 function closeStockModal() {
   document.getElementById('stock-modal').classList.remove('on');
-  if (modalRsiChart)  { modalRsiChart.destroy();  modalRsiChart  = null; }
-  if (modalMacdChart) { modalMacdChart.destroy(); modalMacdChart = null; }
-  document.getElementById('modal-zoom-reset').style.display = 'none';
 }
 
-function resetChartZoom(which) {
-  if (which === 'modal') {
-    if (modalChart) modalChart.resetZoom();
-    document.getElementById('modal-zoom-reset').style.display = 'none';
-  } else {
-    if (aModalChart) aModalChart.resetZoom();
-    document.getElementById('amodal-zoom-reset').style.display = 'none';
-  }
-}
-
-function setTF(range, interval, btn) {
-  document.querySelectorAll('#modal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  fetchStockChart(modalSym, range, interval);
-}
-
-function setChartType(type, btn) {
-  document.querySelectorAll('#modal-type-btns .tf-btn').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  modalChartType = type;
-  if (modalCachedData) drawModalChart(modalCachedData);
-}
-
-async function fetchStockChart(sym, range, interval) {
-  const status = document.getElementById('modal-status');
-  status.textContent = '⟳ Mengambil data…';
-  document.getElementById('modal-stats').innerHTML = '';
-  modalCachedData = null;
-  const yfUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}.JK?range=${range}&interval=${interval}`;
-  const proxies = [
-    'https://api.allorigins.win/raw?url=' + encodeURIComponent(yfUrl),
-    'https://corsproxy.io/?url=' + encodeURIComponent(yfUrl),
-  ];
-  for (const url of proxies) {
-    try {
-      const r   = await tFetch(url);
-      const j   = await r.json();
-      const res = j?.chart?.result?.[0];
-      if (!res) continue;
-      const meta   = res.meta;
-      const times  = res.timestamp || [];
-      const q      = res.indicators?.quote?.[0] || {};
-      const closes = q.close  || [];
-      const opens  = q.open   || [];
-      const highs  = q.high   || [];
-      const lows   = q.low    || [];
-      const vols   = q.volume || [];
-      const valid  = times.map((t,i) => ({
-        t, o:opens[i], h:highs[i], l:lows[i], c:closes[i], v:vols[i]
-      })).filter(d => d.c != null);
-      if (!valid.length) continue;
-      const isIntra   = range === '1d';
-      const longRange = range === '1y' || range === '2y' || range === '5y' || range === 'max';
-      const fmtT = isIntra
-        ? t => new Date(t*1000).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})
-        : t => new Date(t*1000).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:longRange?'numeric':undefined});
-      modalCachedData = { valid, fmtT, meta, sym };
-      drawModalChart(modalCachedData);
-      status.textContent = '';
-      return;
-    } catch(e) {}
-  }
-  status.textContent = 'Gagal mengambil data. Cek koneksi atau coba lagi.';
-}
-
-function drawModalChart({ valid, fmtT, meta, sym }) {
-  const labels  = valid.map(d => fmtT(d.t));
-  const cData   = valid.map(d => d.c);
-  const vData   = valid.map(d => d.v || 0);
-  const first   = cData[0], last = cData[cData.length-1];
-  const isUp    = last >= first;
-  const color   = isUp ? '#00c853' : '#ff4d4d';
-  const maxVol  = Math.max(...vData.filter(v => v > 0)) || 1;
-  const h       = holdings.find(x => x.sym === sym);
-  const isCandle = modalChartType === 'candle';
-  const avgSet  = h ? [{
-    label:'Avg Beli', data:cData.map(() => h.avg),
-    borderColor:'#f59e0b', borderDash:[5,4], borderWidth:1.5,
-    pointRadius:0, fill:false, yAxisID:'y'
-  }] : [];
-  const priceDs = isCandle
-    ? { label:sym, data:cData, borderColor:'transparent', backgroundColor:'transparent',
-        fill:false, tension:0, pointRadius:0, borderWidth:0, yAxisID:'y', order:1 }
-    : { label:sym, data:cData, borderColor:color, backgroundColor:color+'18',
-        fill:true, tension:0.2, pointRadius:0, borderWidth:2, yAxisID:'y', order:1 };
-  let stDs = [];
-  if (modalShowST) {
-    const { st, dir } = calcSupertrend(valid);
-    stDs = [{ label:'Supertrend', data:st, borderWidth:1.5, pointRadius:0, fill:false,
-      stepped:'after', spanGaps:false, yAxisID:'y',
-      segment:{ borderColor: ctx => dir[ctx.p0DataIndex]===1 ? '#00c853' : '#ff4d4d' }
-    }];
-  }
-  const emaDs = [];
-  if (modalShowEMA20) emaDs.push({ label:'EMA 20', data:calcEMA(valid,20), borderColor:'#29b6f6',
-    borderWidth:1.2, pointRadius:0, fill:false, tension:0, spanGaps:false, yAxisID:'y' });
-  if (modalShowEMA50) emaDs.push({ label:'EMA 50', data:calcEMA(valid,50), borderColor:'#ab47bc',
-    borderWidth:1.2, pointRadius:0, fill:false, tension:0, spanGaps:false, yAxisID:'y' });
-  const fcbDs = [];
-  if (modalShowFCB) {
-    const { upper, lower } = calcFCB(valid);
-    fcbDs.push({ label:'FCB Upper', data:upper, borderColor:'#ff4d4d', borderWidth:1.2,
-      pointRadius:0, fill:false, stepped:'after', spanGaps:false, yAxisID:'y' });
-    fcbDs.push({ label:'FCB Lower', data:lower, borderColor:'#00c853', borderWidth:1.2,
-      pointRadius:0, fill:false, stepped:'after', spanGaps:false, yAxisID:'y' });
-  }
-  const ctx = document.getElementById('modal-chart').getContext('2d');
-  if (modalChart) { modalChart.destroy(); modalChart = null; }
-  document.getElementById('modal-zoom-reset').style.display = 'none';
-  modalChart = new Chart(ctx, {
-    type:'line',
-    data:{ labels, datasets:[ priceDs, ...avgSet, ...stDs, ...emaDs, ...fcbDs,
-      { label:'Volume', data:vData, type:'bar',
-        backgroundColor:color+'50', borderRadius:1, yAxisID:'vol', order:2 }
-    ]},
-    options:{
-      plugins:{
-        candlestick: isCandle ? { ohlcv:valid } : { ohlcv:null },
-        legend:{ display:true, position:'top', labels:{
-          color:'#a8a8c8', boxWidth:12, font:{size:11},
-          filter: item => !(isCandle && item.datasetIndex === 0)
-        }},
-        tooltip:{
-          mode:'index', intersect:false,
-          callbacks:{
-            label: ctx => {
-              if (ctx.dataset.label === 'Volume')
-                return ' Vol: ' + (ctx.parsed.y/1e6).toFixed(2) + 'M';
-              if (isCandle && ctx.datasetIndex === 0) {
-                const d = valid[ctx.dataIndex];
-                if (!d) return '';
-                return [` O: ${idrRaw(d.o)}`, ` H: ${idrRaw(d.h)}`, ` L: ${idrRaw(d.l)}`, ` C: ${idrRaw(d.c)}`];
-              }
-              return ' ' + ctx.dataset.label + ': ' + idrRaw(ctx.parsed.y);
-            }
-          }
-        },
-        zoom:{
-          zoom:{
-            wheel:{ enabled:true, speed:0.08 },
-            pinch:{ enabled:true },
-            mode:'x',
-            onZoomComplete:() => { document.getElementById('modal-zoom-reset').style.display=''; }
-          },
-          pan:{
-            enabled:true, mode:'x',
-            onPanComplete:() => { document.getElementById('modal-zoom-reset').style.display=''; }
-          },
-          limits:{ x:{ minRange:5 } }
-        }
-      },
-      scales:{
-        x:{ ticks:{ color:'#6868a8', maxTicksLimit:7, maxRotation:0 } },
-        y:{ position:'right', ticks:{ color:'#6868a8', callback:v=>idrRaw(v) } },
-        vol:{
-          position:'left', min:0, max:maxVol*4,
-          ticks:{ display:false }, grid:{ display:false }, border:{ display:false }
-        }
-      },
-      interaction:{ mode:'index', intersect:false }
-    }
-  });
-  const priceChg = last - first;
-  const pct = first > 0 ? priceChg / first * 100 : 0;
-  const hi = Math.max(...cData), lo = Math.min(...cData);
-  document.getElementById('modal-stats').innerHTML = `
-    <div class="sb"><div class="sb-l">Harga</div><div class="sb-v">${idrRaw(last)}</div></div>
-    <div class="sb"><div class="sb-l">Perubahan</div><div class="sb-v ${priceChg>=0?'g':'r'}">${priceChg>=0?'+':''}${idrRaw(priceChg)}</div></div>
-    <div class="sb"><div class="sb-l">% Rentang</div><div class="sb-v ${pct>=0?'g':'r'}">${pct>=0?'+':''}${pct.toFixed(2)}%</div></div>
-    <div class="sb"><div class="sb-l">Tertinggi</div><div class="sb-v">${idrRaw(hi)}</div></div>
-    <div class="sb"><div class="sb-l">Terendah</div><div class="sb-v">${idrRaw(lo)}</div></div>
-    ${meta.regularMarketVolume?`<div class="sb"><div class="sb-l">Volume</div><div class="sb-v">${(meta.regularMarketVolume/1e6).toFixed(1)}M</div></div>`:''}
-  `;
-  drawSubCharts('modal', { valid, labels });
-}
-
-// ── ASSET CHART MODAL (Gotrade / Crypto — USD) ──────────
 function openAssetChart(sym, displayName, avgUSD, sharesAmt) {
   aModalSym    = sym;
   aModalAvgUSD = avgUSD;
@@ -2794,177 +2313,13 @@ function openAssetChart(sym, displayName, avgUSD, sharesAmt) {
     document.getElementById('amodal-posinfo').innerHTML =
       `${sharesAmt} units &nbsp;·&nbsp; Avg: $${avgUSD.toLocaleString('en-US',{maximumFractionDigits:4})}`;
   }
-  document.querySelectorAll('#amodal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
-  document.getElementById('atf-1d').classList.add('on');
   document.getElementById('asset-modal').classList.add('on');
-  fetchAssetChart(sym, '1d', '5m');
+  renderTvWidget('amodal-tv-chart', toTvSymbol(sym, 'asset'));
 }
 
 function closeAssetModal() {
   document.getElementById('asset-modal').classList.remove('on');
-  if (aModalRsiChart)  { aModalRsiChart.destroy();  aModalRsiChart  = null; }
-  if (aModalMacdChart) { aModalMacdChart.destroy(); aModalMacdChart = null; }
-  document.getElementById('amodal-zoom-reset').style.display = 'none';
 }
-
-function setAssetTF(range, interval, btn) {
-  document.querySelectorAll('#amodal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  fetchAssetChart(aModalSym, range, interval);
-}
-
-function setAssetChartType(type, btn) {
-  document.querySelectorAll('#amodal-type-btns .tf-btn').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  aModalChartType = type;
-  if (aModalCached) drawAssetChart(aModalCached);
-}
-
-async function fetchAssetChart(sym, range, interval) {
-  const status = document.getElementById('amodal-status');
-  status.textContent = '⟳ Mengambil data…';
-  document.getElementById('amodal-stats').innerHTML = '';
-  aModalCached = null;
-  const yfUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?range=${range}&interval=${interval}`;
-  const proxies = [
-    'https://api.allorigins.win/raw?url=' + encodeURIComponent(yfUrl),
-    'https://corsproxy.io/?url=' + encodeURIComponent(yfUrl),
-  ];
-  for (const url of proxies) {
-    try {
-      const r   = await tFetch(url);
-      const j   = await r.json();
-      const res = j?.chart?.result?.[0];
-      if (!res) continue;
-      const meta   = res.meta;
-      const times  = res.timestamp || [];
-      const q      = res.indicators?.quote?.[0] || {};
-      const closes = q.close  || [];
-      const opens  = q.open   || [];
-      const highs  = q.high   || [];
-      const lows   = q.low    || [];
-      const vols   = q.volume || [];
-      const valid  = times.map((t,i) => ({
-        t, o:opens[i], h:highs[i], l:lows[i], c:closes[i], v:vols[i]
-      })).filter(d => d.c != null);
-      if (!valid.length) continue;
-      const isIntra   = range === '1d';
-      const longRange = ['1y','2y','5y','max'].includes(range);
-      const fmtT = isIntra
-        ? t => new Date(t*1000).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})
-        : t => new Date(t*1000).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:longRange?'numeric':undefined});
-      aModalCached = { valid, fmtT, meta, sym };
-      drawAssetChart(aModalCached);
-      status.textContent = '';
-      return;
-    } catch(e) {}
-  }
-  status.textContent = 'Gagal mengambil data. Cek koneksi atau coba lagi.';
-}
-
-function drawAssetChart({ valid, fmtT, meta, sym }) {
-  const fUSD  = v => v == null ? '—' : '$' + v.toLocaleString('en-US', { maximumFractionDigits: v >= 100 ? 2 : 4 });
-  const labels = valid.map(d => fmtT(d.t));
-  const cData  = valid.map(d => d.c);
-  const vData  = valid.map(d => d.v || 0);
-  const first  = cData[0], last = cData[cData.length-1];
-  const isUp   = last >= first;
-  const color  = isUp ? '#00c853' : '#ff4d4d';
-  const maxVol = Math.max(...vData.filter(v => v > 0)) || 1;
-  const isCandle = aModalChartType === 'candle';
-  const avgSet = aModalAvgUSD > 0 ? [{
-    label:'Avg Beli', data:cData.map(() => aModalAvgUSD),
-    borderColor:'#f59e0b', borderDash:[5,4], borderWidth:1.5,
-    pointRadius:0, fill:false, yAxisID:'y'
-  }] : [];
-  const priceDs = isCandle
-    ? { label:sym, data:cData, borderColor:'transparent', backgroundColor:'transparent', fill:false, tension:0, pointRadius:0, borderWidth:0, yAxisID:'y', order:1 }
-    : { label:aModalName, data:cData, borderColor:color, backgroundColor:color+'18', fill:true, tension:0.2, pointRadius:0, borderWidth:2, yAxisID:'y', order:1 };
-  let stDs = [];
-  if (aModalShowST) {
-    const { st, dir } = calcSupertrend(valid);
-    stDs = [{ label:'Supertrend', data:st, borderWidth:1.5, pointRadius:0, fill:false,
-      stepped:'after', spanGaps:false, yAxisID:'y',
-      segment:{ borderColor: ctx => dir[ctx.p0DataIndex]===1 ? '#00c853' : '#ff4d4d' }
-    }];
-  }
-  const emaDs = [];
-  if (aModalShowEMA20) emaDs.push({ label:'EMA 20', data:calcEMA(valid,20), borderColor:'#29b6f6',
-    borderWidth:1.2, pointRadius:0, fill:false, tension:0, spanGaps:false, yAxisID:'y' });
-  if (aModalShowEMA50) emaDs.push({ label:'EMA 50', data:calcEMA(valid,50), borderColor:'#ab47bc',
-    borderWidth:1.2, pointRadius:0, fill:false, tension:0, spanGaps:false, yAxisID:'y' });
-  const fcbDs = [];
-  if (aModalShowFCB) {
-    const { upper, lower } = calcFCB(valid);
-    fcbDs.push({ label:'FCB Upper', data:upper, borderColor:'#ff4d4d', borderWidth:1.2,
-      pointRadius:0, fill:false, stepped:'after', spanGaps:false, yAxisID:'y' });
-    fcbDs.push({ label:'FCB Lower', data:lower, borderColor:'#00c853', borderWidth:1.2,
-      pointRadius:0, fill:false, stepped:'after', spanGaps:false, yAxisID:'y' });
-  }
-  const ctx = document.getElementById('amodal-chart').getContext('2d');
-  if (aModalChart) { aModalChart.destroy(); aModalChart = null; }
-  document.getElementById('amodal-zoom-reset').style.display = 'none';
-  aModalChart = new Chart(ctx, {
-    type:'line',
-    data:{ labels, datasets:[ priceDs, ...avgSet, ...stDs, ...emaDs, ...fcbDs,
-      { label:'Volume', data:vData, type:'bar', backgroundColor:color+'50', borderRadius:1, yAxisID:'vol', order:2 }
-    ]},
-    options:{
-      plugins:{
-        candlestick: isCandle ? { ohlcv:valid } : { ohlcv:null },
-        legend:{ display:true, position:'top', labels:{ color:'#a8a8c8', boxWidth:12, font:{size:11},
-          filter: item => !(isCandle && item.datasetIndex === 0)
-        }},
-        tooltip:{
-          mode:'index', intersect:false,
-          callbacks:{ label: ctx => {
-            if (ctx.dataset.label === 'Volume')
-              return ' Vol: ' + (ctx.parsed.y >= 1e6 ? (ctx.parsed.y/1e6).toFixed(2)+'M' : ctx.parsed.y.toLocaleString());
-            if (isCandle && ctx.datasetIndex === 0) {
-              const d = valid[ctx.dataIndex];
-              if (!d) return '';
-              return [` O: ${fUSD(d.o)}`, ` H: ${fUSD(d.h)}`, ` L: ${fUSD(d.l)}`, ` C: ${fUSD(d.c)}`];
-            }
-            return ' ' + ctx.dataset.label + ': ' + fUSD(ctx.parsed.y);
-          }}
-        },
-        zoom:{
-          zoom:{
-            wheel:{ enabled:true, speed:0.08 },
-            pinch:{ enabled:true },
-            mode:'x',
-            onZoomComplete:() => { document.getElementById('amodal-zoom-reset').style.display=''; }
-          },
-          pan:{
-            enabled:true, mode:'x',
-            onPanComplete:() => { document.getElementById('amodal-zoom-reset').style.display=''; }
-          },
-          limits:{ x:{ minRange:5 } }
-        }
-      },
-      scales:{
-        x:{ ticks:{ color:'#6868a8', maxTicksLimit:7, maxRotation:0 } },
-        y:{ position:'right', ticks:{ color:'#6868a8', callback: v => fUSD(v) } },
-        vol:{ position:'left', min:0, max:maxVol*4, ticks:{ display:false }, grid:{ display:false }, border:{ display:false } }
-      },
-      interaction:{ mode:'index', intersect:false }
-    }
-  });
-  const priceChg = last - first;
-  const pct = first > 0 ? priceChg / first * 100 : 0;
-  const hi = Math.max(...cData), lo = Math.min(...cData);
-  const vol = meta.regularMarketVolume;
-  document.getElementById('amodal-stats').innerHTML = `
-    <div class="sb"><div class="sb-l">Harga</div><div class="sb-v">${fUSD(last)}</div></div>
-    <div class="sb"><div class="sb-l">Perubahan</div><div class="sb-v ${priceChg>=0?'g':'r'}">${priceChg>=0?'+':''}${fUSD(priceChg)}</div></div>
-    <div class="sb"><div class="sb-l">% Rentang</div><div class="sb-v ${pct>=0?'g':'r'}">${pct>=0?'+':''}${pct.toFixed(2)}%</div></div>
-    <div class="sb"><div class="sb-l">Tertinggi</div><div class="sb-v">${fUSD(hi)}</div></div>
-    <div class="sb"><div class="sb-l">Terendah</div><div class="sb-v">${fUSD(lo)}</div></div>
-    ${vol ? `<div class="sb"><div class="sb-l">Volume</div><div class="sb-v">${vol>=1e6?(vol/1e6).toFixed(1)+'M':vol.toLocaleString()}</div></div>` : ''}
-  `;
-  drawSubCharts('amodal', { valid, labels });
-}
-// ── END ASSET CHART MODAL ────────────────────────────────
 
 // ── P.RETURN ───────────────────────────────────────────
 const PRETURN_DATA = [
@@ -3063,7 +2418,8 @@ const PRETURN_DATA = [
   { month:'2026/04', endVal:25298330, deposit:2200200,   withdraw:6860000,  change:-5353184,  gainLoss:-693384,  yield:-2.11 },
   { month:'2026/05', endVal:3012103,  deposit:0,         withdraw:18750000, change:-22286227, gainLoss:-3536227, yield:-13.98},
   { month:'2026/06', endVal:2856534,  deposit:0,         withdraw:0,        change:-155569,   gainLoss:-155569,  yield:-5.16 },
-  { month:'2026/07', endVal:666808,   deposit:500000,    withdraw:2700000,  change:-2189726,  gainLoss:10274,    yield:0.31  },
+  { month:'2026/07', endVal:4924844,  deposit:5100736,   withdraw:2700000,  change:2068310,   gainLoss:-332426,  yield:-4.18 },
+  { month:'2026/08', endVal:6114202,  deposit:1230000,   withdraw:0,        change:1189358,   gainLoss:-40642,   yield:-0.66 },
 ];
 
 let prYieldChart = null, prCumulChart = null;
@@ -3240,6 +2596,18 @@ const GL_DATA = [
   {date:'2026/05/12',code:'FORE',sell:970,    buy:1115,    lot:35, pct:-13.0, gross:-507500,  net:-521840},
   {date:'2026/06/22',code:'BDMN',sell:4080,   buy:4010,    lot:5,  pct:1.7,   gross:35000,    net:26893  },
   {date:'2026/07/01',code:'SIMP',sell:530,    buy:825.5,   lot:54, pct:-35.8, gross:-1596000, net:-1609842},
+  {date:'2026/07/20',code:'BBRI',sell:3060,   buy:2961,    lot:5,  pct:3.3,   gross:49500,    net:43455  },
+  {date:'2026/07/21',code:'BBRI',sell:3050,   buy:2961,    lot:5,  pct:3.0,   gross:44500,    net:38468  },
+  {date:'2026/07/23',code:'ITMG',sell:24350,  buy:24200,   lot:1,  pct:0.6,   gross:15000,    net:5283   },
+  {date:'2026/07/23',code:'BBNI',sell:3610,   buy:3622.5,  lot:12, pct:-0.3,  gross:-15000,   net:-32350 },
+  {date:'2026/07/28',code:'ITMG',sell:24500,  buy:24575,   lot:1,  pct:-0.3,  gross:-7500,    net:-17311 },
+  {date:'2026/07/28',code:'GULA',sell:770,    buy:770,     lot:20, pct:0.0,   gross:0,        net:-6160  },
+  {date:'2026/07/30',code:'BBCA',sell:6400,   buy:6550,    lot:3,  pct:-2.3,  gross:-45000,   net:-52747 },
+  {date:'2026/08/03',code:'RANS',sell:206,    buy:230,     lot:70, pct:-10.4, gross:-168000,  net:-174020},
+  {date:'2026/08/03',code:'BBCA',sell:6300,   buy:6550,    lot:5,  pct:-3.8,  gross:-125000,  net:-137787},
+  {date:'2026/08/03',code:'NEST',sell:750,    buy:700,     lot:13, pct:7.1,   gross:65000,    net:61198  },
+  {date:'2026/08/06',code:'NEST',sell:710,    buy:755,     lot:2,  pct:-6.0,  gross:-9000,    net:-9581  },
+  {date:'2026/08/06',code:'DEWA',sell:482,    buy:476,     lot:21, pct:1.3,   gross:12600,    net:8571   },
   // ── P2: 2025/10 – 2026/01 ─────────────────────────────
   {date:'2025/10/29',code:'KRAS',sell:328,    buy:350,     lot:30, pct:-6.3,  gross:-66000,   net:-70035 },
   {date:'2025/11/03',code:'ADMR',sell:1365,   buy:1410,    lot:8,  pct:-3.2,  gross:-36000,   net:-40422 },
@@ -6453,31 +5821,21 @@ function buildAllGLData() {
     const g = (t.price - t.cb) * t.units;
     rows.push({ date: t.date.replace(/-/g,'/'), code: t.code,
       sell: t.price, buy: t.cb, lot: t.units,
-
-               	// Include IDX trades with P&L (closed positions)
-  	const idxTrades = loadTrades();
-  	if (idxTrades && idxTrades.length > 0) {
-  		idxTrades.forEach(t => {
-  			if (t.pnl) { // Only include trades with P&L (closed)
-  				const key = `${t.date}|${t.code}`;
-  				rows.push({
-  					date: t.date,
-  					code: t.code,
-  					aksi: t.type || (t.pnl >= 0 ? 'Sell' : 'Buy'),
-  					lot: t.lot || 1,
-  					harga: t.price || 0,
-  					fee: t.fee || 0,
-  					pnl: t.pnl,
-  					strategi: t.strategy || '—',
-  					emosi: t.emotion || '—',
-  					catatan: t.notes || ''
-  });
-  }
-  });
-  	}
       pct: t.cb > 0 ? (t.price - t.cb) / t.cb * 100 : 0,
       gross: Math.round(g * r), net: Math.round(t.pnl * r),
       _src:'cr', _usd:true, _usdIdr:r });
+  });
+  // Include IDX trades with P&L (closed positions)
+  loadTrades().filter(t => t.action === 'Sell' && t.pnl !== null).forEach(t => {
+    const shares = (t.lot || 0) * 100;
+    if (!shares) return;
+    const grossTotal = t.pnl + (t.fee || 0); // undo fee subtraction from addTrade()'s pnl calc
+    const buy = t.price - grossTotal / shares;
+    rows.push({ date: t.date.replace(/-/g,'/'), code: t.code,
+      sell: t.price, buy, lot: t.lot,
+      pct: buy > 0 ? (t.price - buy) / buy * 100 : 0,
+      gross: Math.round(grossTotal), net: Math.round(t.pnl),
+      _src:'idx', _usd:false });
   });
   return rows;
 }
@@ -6913,26 +6271,180 @@ function glToggleMonth(month) {
 // ══ GOTRADE ══════════════════════════════════════════════
 const GT_HOLDINGS_SEED = [
   // t=ticker, s=shares, a=avgUSD, c=costIDR, at=allTime, rz=realized, ry=rlzdYTD
-  {t:'FTNT', s:0.50182,  a:149.76, c:1362191.51, at: 62994.94,   rz:-45767.68,   ry:null},
-  {t:'CRWD', s:0.28463,  a:174.62, c:900870.66,  at:null,        rz:null,        ry:null},
-  {t:'NVDA', s:0.055074, a:194.83, c:194491.98,  at:595901.70,   rz:584894.83,   ry:114056.88},
-  {t:'PANW', s:0.24325,  a:311.40, c:1373031.95, at:null,        rz:null,        ry:null},
-  {t:'KO',   s:0.36755,  a:80.915, c:539076.16,  at:4289.62,     rz:-15987.68,   ry:-15987.68},
-  {t:'AMD',  s:0.08856,  a:526.31, c:844855.54,  at:181876.96,   rz:156104.61,   ry:5825.62},
-  {t:'ANET', s:0.30335,  a:181.18, c:996196.39,  at:null,        rz:null,        ry:null},
-  {t:'STX',  s:0.016498, a:853.22, c:255151.86,  at:null,        rz:null,        ry:null},
-  {t:'CB',   s:0.11527,  a:353.42, c:738455.15,  at:null,        rz:null,        ry:null},
-  {t:'OKTA', s:0.32442,  a:141.42, c:831620.88,  at:null,        rz:null,        ry:null},
-  {t:'WDC',  s:0.015402, a:559.68, c:156245.56,  at:null,        rz:null,        ry:null},
-  {t:'ZS',   s:0.33802,  a:147.33, c:902674.80,  at:null,        rz:null,        ry:null},
-  {t:'CAT',  s:0.014436, a:975.32, c:255213.71,  at:null,        rz:null,        ry:null},
-  {t:'MU',   s:0.013777, a:975.56, c:243613.44,  at:94069.19,    rz:104654.67,   ry:104654.67},
-  {t:'LRCX', s:0.016619, a:351.41, c:105855.84,  at:null,        rz:null,        ry:null},
+  {t:'FTNT', s:0.376364, a:151.27, c:1012918.30, at:-265.44,      rz:2318.73,     ry:null},
+  {t:'CRWD', s:0.160831, a:176.47, c:504956.05,  at:null,        rz:75074.00,    ry:75074.00},
+  {t:'NVDA', s:0.230017, a:202.03, c:826778.61,  at:516948.45,   rz:509054.64,   ry:120889.77},
+  {t:'PANW', s:0.182440, a:320.77, c:1041155.95, at:null,        rz:51966.00,    ry:51966.00},
+  {t:'INTC', s:0.311187, a:97.28,  c:538588.00,  at:null,        rz:null,        ry:null},
+  {t:'AMD',  s:0.043982, a:529.85, c:414603.53,  at:130791.63,   rz:95492.62,    ry:-29531.82},
+  {t:'ANET', s:0.435149, a:182.05, c:1409397.64, at:null,        rz:null,        ry:null},
+  {t:'STX',  s:0.027250, a:866.71, c:420184.50,  at:null,        rz:null,        ry:null},
+  {t:'CB',   s:0.115222, a:353.54, c:724747.16,  at:null,        rz:null,        ry:null},
+  {t:'OKTA', s:0.318037, a:144.28, c:816375.63,  at:null,        rz:null,        ry:null},
+  {t:'WDC',  s:0.032720, a:555.01, c:323086.12,  at:null,        rz:null,        ry:null},
+  {t:'ZS',   s:0.345569, a:144.13, c:886111.91,  at:null,        rz:null,        ry:null},
+  {t:'CAT',  s:0.025125, a:939.81, c:420107.10,  at:null,        rz:null,        ry:null},
+  {t:'MU',   s:0.063202, a:901.14, c:1013282.80, at:94530.05,    rz:113394.14,   ry:113394.14},
+  {t:'LRCX', s:0.058550, a:325.69, c:339258.02,  at:null,        rz:null,        ry:null},
 ];
-const GT_CASH_IDR  = 12227.33;
-const GT_COST_IDR  = 9711772.77;
-const GT_REALIZED  = -2359352.62;
-const GT_RLZD_YTD  = -1515403.12;
+const GT_CASH_IDR  = 0;
+const GT_COST_IDR  = 10691551.32;
+const GT_REALIZED  = -1650019.73;
+const GT_RLZD_YTD  = -1007093.31;
+
+// ── DIVIDENDS ────────────────────────────────────────────
+const DIVIDEND_SEED = [
+  // date, code, name, perShare (USD), shares, amount (USD), note
+  { date:'2026-05-07', code:'EC',   name:'Ecopetrol SA',              perShare:0.65, shares:2.140799951, amount:1.39,  note:'' },
+  { date:'2026-05-05', code:'ASML', name:'ASML',                      perShare:2.69, shares:0.02599155,  amount:0.07,  note:'' },
+  { date:'2026-04-15', code:'MU',   name:'Micron Technology',         perShare:0.15, shares:0.133333333, amount:0.02,  note:'' },
+  { date:'2026-04-01', code:'KO',   name:'Coca-Cola',                 perShare:null, shares:null,        amount:-0.01, note:'Withholding tax 15% (IDN)' },
+  { date:'2026-04-01', code:'KO',   name:'Coca-Cola',                 perShare:0.53, shares:0.169811321, amount:0.09,  note:'' },
+  { date:'2026-03-27', code:'AU',   name:'AngloGold',                 perShare:1.61, shares:0.074766355, amount:0.12,  note:'' },
+  { date:'2026-03-27', code:'AU',   name:'AngloGold',                 perShare:0.13, shares:0.08,        amount:0.01,  note:'' },
+  { date:'2026-03-26', code:'KGC',  name:'Kinross Gold',               perShare:0.03, shares:0.294117647, amount:0.01,  note:'' },
+  { date:'2026-03-26', code:'NEM',  name:'Newmont',                   perShare:0.26, shares:0.038461538, amount:0.01,  note:'' },
+  { date:'2026-02-10', code:'AXP',  name:'American Express',          perShare:0.82, shares:0.012195122, amount:0.01,  note:'' },
+  { date:'2026-02-09', code:'MA',   name:'Mastercard',                perShare:0.87, shares:0.011494253, amount:0.01,  note:'' },
+  { date:'2026-02-02', code:'T',    name:'AT&T',                      perShare:0.28, shares:0.216216216, amount:0.06,  note:'' },
+  { date:'2026-01-15', code:'MAIN', name:'Main Street Capital',       perShare:0.26, shares:0.115384615, amount:0.03,  note:'' },
+  { date:'2026-01-06', code:'PEP',  name:'Pepsi',                     perShare:1.42, shares:0.028119508, amount:0.04,  note:'' },
+  { date:'2025-12-31', code:'LTC',  name:'LTC Properties',             perShare:0.19, shares:0.157894737, amount:0.03,  note:'' },
+  { date:'2025-12-30', code:'CNI',  name:'Canadian National Railway', perShare:0.55, shares:0.054484828, amount:0.03,  note:'' },
+  { date:'2025-12-29', code:'MAIN', name:'Main Street Capital',       perShare:0.30, shares:0.10,        amount:0.03,  note:'' },
+  { date:'2025-12-26', code:'BAC',  name:'Bank of America',           perShare:0.28, shares:0.107142857, amount:0.03,  note:'' },
+  { date:'2025-12-18', code:'GM',   name:'General Motors',            perShare:0.15, shares:0.066666667, amount:0.01,  note:'' },
+  { date:'2025-12-15', code:'MAIN', name:'Main Street Capital',       perShare:0.26, shares:0.117647059, amount:0.03,  note:'' },
+  { date:'2025-12-15', code:'KO',   name:'Coca-Cola',                 perShare:0.51, shares:0.078431373, amount:0.04,  note:'' },
+  { date:'2025-12-15', code:'MCD',  name:"McDonald's",                perShare:1.86, shares:0.010752688, amount:0.02,  note:'' },
+];
+function loadDividends() {
+  try {
+    const raw = localStorage.getItem('gt_dividends_v1');
+    if (!raw) return JSON.parse(JSON.stringify(DIVIDEND_SEED));
+    return JSON.parse(raw);
+  } catch(e) { return JSON.parse(JSON.stringify(DIVIDEND_SEED)); }
+}
+function saveDividends(d) { try { localStorage.setItem('gt_dividends_v1', JSON.stringify(d)); } catch(e) {} }
+
+function renderDividends() {
+  const rows = loadDividends().slice().sort((a,b) => b.date.localeCompare(a.date));
+  const totalUsd = rows.reduce((s,r) => s + r.amount, 0);
+  const usdIdr = gtUSDIDR || tgUSDIDR || cryptoUSDIDR || 16000;
+
+  document.getElementById('div-total-usd').textContent = (totalUsd >= 0 ? '+' : '−') + '$' + Math.abs(totalUsd).toFixed(2);
+  document.getElementById('div-total-idr').textContent = (totalUsd >= 0 ? '+' : '−') + 'Rp' + idrRaw(Math.round(Math.abs(totalUsd) * usdIdr));
+  document.getElementById('div-count').textContent = rows.length + ' entri';
+
+  document.getElementById('div-body').innerHTML = rows.map(r => {
+    const dateFmt = new Date(r.date).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+    const perShareStr = r.perShare != null ? '$' + r.perShare.toFixed(2) : '—';
+    const sharesStr = r.shares != null ? r.shares.toLocaleString('en-US', { maximumFractionDigits: 9 }) : '—';
+    const amountStr = (r.amount >= 0 ? '+' : '−') + '$' + Math.abs(r.amount).toFixed(2);
+    const noteRow = r.note ? `<tr><td colspan="5" style="font-size:11px;color:var(--muted);padding:2px 8px 8px;border-bottom:1px solid var(--border)">${escHtml(r.note)}</td></tr>` : '';
+    return `<tr style="border-bottom:${r.note?'none':'1px solid var(--border)'}">
+      <td style="text-align:left;color:var(--muted);font-size:12px">${dateFmt}</td>
+      <td style="text-align:left"><span class="sym-click" onclick="openWlChartUsd('${escHtml(r.code)}','${escHtml(r.name)}')" style="font-weight:700">${escHtml(r.code)}</span><br><span style="font-size:10px;color:var(--muted)">${escHtml(r.name)}</span></td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums">${perShareStr}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums;font-size:11px">${sharesStr}</td>
+      <td style="text-align:right;font-weight:700" class="${r.amount>=0?'g':'r'}">${amountStr}</td>
+    </tr>${noteRow}`;
+  }).join('');
+}
+
+// ── INCARAN (WATCHLIST/TARGETS) ──────────────────────────────
+const INCARAN_SEED = [
+  // Kontestan yang sedang diawasi / rencana pembelian mendatang
+  { id: 1, code:'BBCA', name:'Bank Central Asia',           targetPrice:9200, targetQty:100, note:'Blue chip perbankan' },
+  { id: 2, code:'BMRI', name:'Bank Mandiri',                targetPrice:6800, targetQty:200, note:'State-owned bank, dividend generator' },
+  { id: 3, code:'ASII', name:'Astra International',         targetPrice:7500, targetQty:50,  note:'Automotive sector exposure' },
+  { id: 4, code:'INDF', name:'Indofood Sukses Makmur',      targetPrice:8500, targetQty:75,  note:'Dividend aristocrat' },
+  { id: 5, code:'ANTM', name:'Antam',                       targetPrice:7000, targetQty:100, note:'Mining play' },
+  { id: 6, code:'JNJ',  name:'Johnson & Johnson',           targetPrice:155, targetQty:30,   note:'US healthcare dividend' },
+  { id: 7, code:'MO',   name:'Altria Group',                targetPrice:46,  targetQty:100,  note:'High dividend yield (Gotrade)' },
+  { id: 8, code:'LTC',  name:'LTC Properties',              targetPrice:28,  targetQty:50,   note:'REIT dividend play' },
+];
+
+function loadIncaran() {
+  try {
+    const raw = localStorage.getItem('incaran_data_v1');
+    if (!raw) return JSON.parse(JSON.stringify(INCARAN_SEED));
+    return JSON.parse(raw);
+  } catch(e) { return JSON.parse(JSON.stringify(INCARAN_SEED)); }
+}
+
+function saveIncaran(data) {
+  try { localStorage.setItem('incaran_data_v1', JSON.stringify(data)); } catch(e) {}
+}
+
+function renderIncaran() {
+  const items = loadIncaran().slice().sort((a,b) => a.id - b.id);
+
+  const totalCapital = items.reduce((s, i) => s + (i.targetPrice * i.targetQty), 0);
+  const totalCapitalIdr = totalCapital * (gtUSDIDR || tgUSDIDR || cryptoUSDIDR || 16000);
+
+  document.getElementById('incaran-count').textContent = items.length + ' target';
+
+  // Determine if USD or IDR
+  const isAllUsd = items.every(i => i.code.match(/^[A-Z]+$/));
+  const getCapitalStr = (item) => {
+    if (item.targetPrice >= 100 || isAllUsd || item.code.length <= 3) {
+      // Assume USD
+      const cap = item.targetPrice * item.targetQty;
+      const capIdr = cap * (gtUSDIDR || tgUSDIDR || cryptoUSDIDR || 16000);
+      return 'Rp' + idrRaw(Math.round(capIdr));
+    } else {
+      // Assume IDR
+      return 'Rp' + idrRaw(Math.round(item.targetPrice * item.targetQty));
+    }
+  };
+
+  const totalStr = isAllUsd
+    ? 'Rp' + idrRaw(Math.round(totalCapitalIdr))
+    : 'Rp' + idrRaw(Math.round(items.reduce((s, i) => s + (i.targetPrice * i.targetQty), 0)));
+
+  document.getElementById('incaran-capital').textContent = totalStr;
+
+  document.getElementById('incaran-body').innerHTML = items.map(item => `
+    <tr>
+      <td><span class="sym-click" onclick="openWlChartUsd('${escHtml(item.code)}','${escHtml(item.name)}')" style="font-weight:700">${escHtml(item.code)}</span></td>
+      <td><span style="font-size:12px">${escHtml(item.name)}</span></td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums">${item.targetPrice.toLocaleString('en-US', { maximumFractionDigits: 2 })}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums;font-size:11px">${item.targetQty.toLocaleString('en-US')}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600">${getCapitalStr(item)}</td>
+      <td style="text-align:center">
+        <button class="btn btn-sm btn-ghost" onclick="removeIncaranItem(${item.id})" title="Hapus target ini">✕</button>
+      </td>
+    </tr>
+    ${item.note ? `<tr style="border-bottom:1px solid var(--border)"><td colspan="6" style="font-size:10px;color:var(--muted);padding:4px 8px 8px;border-bottom:1px solid var(--border)">${escHtml(item.note)}</td></tr>` : ''}
+  `).join('');
+}
+
+function addIncaranItem() {
+  const items = loadIncaran();
+  const newId = Math.max(...items.map(i => i.id), 0) + 1;
+  const code = prompt('Masukkan simbol saham (cth: BBCA, JNJ, ASII):');
+  if (!code) return;
+  const name = prompt('Masukkan nama saham:');
+  if (!name) return;
+  const targetPrice = parseFloat(prompt('Target harga (USD untuk saham US, IDR x1000 untuk lokal):'));
+  if (isNaN(targetPrice)) return;
+  const targetQty = parseInt(prompt('Target jumlah lembar/saham:'));
+  if (isNaN(targetQty)) return;
+
+  items.push({ id: newId, code: code.toUpperCase(), name, targetPrice, targetQty, note: '' });
+  saveIncaran(items);
+  renderIncaran();
+  showToast('Target saham ditambahkan');
+}
+
+function removeIncaranItem(id) {
+  if (!confirm('Hapus target ini?')) return;
+  const items = loadIncaran().filter(i => i.id !== id);
+  saveIncaran(items);
+  renderIncaran();
+  showToast('Target saham dihapus');
+}
 
 // Clear stale holdings cache from previous approach
 try { localStorage.removeItem('gt_holdings_v1'); localStorage.removeItem('cr_holdings_v1'); } catch(e) {}
@@ -7216,17 +6728,14 @@ function renderGotrade() {
 // ══ CRYPTO (TANGEM WALLET) ════════════════════════════════
 // t=ticker(yahoo), n=display name, s=units, a=avgUSD, c=costIDR, at=allTimeIDR, rz=realizedIDR, ry=rlzdYTDIDR
 const CRYPTO_HOLDINGS_SEED = [
-  {t:'BTC-USD', n:'Bitcoin',    s:0.11915,   a:75618.26,  c:163320292.01, at: 42066483,  rz: 70931861,  ry:-16480115},
-  {t:'GC%3DF',  n:'XAU/USD',   s:1.0365,    a:4910.99,   c:92265769.63,  at:-16147400,  rz:  616644,   ry:  616644},
-  {t:'GOOGL',   n:'GOOGL (ON)', s:0.029547,  a:336.67,    c:180309.99,    at:null,       rz:null,       ry:null},
-  {t:'AMZN',    n:'AMZN (ON)',  s:0.039406,  a:254.99,    c:182132.51,    at:null,       rz:null,       ry:null},
-  {t:'MSFT',    n:'MSFT (ON)',  s:0.023449,  a:425.62,    c:180902.99,    at:null,       rz:null,       ry:null},
-  {t:'ARM',     n:'ARM (ON)',   s:0.078655,  a:397.00,    c:566002.75,    at:null,       rz:null,       ry:null},
-  {t:'ORCL',    n:'ORCL (ON)',  s:0.066165,  a:179.66,    c:215467.72,    at:null,       rz:null,       ry:null},
+  {t:'BTC-USD', n:'Bitcoin',    s:0.11918,   a:75559.10,  c:154749424.41, at: 73555755.94, rz: 90114245.72, ry:-10874722.45},
+  {t:'GC%3DF',  n:'XAU/USD',   s:1.059,     a:4892.41,   c:87823421.17,  at: -9939561.58, rz:   813045.48, ry:   813045.48},
+  {t:'ARM',     n:'ARM (ON)',   s:0.078655,  a:397.00,    c:558664.64,    at:null,         rz:null,         ry:null},
+  {t:'ORCL',    n:'ORCL (ON)',  s:0.066165,  a:179.66,    c:206220.72,    at:null,         rz:null,         ry:null},
 ];
-const CRYPTO_COST_IDR  = 256910877.59;
-const CRYPTO_REALIZED  =  62627602.75;
-const CRYPTO_RLZD_YTD  = -18661788.85;
+const CRYPTO_COST_IDR  = 243337730.93;
+const CRYPTO_REALIZED  =  82706536.37;
+const CRYPTO_RLZD_YTD  = -11719948.25;
 
 let crHoldings = rebuildCrHoldings();
 
@@ -7236,19 +6745,20 @@ let crHoldings = rebuildCrHoldings();
 const TANGEM_SEED = [
   { name:'Bitcoin',             sym:'BTC',     yf:'BTC-USD', usd:true,  stable:false, amt:0,           priceIDR:0,           valIDR:0         },
   { name:'Solana',              sym:'SOL',     yf:'SOL-USD', usd:true,  stable:false, amt:0,           priceIDR:0,           valIDR:0         },
-  { name:'Arm Holdings (Ondo)', sym:'ARMON',   yf:'ARM',     usd:true,  stable:false, amt:0.07865495,  priceIDR:4644305.17,  valIDR:365297.59 },
-  { name:'Oracle (Ondo)',       sym:'ORCLON',  yf:'ORCL',    usd:true,  stable:false, amt:0.06577526,  priceIDR:2253757.97,  valIDR:148241.52 },
-  { name:'BNB Smart Chain',     sym:'BNB',     yf:'BNB-USD', usd:true,  stable:false, amt:0.00551588,  priceIDR:10290302.46, valIDR:56760.10  },
-  { name:'Kaspa',               sym:'KAS',     yf:null,      usd:false, stable:false, amt:61.05618553, priceIDR:507.46,      valIDR:30983.52  },
-  { name:'Nockchain',           sym:'NOCK',    yf:null,      usd:false, stable:false, amt:45.55437233, priceIDR:365.68,      valIDR:16658.31  },
-  { name:'Gram',                sym:'GRAM',    yf:null,      usd:false, stable:false, amt:0.36699036,  priceIDR:27287.21,    valIDR:10014.14  },
-  { name:'Ethereum',            sym:'ETH',     yf:'ETH-USD', usd:true,  stable:false, amt:0.00000389,  priceIDR:33508836.95, valIDR:130.51    },
-  { name:'Arbitrum (ETH)',      sym:'ETH·ARB', yf:'ETH-USD', usd:true,  stable:false, amt:0.00000014,  priceIDR:33508836.95, valIDR:4.57      },
-  { name:'USDC',                sym:'USDC',    yf:null,      usd:true,  stable:true,  amt:0.000114,    priceIDR:17973.37,    valIDR:2.05      },
-  { name:'Avalanche C-Chain',   sym:'AVAX',    yf:'AVAX-USD',usd:true,  stable:false, amt:0.00000591,  priceIDR:116883.81,   valIDR:0.69      },
-  { name:'Hyperliquid EVM',     sym:'HYPE',    yf:null,      usd:false, stable:false, amt:0.00000037,  priceIDR:1091140.86,  valIDR:0.40      },
-  { name:'Polygon',             sym:'POL',     yf:'POL-USD', usd:true,  stable:false, amt:0.00023625,  priceIDR:1465.45,     valIDR:0.35      },
-  { name:'First Digital USD',   sym:'FDUSD',   yf:null,      usd:true,  stable:true,  amt:0.00000394,  priceIDR:17932.75,    valIDR:0.07      },
+  { name:'Arm Holdings (Ondo)', sym:'ARMON',   yf:'ARM',     usd:true,  stable:false, amt:0.07865495,  priceIDR:4938375.27,  valIDR:388427.66 },
+  { name:'Oracle (Ondo)',       sym:'ORCLON',  yf:'ORCL',    usd:true,  stable:false, amt:0.06577526,  priceIDR:2599419.30,  valIDR:170977.48 },
+  { name:'BNB Smart Chain',     sym:'BNB',     yf:'BNB-USD', usd:true,  stable:false, amt:0.00551588,  priceIDR:10662920.51, valIDR:58815.39  },
+  { name:'Kaspa',               sym:'KAS',     yf:'KAS-USD', usd:true,  stable:false, amt:326.95876341,priceIDR:477.49,      valIDR:156120.71 },
+  { name:'Nockchain',           sym:'NOCK',    yf:'NOCK-USD',usd:true,  stable:false, amt:45.55437233, priceIDR:219.97,      valIDR:10020.41  },
+  { name:'Gram',                sym:'GRAM',    yf:'GRAM-USD',usd:true,  stable:false, amt:0.36699036,  priceIDR:25037.25,    valIDR:9188.43   },
+  { name:'Ethereum',            sym:'ETH',     yf:'ETH-USD', usd:true,  stable:false, amt:0.00000389,  priceIDR:33704370.18, valIDR:131.11    },
+  { name:'Sui',                 sym:'SUI',     yf:'SUI-USD', usd:true,  stable:false, amt:0.00097812,  priceIDR:12483.13,    valIDR:12.21     },
+  { name:'Arbitrum (ETH)',      sym:'ETH·ARB', yf:'ETH-USD', usd:true,  stable:false, amt:0.00000014,  priceIDR:32785714.29, valIDR:4.59      },
+  { name:'USDC',                sym:'USDC',    yf:null,      usd:true,  stable:true,  amt:0.000114,    priceIDR:17982.46,    valIDR:2.05      },
+  { name:'Avalanche C-Chain',   sym:'AVAX',    yf:'AVAX-USD',usd:true,  stable:false, amt:0.00000591,  priceIDR:120135.36,   valIDR:0.71      },
+  { name:'Hyperliquid EVM',     sym:'HYPE',    yf:'HYPE-USD',usd:true,  stable:false, amt:0.00000037,  priceIDR:972972.97,   valIDR:0.36      },
+  { name:'Polygon',             sym:'POL',     yf:'POL-USD', usd:true,  stable:false, amt:0.00023625,  priceIDR:1354.50,     valIDR:0.32      },
+  { name:'First Digital USD',   sym:'FDUSD',   yf:null,      usd:true,  stable:true,  amt:0.00000395,  priceIDR:17721.52,    valIDR:0.07      },
   { name:'XRP Ledger',          sym:'XRP',     yf:'XRP-USD', usd:true,  stable:false, amt:0.000001,    priceIDR:19528.53,    valIDR:0.02      },
   { name:'MetaMask USD',        sym:'MUSD',    yf:null,      usd:true,  stable:true,  amt:0.000001,    priceIDR:17973.12,    valIDR:0.02      },
 ];
@@ -7303,7 +6813,31 @@ async function fetchTangem() {
   if (ts) ts.textContent = 'Update: ' + new Date().toLocaleTimeString('id-ID');
 }
 
+// One-time patch for devices that already had tangem_v1 synced before KAS's
+// balance update and the KAS/NOCK/GRAM/HYPE chart-link fix — merge-by-sym in
+// loadTangemHoldings() only adds new symbols, it doesn't update existing
+// ones, so those changes never reached already-synced devices.
+function migrateTangemV2() {
+  try {
+    if (localStorage.getItem('tangem_patched_v2')) return;
+    const patches = {
+      KAS:  { amt:326.95876341, yf:'KAS-USD',  usd:true },
+      NOCK: { yf:'NOCK-USD', usd:true },
+      GRAM: { yf:'GRAM-USD', usd:true },
+      HYPE: { yf:'HYPE-USD', usd:true },
+    };
+    let changed = false;
+    tgHoldings.forEach(h => {
+      const p = patches[h.sym];
+      if (p) { Object.assign(h, p); changed = true; }
+    });
+    if (changed) saveTangemHoldings(tgHoldings);
+    localStorage.setItem('tangem_patched_v2', '1');
+  } catch(e) {}
+}
+
 function renderTangem() {
+  migrateTangemV2();
   const sorted = [...tgHoldings].sort((a, b) => b.valIDR - a.valIDR);
   const total  = tgHoldings.reduce((s, h) => s + h.valIDR, 0);
   const active = tgHoldings.filter(h => h.valIDR > 0).length;
@@ -7368,12 +6902,10 @@ function renderTangem() {
 function openTangemChart(tgIdx) {
   const h = tgHoldings[tgIdx];
   if (!h || !h.yf) return;
-  aModalSym       = h.yf;
-  aModalAvgUSD    = 0;
-  aModalShares    = h.amt;
-  aModalName      = h.name;
-  aModalChartType = 'line';
-  aModalCached    = null;
+  aModalSym    = h.yf;
+  aModalAvgUSD = 0;
+  aModalShares = h.amt;
+  aModalName   = h.name;
   document.getElementById('amodal-sym').textContent = h.name;
   const usdRate  = tgUSDIDR || gtUSDIDR || cryptoUSDIDR || 16000;
   const priceUSD = h.usd && h.priceIDR > 0 ? h.priceIDR / usdRate : null;
@@ -7381,12 +6913,8 @@ function openTangemChart(tgIdx) {
   const idrStr   = h.priceIDR > 0 ? 'Rp' + idrRaw(Math.round(h.priceIDR)) : '—';
   const usdStr   = priceUSD ? ' ($' + priceUSD.toLocaleString('en-US', { maximumFractionDigits: 4 }) + ')' : '';
   document.getElementById('amodal-posinfo').innerHTML = `${amtStr} ${h.sym} &nbsp;·&nbsp; ${idrStr}${usdStr}`;
-  document.querySelectorAll('#amodal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
-  document.getElementById('atf-1d').classList.add('on');
-  document.querySelectorAll('#amodal-type-btns .tf-btn').forEach(b => b.classList.remove('on'));
-  document.querySelector('#amodal-type-btns .tf-btn').classList.add('on');
   document.getElementById('asset-modal').classList.add('on');
-  fetchAssetChart(h.yf, '1d', '5m');
+  renderTvWidget('amodal-tv-chart', toTvSymbol(h.yf, 'asset'));
 }
 // ════════════════════════════════════════════════════════════════════
 
@@ -7795,6 +7323,50 @@ function updateGrandTotal() {
   if (ep) ep.textContent = grandPortoNilai > 0 ? idrRaw(Math.round(grandPortoNilai)) : '—';
   if (eg) eg.textContent = grandGotNilai > 0 ? idrRaw(Math.round(grandGotNilai)) : '—';
   if (ec) ec.textContent = grandCryptoNilai > 0 ? idrRaw(Math.round(grandCryptoNilai)) : '—';
+  if (total > 0) recordGrandSnapshot(total);
+}
+
+// ── GRAND TOTAL GROWTH HISTORY ──────────────────────────
+function loadGrandHist() {
+  try { return JSON.parse(localStorage.getItem('grand_hist_v1') || '[]'); } catch(e) { return []; }
+}
+function saveGrandHist(h) { try { localStorage.setItem('grand_hist_v1', JSON.stringify(h)); } catch(e) {} }
+
+function recordGrandSnapshot(total) {
+  const today = new Date().toISOString().slice(0, 10);
+  const hist = loadGrandHist();
+  const idx = hist.findIndex(h => h.date === today);
+  if (idx >= 0) hist[idx].total = total;
+  else hist.push({ date: today, total });
+  hist.sort((a, b) => a.date.localeCompare(b.date));
+  saveGrandHist(hist);
+  renderGrandChart(hist);
+}
+
+let grandChHist = null;
+function renderGrandChart(hist) {
+  hist = hist || loadGrandHist();
+  const canvas = document.getElementById('grand-ch-hist');
+  if (!canvas) return;
+  if (grandChHist) grandChHist.destroy();
+  grandChHist = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: hist.map(h => new Date(h.date).toLocaleDateString('id-ID', { day:'2-digit', month:'short' })),
+      datasets: [{
+        label: 'Grand Total', data: hist.map(h => Math.round(h.total)),
+        borderColor: '#FF7A00', backgroundColor: 'rgba(255,122,0,.12)',
+        borderWidth: 2, pointRadius: hist.length > 1 ? 2 : 4, fill: true, tension: .25,
+      }],
+    },
+    options: {
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' Rp' + idrRaw(ctx.parsed.y) } } },
+      scales: {
+        x: { ticks: { color: '#6868a8', font: { size: 10 } }, grid: { display: false } },
+        y: { ticks: { color: '#6868a8', callback: v => idrRaw(v), font: { size: 10 } }, grid: { color: 'rgba(45,45,80,.4)' } },
+      },
+    },
+  });
 }
 
 // ── INIT ───────────────────────────────────────────────
@@ -7823,14 +7395,13 @@ window.addEventListener('load', () => setTimeout(() => { fetchAll(); fetchIHSG()
 
 // ── KOMUNITAS ────────────────────────────────────────────
 const KOM_CONFIDO = [
-  { no:1, code:'BSML', buy:482,    sl:478,    triggerBuy:'2026-06-23', kat:'ST' },
-  { no:2, code:'MKAP', buy:1270,   sl:1130,   triggerBuy:'2026-06-26', kat:'ST' },
-  { no:3, code:'',     buy:0,      sl:0,      triggerBuy:'2026-05-14', kat:'ST' },
-  { no:4, code:'ADES', buy:27050,  sl:31750,  triggerBuy:'2026-06-22', kat:'ST' },
-  { no:5, code:'GULA', buy:575,    sl:545,    triggerBuy:'2026-06-10', kat:'ST' },
-  { no:6, code:'MARK', buy:985,    sl:945,    triggerBuy:'2026-07-02', kat:'ST' },
-  { no:7, code:'CASA', buy:1905,   sl:1695,   triggerBuy:'2026-06-24', kat:'ST' },
-  { no:8, code:'NEST', buy:610,    sl:545,    triggerBuy:'2026-07-07', kat:'ST' },
+  { no:1, code:'BSML', buy:482,    sl:486,    triggerBuy:'2026-06-23', kat:'ST' },
+  { no:2, code:'HATM', buy:555,    sl:496,    triggerBuy:'2026-08-04', kat:'NT' },
+  { no:3, code:'RLCO', buy:4910,   sl:4390,   triggerBuy:'2026-07-28', kat:'ST' },
+  { no:4, code:'MLBI', buy:6925,   sl:6475,   triggerBuy:'2026-08-03', kat:'ST' },
+  { no:5, code:'GULA', buy:575,    sl:695,    triggerBuy:'2026-06-10', kat:'ST' },
+  { no:6, code:'NEST', buy:610,    sl:595,    triggerBuy:'2026-07-02', kat:'ST' },
+  { no:7, code:'RGAS', buy:232,    sl:218,    triggerBuy:'2026-07-28', kat:'ST' },
 ];
 
 const komPrices = {};
@@ -7899,9 +7470,9 @@ function refreshKomDays() {
 
 // ── KOMUNITAS: Trading Idea ──────────────────────────────
 const KOM_IDEA = [
-  { no:1, code:'BACH', buy:610, sl:530, triggerBuy:'2026-07-16', note:'* Jika harga menyentuh level ini, masuk Open Posisi' },
-  { no:2, code:'',     buy:0,   sl:0,   triggerBuy:'2026-07-02', note:'' },
-  { no:3, code:'',     buy:0,   sl:0,   triggerBuy:'2026-06-23', note:'' },
+  { no:1, code:'WGSH', buy:171, sl:147, triggerBuy:'2026-08-05', note:'* Jika harga menyentuh level ini, masuk Open Posisi' },
+  { no:2, code:'BAIK', buy:775, sl:730, triggerBuy:'2026-08-05', note:'* Jika harga menyentuh level ini, masuk Open Posisi' },
+  { no:3, code:'RANS', buy:226, sl:198, triggerBuy:'2026-08-05', note:'* Jika harga menyentuh level ini, masuk Open Posisi' },
 ];
 
 const komIdeaPrices = {};
@@ -7973,8 +7544,24 @@ let _komAssetType = 'idx';
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+const KOM_CUSTOM_SEED = [
+  { id:'trading-class', name:'Trading Class', subtitle:'Portofolio anggota Trading Class', type:'open_posisi', entries:[
+    { code:'BAIK', buy:685.00,   sl:685.00,   triggerBuy:'2026-08-04', kat:'HOLD', isIDX:true },
+    { code:'DEWA', buy:458.00,   sl:458.00,   triggerBuy:'2026-08-04', kat:'HOLD', isIDX:true },
+    { code:'MBSS', buy:2610.00,  sl:2610.00,  triggerBuy:'2026-08-04', kat:'HOLD', isIDX:true },
+    { code:'NEST', buy:615.00,   sl:615.00,   triggerBuy:'2026-08-04', kat:'HOLD', isIDX:true },
+    { code:'PKPK', buy:3219.84,  sl:3219.84,  triggerBuy:'2026-08-04', kat:'HOLD', isIDX:true },
+  ]},
+];
 function loadKomCustom() {
-  try { return JSON.parse(localStorage.getItem('kom_custom_v1') || '[]'); } catch(e) { return []; }
+  try {
+    const raw = localStorage.getItem('kom_custom_v1');
+    if (!raw) return JSON.parse(JSON.stringify(KOM_CUSTOM_SEED));
+    const stored = JSON.parse(raw);
+    const storedIds = new Set(stored.map(g => g.id));
+    const added = KOM_CUSTOM_SEED.filter(g => !storedIds.has(g.id));
+    return added.length ? [...stored, ...JSON.parse(JSON.stringify(added))] : stored;
+  } catch(e) { return JSON.parse(JSON.stringify(KOM_CUSTOM_SEED)); }
 }
 function saveKomCustom(data) {
   try { localStorage.setItem('kom_custom_v1', JSON.stringify(data)); } catch(e) {}
@@ -8281,6 +7868,7 @@ async function fetchWatchlist(force) {
     const batch = unique.slice(i, i + BATCH);
     const results = await Promise.all(batch.map(yf => fetchWlQuote(yf)));
     batch.forEach((yf, idx) => { if (results[idx]) wlPrices[yf] = results[idx]; });
+    renderWatchlist(); // progressive fill-in instead of one long blank wait
   }
 
   // Update IHSG chip
@@ -8408,23 +7996,16 @@ function openWlChartIdx(sym) {
   } else {
     document.getElementById('modal-posinfo').textContent = 'Watchlist';
   }
-  document.querySelectorAll('#modal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
-  document.getElementById('tf-1y').classList.add('on');
   document.getElementById('stock-modal').classList.add('on');
-  fetchStockChart(sym, '1y', '1d');
+  renderTvWidget('modal-tv-chart', toTvSymbol(sym, 'idx'));
 }
 
 function openWlChartUsd(yf, name) {
   aModalSym = yf; aModalAvgUSD = 0; aModalShares = 0; aModalName = name;
-  aModalChartType = 'line'; aModalCached = null;
   document.getElementById('amodal-sym').textContent = name;
   document.getElementById('amodal-posinfo').textContent = yf;
-  document.querySelectorAll('#amodal-tf-row .tf-btn').forEach(b => b.classList.remove('on'));
-  document.getElementById('atf-1y').classList.add('on');
-  document.querySelectorAll('#amodal-type-btns .tf-btn').forEach(b => b.classList.remove('on'));
-  document.querySelector('#amodal-type-btns .tf-btn').classList.add('on');
   document.getElementById('asset-modal').classList.add('on');
-  fetchAssetChart(yf, '1y', '1d');
+  renderTvWidget('amodal-tv-chart', toTvSymbol(yf, 'asset'));
 }
 
 // ── CUSTOM WATCHLIST MANAGEMENT ──────────────────────────
@@ -8511,7 +8092,8 @@ function removeWlItem(yf) {
 // ── DATA SYNC (Firebase Realtime) ────────────────────────────────
 const SYNC_KEYS = [
   'porto_holdings_v1', 'idx_trades_v3', 'idx_cash_v2', 'jurnal_sub', 'gt_trades_v1', 'cr_trades_v1',
-  'idx_cash_hist_v1', 'tangem_v1', 'finnhub_key', 'wl_custom_v1', 'kom_custom_v1', 'idx_active_tab'
+  'idx_cash_hist_v1', 'tangem_v1', 'finnhub_key', 'wl_custom_v1', 'kom_custom_v1', 'idx_active_tab',
+  'gt_dividends_v1', 'grand_hist_v1', 'incaran_data_v1'
 ];
 
 // Firebase config
@@ -8602,7 +8184,7 @@ localStorage.setItem = function(key, value) {
 
 function openSyncModal() {
   document.getElementById('sync-modal').style.display = 'flex';
-  if (!_fbUserId) {
+  if (!_fbApp) {
     initFirebaseSync();
   }
   document.getElementById('sync-status').textContent = '';
@@ -8657,6 +8239,29 @@ function resetFirebaseSync() {
 
   closeSyncModal();
   showToast('Disconnected dari Firebase');
+}
+
+// Holdings/trade caches that shadow the code's SEED defaults once populated
+// (locally and/or on Firebase) — this is what "Reset ke Default" clears.
+const RESET_KEYS = ['porto_holdings_v1', 'idx_trades_v3', 'idx_cash_v2', 'idx_cash_hist_v1', 'tangem_v1', 'gt_trades_v1', 'cr_trades_v1', 'kom_custom_v1', 'gt_dividends_v1', 'incaran_data_v1'];
+
+async function resetToDefaults() {
+  if (!confirm('Ini akan menghapus data Porto, Jurnal IDX, Cash, Tangem, Gotrade, dan Crypto yang tersimpan di perangkat ini dan di Firebase, lalu memuat ulang nilai default terbaru dari kode. Data yang sudah kamu input manual akan hilang. Lanjutkan?')) return;
+
+  const statusEl = document.getElementById('sync-status');
+  if (statusEl) statusEl.textContent = '⟳ Mereset…';
+
+  RESET_KEYS.forEach(k => { try { localStorage.removeItem(k); } catch(e) {} });
+
+  if (_fbDb) {
+    try {
+      const sharedDataRef = _fbDb.ref('shared/data');
+      await Promise.all(RESET_KEYS.map(k => sharedDataRef.child(k).remove()));
+    } catch(e) { console.error('Reset Firebase error:', e); }
+  }
+
+  showToast('✓ Direset ke default, memuat ulang…');
+  setTimeout(() => location.reload(), 700);
 }
 
 // Auto-init Firebase on load
