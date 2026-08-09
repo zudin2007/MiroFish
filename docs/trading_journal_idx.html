@@ -1206,6 +1206,11 @@ const WL_GROUPS = [
   ]},
 ];
 const SAMPLE_TRADES = [
+  { id:'s10', date:'2026-08-07', code:'BRPT', action:'Buy',  lot:0.6,   price:1940, fee:0,    strat:'Value',    emotion:'Discipline', notes:'BRPT accumulation',                  pnl:null   },
+  { id:'s9',  date:'2026-08-07', code:'BULL', action:'Buy',  lot:1.9,   price:480,  fee:0,    strat:'Value',    emotion:'Discipline', notes:'BULL accumulation mid-dip',           pnl:null   },
+  { id:'s8a', date:'2026-08-07', code:'DEWA', action:'Buy',  lot:1.5,   price:476,  fee:0,    strat:'Value',    emotion:'Discipline', notes:'DEWA buy tranche 2 @ lower price',   pnl:null   },
+  { id:'s8',  date:'2026-08-07', code:'DEWA', action:'Buy',  lot:1.9,   price:482,  fee:0,    strat:'Value',    emotion:'Discipline', notes:'DEWA accumulation',                   pnl:null   },
+  { id:'s7a', date:'2026-08-07', code:'GJTL', action:'Sell', lot:1.4,   price:1310, fee:0,    strat:'Swing',    emotion:'Profit',    notes:'GJTL swing profit taking -0.3%',     pnl:-12340 },
   { id:'s7', date:'2026-07-13', code:'BNBA', action:'Sell', lot:0.2,  price:735,  fee:43,   strat:'Swing',    emotion:'FOMO',       notes:'BNBA -80.2% — FOMO gorengan. Rule: max 5% portfolio untuk spekulatif', pnl:-59460 },
   { id:'s6', date:'2026-07-13', code:'BBCA', action:'Sell', lot:1,    price:6600, fee:1914, strat:'Swing',    emotion:'Discipline', notes:'Swing Value thesis worked',         pnl:45000  },
   { id:'s1', date:'2024-12-02', code:'BBCA', action:'Buy',  lot:1,    price:6150, fee:2500, strat:'Value',    emotion:'Discipline', notes:'Akumulasi BBCA bluechip',           pnl:null   },
@@ -6728,10 +6733,11 @@ function renderGotrade() {
 // ══ CRYPTO (TANGEM WALLET) ════════════════════════════════
 // t=ticker(yahoo), n=display name, s=units, a=avgUSD, c=costIDR, at=allTimeIDR, rz=realizedIDR, ry=rlzdYTDIDR
 const CRYPTO_HOLDINGS_SEED = [
-  {t:'BTC-USD', n:'Bitcoin',    s:0.11918,   a:75559.10,  c:154749424.41, at: 73555755.94, rz: 90114245.72, ry:-10874722.45},
-  {t:'GC%3DF',  n:'XAU/USD',   s:1.059,     a:4892.41,   c:87823421.17,  at: -9939561.58, rz:   813045.48, ry:   813045.48},
-  {t:'ARM',     n:'ARM (ON)',   s:0.078655,  a:397.00,    c:558664.64,    at:null,         rz:null,         ry:null},
-  {t:'ORCL',    n:'ORCL (ON)',  s:0.066165,  a:179.66,    c:206220.72,    at:null,         rz:null,         ry:null},
+  {t:'BTC-USD', n:'Bitcoin',    s:0.11981,   a:75559.10,  c:154749424.41, at: 73555755.94, rz: 90114245.72, ry:-10874722.45},
+  {t:'GC%3DF',  n:'XAU/USD',   s:0.98523,   a:4892.41,   c:87823421.17,  at: -9939561.58, rz:   813045.48, ry:   813045.48},
+  {t:'ARM',     n:'ARMON-USD',  s:0.078655,  a:397.00,    c:558664.64,    at:null,         rz:null,         ry:null},
+  {t:'ORCL',    n:'ORCLON-USD', s:0.066165,  a:179.66,    c:206220.72,    at:null,         rz:null,         ry:null},
+  {t:'KAS',     n:'Kaspa-USD',  s:354.00,    a:76.71,     c:465520.00,    at:null,         rz:null,         ry:null},
 ];
 const CRYPTO_COST_IDR  = 243337730.93;
 const CRYPTO_REALIZED  =  82706536.37;
